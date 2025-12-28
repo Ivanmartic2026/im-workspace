@@ -7,6 +7,7 @@ import Schedule from './pages/Schedule';
 import Team from './pages/Team';
 import VehicleDetails from './pages/VehicleDetails';
 import Vehicles from './pages/Vehicles';
+import EditVehicle from './pages/EditVehicle';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "Team": Team,
     "VehicleDetails": VehicleDetails,
     "Vehicles": Vehicles,
+    "EditVehicle": EditVehicle,
 }
 
 export const pagesConfig = {
