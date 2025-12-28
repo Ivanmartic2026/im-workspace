@@ -63,7 +63,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockIn = async () => {
-    if (!selectedCategory) return;
+    if (!selectedCategory || !userEmail) {
+      alert('Kunde inte identifiera användare. Vänligen ladda om sidan.');
+      return;
+    }
     
     setLoading(true);
     
@@ -281,7 +284,8 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         ) : (
           <Button
             onClick={() => setShowCategorySelect(true)}
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium"
+            disabled={!userEmail}
+            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium disabled:opacity-50"
           >
             <LogIn className="w-5 h-5 mr-2" />
             Stämpla in
