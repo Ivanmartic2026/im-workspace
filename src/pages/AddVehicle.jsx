@@ -22,6 +22,7 @@ export default function AddVehicle() {
     make: '',
     model: '',
     year: '',
+    category: 'personbil',
     vehicle_type: 'personbil',
     fuel_type: 'bensin',
     fuel_cards: [],
@@ -312,6 +313,25 @@ export default function AddVehicle() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category">Kategori</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personbil">Personbil</SelectItem>
+                      <SelectItem value="lätt lastbil">Lätt lastbil</SelectItem>
+                      <SelectItem value="lastbil">Lastbil</SelectItem>
+                      <SelectItem value="skåpbil">Skåpbil</SelectItem>
+                      <SelectItem value="specialfordon">Specialfordon</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

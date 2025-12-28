@@ -9,6 +9,7 @@ import Team from './pages/Team';
 import VehicleDetails from './pages/VehicleDetails';
 import Vehicles from './pages/Vehicles';
 import VehicleTracking from './pages/VehicleTracking';
+import GPS from './pages/GPS';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "VehicleDetails": VehicleDetails,
     "Vehicles": Vehicles,
     "VehicleTracking": VehicleTracking,
+    "GPS": GPS,
 }
 
 export const pagesConfig = {

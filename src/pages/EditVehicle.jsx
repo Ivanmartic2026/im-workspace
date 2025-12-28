@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Loader2, X } from "lucide-react";
+import { ArrowLeft, Loader2, X, Upload, Sparkles } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion } from "framer-motion";
@@ -17,6 +17,8 @@ export default function EditVehicle() {
   const urlParams = new URLSearchParams(window.location.search);
   const vehicleId = urlParams.get('id');
   const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [formData, setFormData] = useState(null);
 
   const { data: vehicle, isLoading } = useQuery({
@@ -36,6 +38,7 @@ export default function EditVehicle() {
         make: vehicle.make || '',
         model: vehicle.model || '',
         year: vehicle.year || '',
+        category: vehicle.category || 'personbil',
         vehicle_type: vehicle.vehicle_type || 'personbil',
         fuel_type: vehicle.fuel_type || 'bensin',
         fuel_cards: vehicle.fuel_cards || [],
@@ -45,10 +48,68 @@ export default function EditVehicle() {
         next_inspection_date: vehicle.next_inspection_date || '',
         tire_change_date: vehicle.tire_change_date || '',
         status: vehicle.status || 'aktiv',
+        image_url: vehicle.image_url || '',
         notes: vehicle.notes || ''
       });
+      setUploadedImage(vehicle.image_url || null);
     }
   }, [vehicle]);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setAnalyzing(true);
+
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setUploadedImage(file_url);
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analysera denna bild av fordonsinformation och extrahera följande uppgifter om fordonet:
+        - Registreringsnummer
+        - Märke (t.ex. Volvo, Tesla)
+        - Modell
+        - Årsmodell (endast året som nummer)
+        - Fordonstyp (välj en av: personbil, lätt lastbil, lastbil, skåpbil, annat)
+        - Bränsletyp (välj en av: bensin, diesel, el, hybrid, plugin-hybrid, annat)
+        
+        Om någon uppgift inte finns synlig i bilden, använd null för det fältet.
+        Svara endast med strukturerad data enligt schemat.`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            registration_number: { type: ["string", "null"] },
+            make: { type: ["string", "null"] },
+            model: { type: ["string", "null"] },
+            year: { type: ["number", "null"] },
+            vehicle_type: { type: ["string", "null"] },
+            fuel_type: { type: ["string", "null"] }
+          }
+        }
+      });
+
+      setFormData(prev => ({
+        ...prev,
+        ...Object.fromEntries(
+          Object.entries(response).filter(([_, value]) => value !== null)
+        ),
+        image_url: file_url
+      }));
+
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      alert('Kunde inte analysera bilden. Du kan fortfarande fylla i uppgifterna manuellt.');
+    }
+
+    setAnalyzing(false);
+  };
+
+  const removeImage = () => {
+    setUploadedImage(null);
+    setFormData(prev => ({ ...prev, image_url: '' }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,10 +169,63 @@ export default function EditVehicle() {
         </motion.div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Image Upload */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+          >
+            <Card className="border-0 shadow-sm overflow-hidden">
+              <CardContent className="p-6">
+                <Label className="text-sm font-medium text-slate-700 mb-3 block">
+                  Fordonsbild
+                </Label>
+
+                {!uploadedImage ? (
+                  <label className="relative flex flex-col items-center justify-center h-48 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-slate-300 hover:bg-slate-50 transition-all">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={analyzing}
+                    />
+                    {analyzing ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+                        <p className="text-sm text-slate-600 font-medium">Analyserar bild...</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                          <Upload className="w-6 h-6 text-slate-400" />
+                        </div>
+                        <p className="text-sm font-medium text-slate-700">Klicka för att ladda upp</p>
+                      </div>
+                    )}
+                  </label>
+                ) : (
+                  <div className="relative rounded-2xl overflow-hidden">
+                    <img src={uploadedImage} alt="Fordon" className="w-full h-48 object-cover" />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-md"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
           >
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 space-y-4">
@@ -196,6 +310,25 @@ export default function EditVehicle() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="category">Kategori</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personbil">Personbil</SelectItem>
+                      <SelectItem value="lätt lastbil">Lätt lastbil</SelectItem>
+                      <SelectItem value="lastbil">Lastbil</SelectItem>
+                      <SelectItem value="skåpbil">Skåpbil</SelectItem>
+                      <SelectItem value="specialfordon">Specialfordon</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="vehicle_type">Fordonstyp</Label>
@@ -254,7 +387,7 @@ export default function EditVehicle() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
           >
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 space-y-4">
@@ -314,7 +447,7 @@ export default function EditVehicle() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.4 }}
           >
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 space-y-4">
@@ -407,7 +540,7 @@ export default function EditVehicle() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.5 }}
           >
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 space-y-4">
@@ -428,7 +561,7 @@ export default function EditVehicle() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.6 }}
             className="flex gap-3"
           >
             <Button

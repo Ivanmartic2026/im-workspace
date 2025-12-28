@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, FileText, Calendar, Palmtree, Users, User, Car } from 'lucide-react';
+import { Home, FileText, Calendar, Palmtree, Users, User, Car, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
   { name: 'Vehicles', label: 'Fordon', icon: Car },
+  { name: 'GPS', label: 'GPS', icon: Navigation },
   { name: 'Documents', label: 'Dokument', icon: FileText },
   { name: 'Leave', label: 'Tid', icon: Palmtree },
   { name: 'Team', label: 'Team', icon: Users },

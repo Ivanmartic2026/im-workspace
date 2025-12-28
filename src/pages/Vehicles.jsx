@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Search, Plus, Car } from "lucide-react";
+import { Search, Plus, Car, Filter } from "lucide-react";
 import VehicleCard from "@/components/vehicles/VehicleCard";
 import QuickActionButtons from "@/components/vehicles/QuickActionButtons";
 import FuelLogModal from "@/components/vehicles/FuelLogModal";
@@ -18,6 +18,7 @@ export default function Vehicles() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('alla');
   const [activeModal, setActiveModal] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const queryClient = useQueryClient();
@@ -42,7 +43,9 @@ export default function Vehicles() {
       vehicle.make?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vehicle.model?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesSearch;
+    const matchesCategory = categoryFilter === 'alla' || vehicle.category === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
   });
 
   const handleQuickAction = (actionId) => {
@@ -89,6 +92,23 @@ export default function Vehicles() {
           <div className="mb-6">
             <h3 className="text-sm font-medium text-slate-700 mb-3">Snabbåtgärder</h3>
             <QuickActionButtons onAction={handleQuickAction} />
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+            {['alla', 'personbil', 'lätt lastbil', 'lastbil', 'skåpbil', 'specialfordon'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  categoryFilter === cat
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {cat === 'alla' ? 'Alla' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </button>
+            ))}
           </div>
 
           {/* Search */}
