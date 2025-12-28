@@ -10,6 +10,7 @@ import CreateLeaveModal from "@/components/leave/CreateLeaveModal";
 import ClockInOutCard from "@/components/time/ClockInOutCard";
 import TimeEntryList from "@/components/time/TimeEntryList";
 import TimeStats from "@/components/time/TimeStats";
+import TimeHistory from "@/components/time/TimeHistory";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Leave() {
@@ -140,8 +141,8 @@ export default function Leave() {
             </div>
             
             <div>
-              <h3 className="text-sm font-medium text-slate-500 mb-3">Senaste registreringar</h3>
-              <TimeEntryList entries={timeEntries} />
+              <h3 className="text-sm font-medium text-slate-500 mb-3">Historik</h3>
+              <TimeHistory entries={timeEntries} />
             </div>
           </TabsContent>
 
