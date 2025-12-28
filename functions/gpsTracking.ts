@@ -32,10 +32,17 @@ async function getGPSToken() {
     })
   });
 
-  const data = await response.json();
+  const text = await response.text();
+  
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error(`GPS API returned non-JSON response. URL: ${GPS_URL}, Status: ${response.status}, Response: ${text.substring(0, 200)}`);
+  }
   
   if (data.status !== 0) {
-    throw new Error(`GPS login failed: ${data.cause}`);
+    throw new Error(`GPS login failed: ${data.cause || 'Unknown error'}`);
   }
 
   // Spara token med 23 timmars giltighet
@@ -54,7 +61,13 @@ async function callGPSAPI(action, params = {}) {
     body: JSON.stringify(params)
   });
 
-  return await response.json();
+  const text = await response.text();
+  
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error(`GPS API returned non-JSON response for action '${action}'. Status: ${response.status}, Response: ${text.substring(0, 200)}`);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -100,8 +113,8 @@ Deno.serve(async (req) => {
         // Hämta resor (baserat på tändning/släckning)
         result = await callGPSAPI('querytrips', {
           deviceid: params.deviceId,
-          begintime: params.startTime,
-          endtime: params.endTime,
+          begintime: params.begintime,
+          endtime: params.endtime,
           timezone: 1
         });
         break;
