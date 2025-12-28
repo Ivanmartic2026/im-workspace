@@ -107,7 +107,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockOut = async () => {
-    if (!activeEntry) return;
+    if (!activeEntry) {
+      alert('Ingen aktiv instämpling hittades');
+      return;
+    }
     
     setLoading(true);
     
@@ -136,13 +139,13 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       
       await base44.entities.TimeEntry.update(activeEntry.id, updateData);
       
-      onUpdate();
+      await onUpdate();
     } catch (error) {
       console.error('Error clocking out:', error);
-      alert('Kunde inte stämpla ut. Försök igen.');
+      alert('Kunde inte stämpla ut: ' + (error.message || 'Okänt fel'));
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const getWorkDuration = () => {
