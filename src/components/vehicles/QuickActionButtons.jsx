@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 const actions = [
   { id: 'fuel', label: 'Tankning', icon: Fuel, color: 'bg-blue-500 hover:bg-blue-600' },
-  { id: 'issue', label: 'Rapportera fel', icon: AlertCircle, color: 'bg-rose-500 hover:bg-rose-600' },
+  { id: 'incident', label: 'Rapportera händelse', icon: AlertCircle, color: 'bg-rose-500 hover:bg-rose-600' },
   { id: 'service', label: 'Boka service', icon: Wrench, color: 'bg-amber-500 hover:bg-amber-600' },
 ];
 
