@@ -34,7 +34,7 @@ export default function Leave() {
 
   const { data: myRequests = [], isLoading: loadingMine } = useQuery({
     queryKey: ['myLeaveRequests', user?.email],
-    queryFn: () => base44.entities.LeaveRequest.filter({ employee_email: user?.email }, '-created_date'),
+    queryFn: () => base44.entities.LeaveRequest.filter({ employee_email: user?.email }, '-start_date', 100),
     enabled: !!user,
   });
 
@@ -48,7 +48,7 @@ export default function Leave() {
     queryKey: ['timeEntries', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const entries = await base44.entities.TimeEntry.filter({ employee_email: user.email }, '-created_date', 30);
+      const entries = await base44.entities.TimeEntry.filter({ employee_email: user.email }, '-created_date', 100);
       return entries;
     },
     enabled: !!user?.email

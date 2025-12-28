@@ -15,6 +15,7 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
     type: 'semester',
     start_date: '',
     end_date: '',
+    hours_per_day: 8,
     reason: ''
   });
 
@@ -39,6 +40,7 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
         type: 'semester',
         start_date: '',
         end_date: '',
+        hours_per_day: 8,
         reason: ''
       });
     } catch (error) {
@@ -102,11 +104,29 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="hours_per_day">Timmar per dag</Label>
+            <Input
+              id="hours_per_day"
+              type="number"
+              value={formData.hours_per_day}
+              onChange={(e) => setFormData(prev => ({ ...prev, hours_per_day: Number(e.target.value) }))}
+              className="h-11"
+              min="0.5"
+              max="24"
+              step="0.5"
+              required
+            />
+          </div>
+
           {days > 0 && (
             <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
               <CalendarDays className="h-4 w-4 text-slate-500" />
               <span className="text-sm text-slate-600">
                 Totalt <span className="font-semibold">{days} {days === 1 ? 'dag' : 'dagar'}</span>
+                {formData.hours_per_day && formData.hours_per_day !== 8 && (
+                  <span className="ml-2">({formData.hours_per_day}h/dag = {days * formData.hours_per_day}h totalt)</span>
+                )}
               </span>
             </div>
           )}
