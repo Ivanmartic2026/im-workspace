@@ -7,13 +7,23 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Car, Fuel, Wrench, AlertCircle, Calendar, 
-  FileText, User, MapPin, Hash, Zap, CreditCard 
+  FileText, User, MapPin, Hash, Zap, CreditCard, Edit, Trash2 
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const statusColors = {
   aktiv: "bg-emerald-100 text-emerald-700",
@@ -23,7 +33,9 @@ const statusColors = {
 };
 
 export default function VehicleDetails() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const urlParams = new URLSearchParams(window.location.search);
   const vehicleId = urlParams.get('id');
 
@@ -69,6 +81,16 @@ export default function VehicleDetails() {
   const activeIssues = issues.filter(i => !['klar', 'avbruten'].includes(i.status));
   const recentFuelLogs = fuelLogs.slice(0, 5);
 
+  const handleDelete = async () => {
+    try {
+      await base44.entities.Vehicle.delete(vehicleId);
+      navigate(createPageUrl('Vehicles'));
+    } catch (error) {
+      console.error('Error deleting vehicle:', error);
+      alert('Kunde inte ta bort fordonet');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
@@ -78,12 +100,34 @@ export default function VehicleDetails() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <Link to={createPageUrl('Vehicles')}>
-            <Button variant="ghost" size="sm" className="mb-4 -ml-2">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Tillbaka
-            </Button>
-          </Link>
+          <div className="flex items-center justify-between mb-4">
+            <Link to={createPageUrl('Vehicles')}>
+              <Button variant="ghost" size="sm" className="-ml-2">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Tillbaka
+              </Button>
+            </Link>
+            {user?.role === 'admin' && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(createPageUrl('EditVehicle') + `?id=${vehicleId}`)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Redigera
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* Vehicle Image & Main Info */}
           <Card className="border-0 shadow-md overflow-hidden mb-6">
@@ -336,6 +380,23 @@ export default function VehicleDetails() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ta bort fordon</AlertDialogTitle>
+            <AlertDialogDescription>
+              Är du säker på att du vill ta bort {vehicle.registration_number}? Denna åtgärd kan inte ångras.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-rose-600 hover:bg-rose-700">
+              Ta bort
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
