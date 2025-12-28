@@ -9,6 +9,7 @@ import VehicleCard from "@/components/vehicles/VehicleCard";
 import QuickActionButtons from "@/components/vehicles/QuickActionButtons";
 import FuelLogModal from "@/components/vehicles/FuelLogModal";
 import ReportIssueModal from "@/components/vehicles/ReportIssueModal";
+import BookServiceModal from "@/components/vehicles/BookServiceModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
@@ -165,6 +166,15 @@ export default function Vehicles() {
 
       <ReportIssueModal
         open={activeModal === 'issue'}
+        onClose={() => setActiveModal(null)}
+        onSuccess={handleModalSuccess}
+        vehicles={vehicles}
+        selectedVehicle={selectedVehicle || defaultVehicle}
+        userEmail={user?.email}
+      />
+
+      <BookServiceModal
+        open={activeModal === 'service'}
         onClose={() => setActiveModal(null)}
         onSuccess={handleModalSuccess}
         vehicles={vehicles}
