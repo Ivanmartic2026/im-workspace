@@ -6,6 +6,18 @@ import { format, parseISO } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 
+const categoryColors = {
+  support_service: "bg-blue-100 text-blue-700 border-blue-200",
+  install: "bg-purple-100 text-purple-700 border-purple-200",
+  interntid: "bg-slate-100 text-slate-700 border-slate-200"
+};
+
+const categoryLabels = {
+  support_service: "Support & Service",
+  install: "Install",
+  interntid: "Interntid"
+};
+
 export default function TimeEntryList({ entries }) {
   if (!entries || entries.length === 0) {
     return (
@@ -38,9 +50,14 @@ export default function TimeEntryList({ entries }) {
                       {format(clockIn, 'd MMM yyyy', { locale: sv })}
                     </span>
                   </div>
-                  <Badge variant={entry.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                    {entry.status === 'completed' ? 'Avslutat' : 'Pågående'}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`text-xs ${categoryColors[entry.category]}`}>
+                      {categoryLabels[entry.category]}
+                    </Badge>
+                    <Badge variant={entry.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
+                      {entry.status === 'completed' ? 'Avslutat' : 'Pågående'}
+                    </Badge>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

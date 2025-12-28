@@ -7,10 +7,17 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 
+const categories = [
+  { id: 'support_service', label: 'Support & Service', color: 'bg-blue-500' },
+  { id: 'install', label: 'Install', color: 'bg-purple-500' },
+  { id: 'interntid', label: 'Interntid', color: 'bg-slate-500' }
+];
+
 export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [location, setLocation] = useState(null);
+  const [showCategorySelect, setShowCategorySelect] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -29,7 +36,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
           const { latitude, longitude } = position.coords;
           
           try {
-            // Get address from coordinates using reverse geocoding
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=sv`
             );
@@ -57,22 +63,25 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockIn = async () => {
+    if (!selectedCategory) return;
+    
     setLoading(true);
     
     try {
       const location = await getLocation();
-      setLocation(location);
-      
       const today = format(new Date(), 'yyyy-MM-dd');
       
       await base44.entities.TimeEntry.create({
         employee_email: userEmail,
         date: today,
+        category: selectedCategory,
         clock_in_time: new Date().toISOString(),
         clock_in_location: location,
         status: 'active'
       });
       
+      setShowCategorySelect(false);
+      setSelectedCategory(null);
       onUpdate();
     } catch (error) {
       console.error('Error clocking in:', error);
@@ -89,7 +98,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     
     try {
       const location = await getLocation();
-      setLocation(location);
       
       const clockInTime = new Date(activeEntry.clock_in_time);
       const clockOutTime = new Date();
@@ -124,6 +132,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     return `${hours}h ${minutes}m`;
   };
 
+  const getCategoryInfo = (categoryId) => {
+    return categories.find(c => c.id === categoryId) || categories[0];
+  };
+
   return (
     <Card className="border-0 shadow-sm overflow-hidden">
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6">
@@ -146,7 +158,12 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
             <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-xl">
               <LogIn className="h-5 w-5 text-emerald-600 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-emerald-900">Instämplad</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-medium text-emerald-900">Instämplad</p>
+                  <span className={`px-2 py-0.5 rounded-full text-xs text-white ${getCategoryInfo(activeEntry.category).color}`}>
+                    {getCategoryInfo(activeEntry.category).label}
+                  </span>
+                </div>
                 <p className="text-xs text-emerald-700 mt-1">
                   {format(new Date(activeEntry.clock_in_time), 'HH:mm')}
                 </p>
@@ -181,23 +198,70 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               )}
             </Button>
           </div>
+        ) : showCategorySelect ? (
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-slate-700 mb-3">Välj arbetskategori</p>
+              <div className="space-y-2">
+                {categories.map(category => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`w-full p-4 rounded-xl border-2 transition-all ${
+                      selectedCategory === category.id
+                        ? 'border-slate-900 bg-slate-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-lg ${category.color} flex items-center justify-center`}>
+                        <Clock className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="font-medium text-slate-900">{category.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowCategorySelect(false);
+                  setSelectedCategory(null);
+                }}
+                className="flex-1 h-12 rounded-2xl"
+              >
+                Avbryt
+              </Button>
+              <Button
+                onClick={handleClockIn}
+                disabled={loading || !selectedCategory}
+                className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 rounded-2xl"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Stämplar in...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Stämpla in
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         ) : (
           <Button
-            onClick={handleClockIn}
-            disabled={loading}
+            onClick={() => setShowCategorySelect(true)}
             className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium"
           >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Stämplar in...
-              </>
-            ) : (
-              <>
-                <LogIn className="w-5 h-5 mr-2" />
-                Stämpla in
-              </>
-            )}
+            <LogIn className="w-5 h-5 mr-2" />
+            Stämpla in
           </Button>
         )}
 

@@ -9,6 +9,7 @@ import LeaveRequestCard from "@/components/leave/LeaveRequestCard";
 import CreateLeaveModal from "@/components/leave/CreateLeaveModal";
 import ClockInOutCard from "@/components/time/ClockInOutCard";
 import TimeEntryList from "@/components/time/TimeEntryList";
+import TimeStats from "@/components/time/TimeStats";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Leave() {
@@ -132,6 +133,11 @@ export default function Leave() {
                 queryClient.invalidateQueries({ queryKey: ['employees'] });
               }}
             />
+            
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 mb-3">Översikt</h3>
+              <TimeStats entries={timeEntries} />
+            </div>
             
             <div>
               <h3 className="text-sm font-medium text-slate-500 mb-3">Senaste registreringar</h3>
