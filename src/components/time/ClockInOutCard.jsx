@@ -1,0 +1,211 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Clock, MapPin, Loader2, LogIn, LogOut } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
+import { motion } from "framer-motion";
+
+export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
+  const [loading, setLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolokalisering stöds inte'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          try {
+            // Get address from coordinates using reverse geocoding
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=sv`
+            );
+            const data = await response.json();
+            
+            resolve({
+              latitude,
+              longitude,
+              address: data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            });
+          } catch (error) {
+            resolve({
+              latitude,
+              longitude,
+              address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            });
+          }
+        },
+        (error) => {
+          reject(error);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  };
+
+  const handleClockIn = async () => {
+    setLoading(true);
+    
+    try {
+      const location = await getLocation();
+      setLocation(location);
+      
+      const today = format(new Date(), 'yyyy-MM-dd');
+      
+      await base44.entities.TimeEntry.create({
+        employee_email: userEmail,
+        date: today,
+        clock_in_time: new Date().toISOString(),
+        clock_in_location: location,
+        status: 'active'
+      });
+      
+      onUpdate();
+    } catch (error) {
+      console.error('Error clocking in:', error);
+      alert('Kunde inte stämpla in. Kontrollera att du har gett tillgång till platsdata.');
+    }
+    
+    setLoading(false);
+  };
+
+  const handleClockOut = async () => {
+    if (!activeEntry) return;
+    
+    setLoading(true);
+    
+    try {
+      const location = await getLocation();
+      setLocation(location);
+      
+      const clockInTime = new Date(activeEntry.clock_in_time);
+      const clockOutTime = new Date();
+      const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
+      
+      await base44.entities.TimeEntry.update(activeEntry.id, {
+        clock_out_time: clockOutTime.toISOString(),
+        clock_out_location: location,
+        total_hours: Number(totalHours.toFixed(2)),
+        status: 'completed'
+      });
+      
+      onUpdate();
+    } catch (error) {
+      console.error('Error clocking out:', error);
+      alert('Kunde inte stämpla ut. Kontrollera att du har gett tillgång till platsdata.');
+    }
+    
+    setLoading(false);
+  };
+
+  const getWorkDuration = () => {
+    if (!activeEntry) return null;
+    
+    const start = new Date(activeEntry.clock_in_time);
+    const now = new Date();
+    const diff = now - start;
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours}h ${minutes}m`;
+  };
+
+  return (
+    <Card className="border-0 shadow-sm overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-white/10 backdrop-blur-sm mb-4">
+            <Clock className="h-8 w-8 text-white" />
+          </div>
+          <div className="text-4xl font-bold text-white mb-2">
+            {format(currentTime, 'HH:mm:ss')}
+          </div>
+          <div className="text-sm text-white/70">
+            {format(currentTime, 'EEEE d MMMM yyyy', { locale: sv })}
+          </div>
+        </div>
+      </div>
+
+      <CardContent className="p-6">
+        {activeEntry ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-xl">
+              <LogIn className="h-5 w-5 text-emerald-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-emerald-900">Instämplad</p>
+                <p className="text-xs text-emerald-700 mt-1">
+                  {format(new Date(activeEntry.clock_in_time), 'HH:mm')}
+                </p>
+                {activeEntry.clock_in_location && (
+                  <div className="flex items-start gap-1 mt-2 text-xs text-emerald-600">
+                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span className="line-clamp-2">{activeEntry.clock_in_location.address}</span>
+                  </div>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold text-emerald-900">{getWorkDuration()}</p>
+                <p className="text-xs text-emerald-600">arbetad tid</p>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleClockOut}
+              disabled={loading}
+              className="w-full h-14 bg-rose-600 hover:bg-rose-700 rounded-2xl text-base font-medium"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Stämplar ut...
+                </>
+              ) : (
+                <>
+                  <LogOut className="w-5 h-5 mr-2" />
+                  Stämpla ut
+                </>
+              )}
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={handleClockIn}
+            disabled={loading}
+            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Stämplar in...
+              </>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5 mr-2" />
+                Stämpla in
+              </>
+            )}
+          </Button>
+        )}
+
+        <p className="text-xs text-slate-500 text-center mt-3">
+          <MapPin className="inline h-3 w-3 mr-1" />
+          Din position registreras automatiskt
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
