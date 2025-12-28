@@ -7,13 +7,15 @@ import { Plus, CalendarPlus } from "lucide-react";
 import LeaveBalanceCard from "@/components/leave/LeaveBalanceCard";
 import LeaveRequestCard from "@/components/leave/LeaveRequestCard";
 import CreateLeaveModal from "@/components/leave/CreateLeaveModal";
+import ClockInOutCard from "@/components/time/ClockInOutCard";
+import TimeEntryList from "@/components/time/TimeEntryList";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Leave() {
   const [user, setUser] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('mine');
+  const [activeTab, setActiveTab] = useState('time');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -37,6 +39,18 @@ export default function Leave() {
     queryFn: () => base44.entities.LeaveRequest.filter({ status: 'pending' }, '-created_date'),
     enabled: user?.role === 'admin',
   });
+
+  const { data: timeEntries = [], refetch: refetchTimeEntries } = useQuery({
+    queryKey: ['timeEntries', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const entries = await base44.entities.TimeEntry.filter({ employee_email: user.email }, '-created_date', 30);
+      return entries;
+    },
+    enabled: !!user?.email
+  });
+
+  const activeTimeEntry = timeEntries.find(entry => entry.status === 'active');
 
   const updateRequestMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.LeaveRequest.update(id, data),
@@ -80,18 +94,9 @@ export default function Leave() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Ledighet</h1>
-              <p className="text-sm text-slate-500 mt-1">Ansök och hantera frånvaro</p>
-            </div>
-            <Button 
-              onClick={() => setShowCreateModal(true)}
-              className="rounded-full h-11 px-5 shadow-md hover:shadow-lg transition-all"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Ny ansökan
-            </Button>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-900">Tid & Frånvaro</h1>
+            <p className="text-sm text-slate-500 mt-1">Stämpla och hantera ledighet</p>
           </div>
 
           {/* Balance Cards */}
@@ -103,18 +108,50 @@ export default function Leave() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-          <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-2">
-            <TabsTrigger value="mine" className="rounded-xl data-[state=active]:shadow-sm">
-              Mina ansökningar
+          <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-3">
+            <TabsTrigger value="time" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+              Tidrapport
+            </TabsTrigger>
+            <TabsTrigger value="mine" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+              Ledighet
             </TabsTrigger>
             {user?.role === 'admin' && (
-              <TabsTrigger value="team" className="rounded-xl data-[state=active]:shadow-sm">
-                Att godkänna ({teamRequests.length})
+              <TabsTrigger value="team" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+                Team ({teamRequests.length})
               </TabsTrigger>
             )}
           </TabsList>
 
+          {/* Time Tab */}
+          <TabsContent value="time" className="mt-6 space-y-6">
+            <ClockInOutCard 
+              userEmail={user?.email}
+              activeEntry={activeTimeEntry}
+              onUpdate={() => {
+                refetchTimeEntries();
+                queryClient.invalidateQueries({ queryKey: ['employees'] });
+              }}
+            />
+            
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 mb-3">Senaste registreringar</h3>
+              <TimeEntryList entries={timeEntries} />
+            </div>
+          </TabsContent>
+
           <TabsContent value="mine" className="mt-6 space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-900">Mina ansökningar</h3>
+              <Button 
+                onClick={() => setShowCreateModal(true)}
+                size="sm"
+                className="rounded-full shadow-sm"
+              >
+                <Plus className="w-4 h-4 mr-1.5" />
+                Ansök
+              </Button>
+            </div>
+
             {/* Pending */}
             {pendingRequests.length > 0 && (
               <div>
@@ -174,6 +211,7 @@ export default function Leave() {
 
           {user?.role === 'admin' && (
             <TabsContent value="team" className="mt-6">
+              <h3 className="font-semibold text-slate-900 mb-4">Väntande ansökningar</h3>
               <AnimatePresence mode="popLayout">
                 {loadingTeam ? (
                   <div className="space-y-3">
