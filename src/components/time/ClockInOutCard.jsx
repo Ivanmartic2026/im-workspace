@@ -68,24 +68,36 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     setLoading(true);
     
     try {
-      const location = await getLocation();
+      let location;
+      try {
+        location = await getLocation();
+      } catch (locError) {
+        console.warn('Could not get location, continuing without:', locError);
+        location = null;
+      }
+      
       const today = format(new Date(), 'yyyy-MM-dd');
       
-      await base44.entities.TimeEntry.create({
+      const entryData = {
         employee_email: userEmail,
         date: today,
         category: selectedCategory,
         clock_in_time: new Date().toISOString(),
-        clock_in_location: location,
         status: 'active'
-      });
+      };
+      
+      if (location) {
+        entryData.clock_in_location = location;
+      }
+      
+      await base44.entities.TimeEntry.create(entryData);
       
       setShowCategorySelect(false);
       setSelectedCategory(null);
       onUpdate();
     } catch (error) {
       console.error('Error clocking in:', error);
-      alert('Kunde inte stämpla in. Kontrollera att du har gett tillgång till platsdata.');
+      alert('Kunde inte stämpla in: ' + error.message);
     }
     
     setLoading(false);
