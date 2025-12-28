@@ -126,8 +126,12 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       const clockInTime = new Date(activeEntry.clock_in_time);
       const clockOutTime = new Date();
       const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
-      
+
       const updateData = {
+        employee_email: activeEntry.employee_email,
+        date: activeEntry.date,
+        category: activeEntry.category,
+        clock_in_time: activeEntry.clock_in_time,
         clock_out_time: clockOutTime.toISOString(),
         total_hours: Number(totalHours.toFixed(2)),
         status: 'completed'
