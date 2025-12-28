@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Car, Fuel, Wrench, AlertCircle, Calendar, 
-  FileText, User, MapPin, Hash, Zap, CreditCard, Edit, Trash2 
+  FileText, User, MapPin, Hash, Zap, CreditCard, Edit, Trash2, Navigation 
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -109,6 +109,16 @@ export default function VehicleDetails() {
             </Link>
             {user?.role === 'admin' && (
               <div className="flex gap-2">
+                {vehicle.gps_device_id && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate(createPageUrl('VehicleTracking') + `?id=${vehicleId}`)}
+                  >
+                    <Navigation className="h-4 w-4 mr-2" />
+                    GPS
+                  </Button>
+                )}
                 <Button 
                   variant="outline" 
                   size="sm"

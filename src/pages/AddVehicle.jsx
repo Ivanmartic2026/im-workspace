@@ -19,6 +19,7 @@ export default function AddVehicle() {
   const [formData, setFormData] = useState({
     registration_number: '',
     vin: '',
+    gps_device_id: '',
     make: '',
     model: '',
     year: '',
@@ -244,15 +245,26 @@ export default function AddVehicle() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="vin">VIN-nummer</Label>
+                    <Label htmlFor="gps_device_id">GPS Device ID</Label>
                     <Input
-                      id="vin"
-                      value={formData.vin}
-                      onChange={(e) => setFormData(prev => ({ ...prev, vin: e.target.value }))}
-                      placeholder="VIN"
+                      id="gps_device_id"
+                      value={formData.gps_device_id}
+                      onChange={(e) => setFormData(prev => ({ ...prev, gps_device_id: e.target.value }))}
+                      placeholder="GPS Device ID"
                       className="h-11"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vin">VIN-nummer</Label>
+                  <Input
+                    id="vin"
+                    value={formData.vin}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vin: e.target.value }))}
+                    placeholder="VIN"
+                    className="h-11"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

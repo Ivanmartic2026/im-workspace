@@ -1,0 +1,141 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createHash } from 'node:crypto';
+
+const GPS_URL = Deno.env.get("GALAGPS_URL");
+const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
+const GPS_PASSWORD = Deno.env.get("GALAGPS_PASSWORD");
+
+// Cache för GPS token (giltig i 24 timmar)
+let tokenCache = {
+  token: null,
+  expiresAt: null
+};
+
+async function getGPSToken() {
+  // Återanvänd token om den fortfarande är giltig
+  if (tokenCache.token && tokenCache.expiresAt && Date.now() < tokenCache.expiresAt) {
+    return tokenCache.token;
+  }
+
+  // Skapa MD5 hash av lösenord
+  const md5Password = createHash('md5').update(GPS_PASSWORD).digest('hex');
+
+  const response = await fetch(`${GPS_URL}/webapi?action=login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: "USER",
+      from: "WEB",
+      username: GPS_USERNAME,
+      password: md5Password,
+      browser: "Base44"
+    })
+  });
+
+  const data = await response.json();
+  
+  if (data.status !== 0) {
+    throw new Error(`GPS login failed: ${data.cause}`);
+  }
+
+  // Spara token med 23 timmars giltighet
+  tokenCache.token = data.token;
+  tokenCache.expiresAt = Date.now() + (23 * 60 * 60 * 1000);
+
+  return data.token;
+}
+
+async function callGPSAPI(action, params = {}) {
+  const token = await getGPSToken();
+  
+  const response = await fetch(`${GPS_URL}/webapi?action=${action}&token=${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+
+  return await response.json();
+}
+
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  
+  const user = await base44.auth.me();
+  if (!user) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { action, params } = await req.json();
+
+  try {
+    let result;
+
+    switch (action) {
+      case 'getDeviceList':
+        // Hämta alla GPS-enheter
+        result = await callGPSAPI('querymonitorlist', { username: GPS_USERNAME });
+        break;
+
+      case 'getLastPosition':
+        // Hämta senaste position för ett eller flera fordon
+        const { deviceIds } = params;
+        result = await callGPSAPI('lastposition', {
+          deviceids: deviceIds,
+          lastquerypositiontime: 0
+        });
+        break;
+
+      case 'getTrackHistory':
+        // Hämta körhistorik för ett fordon
+        const { deviceId, startTime, endTime } = params;
+        result = await callGPSAPI('querytracks', {
+          deviceid: deviceId,
+          begintime: startTime,
+          endtime: endTime,
+          timezone: 1  // UTC+1 för Sverige
+        });
+        break;
+
+      case 'getTrips':
+        // Hämta resor (baserat på tändning/släckning)
+        result = await callGPSAPI('querytrips', {
+          deviceid: params.deviceId,
+          begintime: params.startTime,
+          endtime: params.endTime,
+          timezone: 1
+        });
+        break;
+
+      case 'getMileageReport':
+        // Hämta detaljerad körstatistik
+        result = await callGPSAPI('reportmileagedetail', {
+          deviceid: params.deviceId,
+          startday: params.startDay,
+          endday: params.endDay,
+          offset: 1
+        });
+        break;
+
+      case 'getFuelReport':
+        // Hämta bränsleförbrukning
+        result = await callGPSAPI('reportoildaily', {
+          devices: params.deviceIds,
+          startday: params.startDay,
+          endday: params.endDay,
+          offset: 1
+        });
+        break;
+
+      default:
+        return Response.json({ error: 'Unknown action' }, { status: 400 });
+    }
+
+    return Response.json(result);
+
+  } catch (error) {
+    return Response.json({ 
+      error: error.message,
+      details: error.toString()
+    }, { status: 500 });
+  }
+});

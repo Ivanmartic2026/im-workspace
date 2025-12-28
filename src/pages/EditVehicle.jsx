@@ -33,6 +33,7 @@ export default function EditVehicle() {
       setFormData({
         registration_number: vehicle.registration_number || '',
         vin: vehicle.vin || '',
+        gps_device_id: vehicle.gps_device_id || '',
         make: vehicle.make || '',
         model: vehicle.model || '',
         year: vehicle.year || '',
@@ -131,14 +132,25 @@ export default function EditVehicle() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="vin">VIN-nummer</Label>
+                    <Label htmlFor="gps_device_id">GPS Device ID</Label>
                     <Input
-                      id="vin"
-                      value={formData.vin}
-                      onChange={(e) => setFormData(prev => ({ ...prev, vin: e.target.value }))}
+                      id="gps_device_id"
+                      value={formData.gps_device_id}
+                      onChange={(e) => setFormData(prev => ({ ...prev, gps_device_id: e.target.value }))}
                       className="h-11"
+                      placeholder="GPS Device ID"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vin">VIN-nummer</Label>
+                  <Input
+                    id="vin"
+                    value={formData.vin}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vin: e.target.value }))}
+                    className="h-11"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
