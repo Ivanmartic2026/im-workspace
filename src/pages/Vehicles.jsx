@@ -10,10 +10,11 @@ import QuickActionButtons from "@/components/vehicles/QuickActionButtons";
 import FuelLogModal from "@/components/vehicles/FuelLogModal";
 import ReportIssueModal from "@/components/vehicles/ReportIssueModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 
 export default function Vehicles() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('alla');
@@ -81,7 +82,7 @@ export default function Vehicles() {
             </div>
             {user?.role === 'admin' && (
               <Button 
-                onClick={() => window.alert('Admin: Lägg till fordon (kommer snart)')}
+                onClick={() => navigate(createPageUrl('AddVehicle'))}
                 className="rounded-full h-11 px-5 shadow-md hover:shadow-lg transition-all"
               >
                 <Plus className="w-4 h-4 mr-2" />
