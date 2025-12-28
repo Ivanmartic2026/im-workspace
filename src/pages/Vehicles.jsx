@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Search, Plus, Car } from "lucide-react";
 import VehicleCard from "@/components/vehicles/VehicleCard";
 import QuickActionButtons from "@/components/vehicles/QuickActionButtons";
@@ -18,7 +18,6 @@ export default function Vehicles() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('alla');
   const [activeModal, setActiveModal] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const queryClient = useQueryClient();
@@ -43,13 +42,7 @@ export default function Vehicles() {
       vehicle.make?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vehicle.model?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesFilter = 
-      activeFilter === 'alla' ||
-      (activeFilter === 'mina' && vehicle.assigned_driver === user?.email) ||
-      (activeFilter === 'pool' && vehicle.is_pool_vehicle) ||
-      vehicle.status === activeFilter;
-    
-    return matchesSearch && matchesFilter;
+    return matchesSearch;
   });
 
   const handleQuickAction = (actionId) => {
@@ -106,19 +99,8 @@ export default function Vehicles() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-11 h-12 rounded-2xl border-0 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-slate-200"
-            />
-          </div>
-
-          {/* Filter Tabs */}
-          <Tabs value={activeFilter} onValueChange={setActiveFilter}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-5">
-              <TabsTrigger value="alla" className="rounded-xl text-xs data-[state=active]:shadow-sm">Alla</TabsTrigger>
-              <TabsTrigger value="mina" className="rounded-xl text-xs data-[state=active]:shadow-sm">Mina</TabsTrigger>
-              <TabsTrigger value="pool" className="rounded-xl text-xs data-[state=active]:shadow-sm">Pool</TabsTrigger>
-              <TabsTrigger value="aktiv" className="rounded-xl text-xs data-[state=active]:shadow-sm">Aktiva</TabsTrigger>
-              <TabsTrigger value="service" className="rounded-xl text-xs data-[state=active]:shadow-sm">Service</TabsTrigger>
-            </TabsList>
-          </Tabs>
+              />
+              </div>
         </motion.div>
 
         {/* Vehicle List */}
