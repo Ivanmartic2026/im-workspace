@@ -9,6 +9,7 @@ import VehicleCard from "@/components/vehicles/VehicleCard";
 import QuickActionButtons from "@/components/vehicles/QuickActionButtons";
 import FuelLogModal from "@/components/vehicles/FuelLogModal";
 import ReportIssueModal from "@/components/vehicles/ReportIssueModal";
+import ReportIncidentModal from "@/components/vehicles/ReportIncidentModal";
 import BookServiceModal from "@/components/vehicles/BookServiceModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
@@ -77,15 +78,26 @@ export default function Vehicles() {
               <h1 className="text-2xl font-bold text-slate-900">Fordon</h1>
               <p className="text-sm text-slate-500 mt-1">{vehicles.length} fordon i registret</p>
             </div>
-            {user?.role === 'admin' && (
-              <Button 
-                onClick={() => navigate(createPageUrl('AddVehicle'))}
-                className="rounded-full h-11 px-5 shadow-md hover:shadow-lg transition-all"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Lägg till
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {user?.role === 'admin' && (
+                <>
+                  <Button 
+                    onClick={() => navigate(createPageUrl('VehicleReports'))}
+                    variant="outline"
+                    className="rounded-full h-11 px-4 shadow-sm"
+                  >
+                    Rapporter
+                  </Button>
+                  <Button 
+                    onClick={() => navigate(createPageUrl('AddVehicle'))}
+                    className="rounded-full h-11 px-5 shadow-md hover:shadow-lg transition-all"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Lägg till
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Quick Actions */}
@@ -166,8 +178,8 @@ export default function Vehicles() {
         userEmail={user?.email}
       />
 
-      <ReportIssueModal
-        open={activeModal === 'issue'}
+      <ReportIncidentModal
+        open={activeModal === 'incident'}
         onClose={() => setActiveModal(null)}
         onSuccess={handleModalSuccess}
         vehicles={vehicles}
