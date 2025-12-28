@@ -1,9 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { createHash } from 'node:crypto';
 
-const GPS_URL = Deno.env.get("GALAGPS_URL");
+let GPS_URL = Deno.env.get("GALAGPS_URL");
 const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
 const GPS_PASSWORD = Deno.env.get("GALAGPS_PASSWORD");
+
+// Säkerställ att URL:en pekar på API-endpointen
+if (GPS_URL && !GPS_URL.includes('/api')) {
+  GPS_URL = GPS_URL.replace(/\/$/, '') + '/api';
+}
 
 // Cache för GPS token (giltig i 24 timmar)
 let tokenCache = {
