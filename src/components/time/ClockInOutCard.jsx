@@ -97,23 +97,34 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     setLoading(true);
     
     try {
-      const location = await getLocation();
+      let location;
+      try {
+        location = await getLocation();
+      } catch (locError) {
+        console.warn('Could not get location, continuing without:', locError);
+        location = null;
+      }
       
       const clockInTime = new Date(activeEntry.clock_in_time);
       const clockOutTime = new Date();
       const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
       
-      await base44.entities.TimeEntry.update(activeEntry.id, {
+      const updateData = {
         clock_out_time: clockOutTime.toISOString(),
-        clock_out_location: location,
         total_hours: Number(totalHours.toFixed(2)),
         status: 'completed'
-      });
+      };
+      
+      if (location) {
+        updateData.clock_out_location = location;
+      }
+      
+      await base44.entities.TimeEntry.update(activeEntry.id, updateData);
       
       onUpdate();
     } catch (error) {
       console.error('Error clocking out:', error);
-      alert('Kunde inte stämpla ut. Kontrollera att du har gett tillgång till platsdata.');
+      alert('Kunde inte stämpla ut. Försök igen.');
     }
     
     setLoading(false);
