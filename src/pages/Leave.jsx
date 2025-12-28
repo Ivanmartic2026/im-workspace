@@ -11,6 +11,8 @@ import ClockInOutCard from "@/components/time/ClockInOutCard";
 import TimeEntryList from "@/components/time/TimeEntryList";
 import TimeStats from "@/components/time/TimeStats";
 import TimeHistory from "@/components/time/TimeHistory";
+import WeeklyOverview from "@/components/time/WeeklyOverview";
+import AdminWeeklyReports from "@/components/time/AdminWeeklyReports";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Leave() {
@@ -110,9 +112,12 @@ export default function Leave() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-          <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-3">
+          <TabsList className={`w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid ${user?.role === 'admin' ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="time" className="rounded-xl text-xs data-[state=active]:shadow-sm">
               Tidrapport
+            </TabsTrigger>
+            <TabsTrigger value="week" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+              Vecka
             </TabsTrigger>
             <TabsTrigger value="mine" className="rounded-xl text-xs data-[state=active]:shadow-sm">
               Ledighet
@@ -144,6 +149,11 @@ export default function Leave() {
               <h3 className="text-sm font-medium text-slate-500 mb-3">Historik</h3>
               <TimeHistory entries={timeEntries} />
             </div>
+          </TabsContent>
+
+          {/* Week Tab */}
+          <TabsContent value="week" className="mt-6">
+            <WeeklyOverview userEmail={user?.email} />
           </TabsContent>
 
           <TabsContent value="mine" className="mt-6 space-y-6">
@@ -218,7 +228,9 @@ export default function Leave() {
 
           {user?.role === 'admin' && (
             <TabsContent value="team" className="mt-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Väntande ansökningar</h3>
+              <AdminWeeklyReports currentUser={user} />
+              
+              <h3 className="font-semibold text-slate-900 mb-4 mt-8">Väntande ansökningar</h3>
               <AnimatePresence mode="popLayout">
                 {loadingTeam ? (
                   <div className="space-y-3">
