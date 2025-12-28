@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, FileText, Calendar, Palmtree, Users, User } from 'lucide-react';
+import { Home, FileText, Calendar, Palmtree, Users, User, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
+  { name: 'Vehicles', label: 'Fordon', icon: Car },
   { name: 'Documents', label: 'Dokument', icon: FileText },
-  { name: 'Schedule', label: 'Schema', icon: Calendar },
   { name: 'Leave', label: 'Ledighet', icon: Palmtree },
   { name: 'Team', label: 'Team', icon: Users },
   { name: 'Profile', label: 'Profil', icon: User },
@@ -30,7 +30,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 safe-area-pb z-50">
-        <div className="max-w-2xl mx-auto px-2">
+        <div className="max-w-2xl mx-auto px-1">
           <div className="flex items-center justify-around py-2">
             {navItems.map(({ name, label, icon: Icon }) => {
               const isActive = currentPageName === name;

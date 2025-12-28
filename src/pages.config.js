@@ -1,21 +1,27 @@
-import Home from './pages/Home';
 import Documents from './pages/Documents';
-import Schedule from './pages/Schedule';
+import Home from './pages/Home';
 import Leave from './pages/Leave';
-import Team from './pages/Team';
 import Profile from './pages/Profile';
+import Schedule from './pages/Schedule';
+import Team from './pages/Team';
+import Vehicles from './pages/Vehicles';
+import VehicleDetails from './pages/VehicleDetails';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
     "Documents": Documents,
-    "Schedule": Schedule,
+    "Home": Home,
     "Leave": Leave,
-    "Team": Team,
     "Profile": Profile,
+    "Schedule": Schedule,
+    "Team": Team,
+    "Vehicles": Vehicles,
+    "VehicleDetails": VehicleDetails,
 }
 
 export const pagesConfig = {
     mainPage: "Home",
     Pages: PAGES,
+    Layout: __Layout,
 };
