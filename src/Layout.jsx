@@ -8,7 +8,7 @@ const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
   { name: 'Vehicles', label: 'Fordon', icon: Car },
   { name: 'Documents', label: 'Dokument', icon: FileText },
-  { name: 'Leave', label: 'Ledighet', icon: Palmtree },
+  { name: 'Leave', label: 'Tid', icon: Palmtree },
   { name: 'Team', label: 'Team', icon: Users },
   { name: 'Profile', label: 'Profil', icon: User },
 ];
