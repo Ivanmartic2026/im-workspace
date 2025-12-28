@@ -18,15 +18,13 @@ export default function AddVehicle() {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [formData, setFormData] = useState({
     registration_number: '',
-    vin: '',
     gps_device_id: '',
     make: '',
     model: '',
     year: '',
     vehicle_type: 'personbil',
     fuel_type: 'bensin',
-    fuel_card_provider: '',
-    fuel_card_number: '',
+    fuel_cards: [],
     is_pool_vehicle: false,
     assigned_driver: '',
     current_mileage: '',
@@ -256,16 +254,7 @@ export default function AddVehicle() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="vin">VIN-nummer</Label>
-                  <Input
-                    id="vin"
-                    value={formData.vin}
-                    onChange={(e) => setFormData(prev => ({ ...prev, vin: e.target.value }))}
-                    placeholder="VIN"
-                    className="h-11"
-                  />
-                </div>
+
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -443,7 +432,7 @@ export default function AddVehicle() {
             </Card>
           </motion.div>
 
-          {/* Fuel Card */}
+          {/* Fuel Cards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -451,31 +440,88 @@ export default function AddVehicle() {
           >
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 space-y-4">
-                <h3 className="font-semibold text-slate-900">Tankkort</h3>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fuel_card_provider">Leverantör</Label>
-                    <Input
-                      id="fuel_card_provider"
-                      value={formData.fuel_card_provider}
-                      onChange={(e) => setFormData(prev => ({ ...prev, fuel_card_provider: e.target.value }))}
-                      placeholder="t.ex. Circle K"
-                      className="h-11"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="fuel_card_number">Kortnummer</Label>
-                    <Input
-                      id="fuel_card_number"
-                      value={formData.fuel_card_number}
-                      onChange={(e) => setFormData(prev => ({ ...prev, fuel_card_number: e.target.value }))}
-                      placeholder="Kortnummer"
-                      className="h-11"
-                    />
-                  </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-slate-900">Tankkort</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      fuel_cards: [...(prev.fuel_cards || []), { provider: '', card_number: '', pin_code: '' }]
+                    }))}
+                  >
+                    Lägg till kort
+                  </Button>
                 </div>
+
+                {formData.fuel_cards?.length > 0 ? (
+                  <div className="space-y-3">
+                    {formData.fuel_cards.map((card, index) => (
+                      <div key={index} className="p-4 bg-slate-50 rounded-lg space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-slate-700">Kort {index + 1}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              fuel_cards: prev.fuel_cards.filter((_, i) => i !== index)
+                            }))}
+                            className="h-7 text-rose-600 hover:text-rose-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Leverantör</Label>
+                            <Input
+                              value={card.provider}
+                              onChange={(e) => {
+                                const newCards = [...formData.fuel_cards];
+                                newCards[index].provider = e.target.value;
+                                setFormData(prev => ({ ...prev, fuel_cards: newCards }));
+                              }}
+                              placeholder="Circle K"
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Kortnummer</Label>
+                            <Input
+                              value={card.card_number}
+                              onChange={(e) => {
+                                const newCards = [...formData.fuel_cards];
+                                newCards[index].card_number = e.target.value;
+                                setFormData(prev => ({ ...prev, fuel_cards: newCards }));
+                              }}
+                              placeholder="123456"
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">PIN/Kod</Label>
+                            <Input
+                              value={card.pin_code}
+                              onChange={(e) => {
+                                const newCards = [...formData.fuel_cards];
+                                newCards[index].pin_code = e.target.value;
+                                setFormData(prev => ({ ...prev, fuel_cards: newCards }));
+                              }}
+                              placeholder="1234"
+                              className="h-9"
+                              type="password"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 text-center py-4">Inga tankkort tillagda</p>
+                )}
               </CardContent>
             </Card>
           </motion.div>

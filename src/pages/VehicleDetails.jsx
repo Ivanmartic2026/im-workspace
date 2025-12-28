@@ -244,20 +244,30 @@ export default function VehicleDetails() {
               <CardContent className="p-5">
                 <h3 className="font-semibold text-slate-900 mb-4">Fordonsinformation</h3>
                 <div className="space-y-3">
-                  {vehicle.vin && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">VIN</span>
-                      <span className="font-medium text-slate-900">{vehicle.vin}</span>
-                    </div>
-                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Fordonstyp</span>
                     <span className="font-medium text-slate-900">{vehicle.vehicle_type}</span>
                   </div>
-                  {vehicle.fuel_card_provider && (
+                  {vehicle.gps_device_id && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Tankkort</span>
-                      <span className="font-medium text-slate-900">{vehicle.fuel_card_provider}</span>
+                      <span className="text-slate-500">GPS Device ID</span>
+                      <span className="font-medium text-slate-900">{vehicle.gps_device_id}</span>
+                    </div>
+                  )}
+                  {vehicle.fuel_cards?.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-sm text-slate-500">Tankkort</span>
+                      {vehicle.fuel_cards.map((card, idx) => (
+                        <div key={idx} className="p-3 bg-slate-50 rounded-lg">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-slate-900">{card.provider}</span>
+                            <span className="text-slate-600">{card.card_number}</span>
+                          </div>
+                          {card.pin_code && (
+                            <p className="text-xs text-slate-500 mt-1">PIN: ****</p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
