@@ -20,38 +20,48 @@ export default function GPS() {
     queryFn: () => base44.entities.Vehicle.list(),
   });
 
+  const { data: gpsDevices, isLoading: devicesLoading } = useQuery({
+    queryKey: ['gps-devices'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('gpsTracking', {
+        action: 'getDeviceList'
+      });
+      return response.data;
+    },
+  });
+
+  const allDevices = gpsDevices?.records || [];
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
 
   const { data: positionsData, isLoading: positionsLoading } = useQuery({
-    queryKey: ['gps-all-positions'],
+    queryKey: ['gps-all-positions', allDevices],
     queryFn: async () => {
-      const deviceIds = vehiclesWithGPS.map(v => v.gps_device_id);
-      if (deviceIds.length === 0) return null;
+      if (allDevices.length === 0) return null;
       
+      const deviceIds = allDevices.map(d => d.deviceid);
       const response = await base44.functions.invoke('gpsTracking', {
         action: 'getLastPosition',
         params: { deviceIds }
       });
       return response.data;
     },
-    enabled: vehiclesWithGPS.length > 0,
+    enabled: allDevices.length > 0,
     refetchInterval: 30000,
   });
 
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['gps-all-trips', selectedPeriod],
+    queryKey: ['gps-all-trips', selectedPeriod, allDevices],
     queryFn: async () => {
-      const deviceIds = vehiclesWithGPS.map(v => v.gps_device_id);
-      if (deviceIds.length === 0) return null;
+      if (allDevices.length === 0) return null;
 
       const today = new Date();
       const startDate = selectedPeriod === 'today' ? today : subDays(today, 7);
       
-      const promises = deviceIds.map(deviceId => 
+      const promises = allDevices.map(device => 
         base44.functions.invoke('gpsTracking', {
           action: 'getTrips',
           params: {
-            deviceId,
+            deviceId: device.deviceid,
             begintime: format(startDate, 'yyyy-MM-dd') + ' 00:00:00',
             endtime: format(today, 'yyyy-MM-dd') + ' 23:59:59'
           }
@@ -59,12 +69,27 @@ export default function GPS() {
       );
 
       const results = await Promise.all(promises);
-      return results.map((r, i) => ({ deviceId: deviceIds[i], data: r.data }));
+      return results.map((r, i) => ({ deviceId: allDevices[i].deviceid, deviceName: allDevices[i].devicename, data: r.data }));
     },
-    enabled: vehiclesWithGPS.length > 0,
+    enabled: allDevices.length > 0,
   });
 
-  if (vehiclesWithGPS.length === 0) {
+  if (devicesLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-6 pb-24">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold text-slate-900 mb-6">GPS Spårning</h1>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-12 text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (allDevices.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-6 pb-24">
         <div className="max-w-2xl mx-auto">
@@ -72,8 +97,8 @@ export default function GPS() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-12 text-center">
               <MapPin className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga GPS-anslutna fordon</h3>
-              <p className="text-slate-500">Lägg till GPS Device ID på dina fordon för att se realtidsspårning.</p>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga GPS-enheter hittades</h3>
+              <p className="text-slate-500">Kontrollera att dina GPS-enheter är kopplade till ditt konto.</p>
             </CardContent>
           </Card>
         </div>
@@ -107,22 +132,28 @@ export default function GPS() {
                 />
                 {positions.map((pos) => {
                   const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === pos.deviceid);
-                  if (!vehicle) return null;
+                  const device = allDevices.find(d => d.deviceid === pos.deviceid);
                   
                   return (
                     <Marker key={pos.deviceid} position={[pos.callat, pos.callon]}>
                       <Popup>
                         <div className="text-center">
-                          <p className="font-semibold">{vehicle.registration_number}</p>
-                          <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
+                          <p className="font-semibold">
+                            {vehicle?.registration_number || device?.devicename || pos.deviceid}
+                          </p>
+                          {vehicle && (
+                            <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
+                          )}
                           <p className="text-xs text-slate-600 mt-1">
                             {Math.round(pos.speed * 3.6)} km/h
                           </p>
-                          <Link to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`}>
-                            <button className="text-xs text-blue-600 mt-1 hover:underline">
-                              Visa detaljer
-                            </button>
-                          </Link>
+                          {vehicle && (
+                            <Link to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`}>
+                              <button className="text-xs text-blue-600 mt-1 hover:underline">
+                                Visa detaljer
+                              </button>
+                            </Link>
+                          )}
                         </div>
                       </Popup>
                     </Marker>
@@ -165,40 +196,48 @@ export default function GPS() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {tripsData?.map((vehicleTrips) => {
-                const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === vehicleTrips.deviceId);
-                if (!vehicle || !vehicleTrips.data.totaltrips?.length) return null;
+              {tripsData?.map((deviceTrips) => {
+                const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === deviceTrips.deviceId);
+                if (!deviceTrips.data.totaltrips?.length) return null;
 
-                const totalDistance = vehicleTrips.data.totaldistance / 1000;
-                const totalTime = vehicleTrips.data.totaltriptime / (1000 * 60);
-                const tripCount = vehicleTrips.data.totaltrips.length;
+                const totalDistance = deviceTrips.data.totaldistance / 1000;
+                const totalTime = deviceTrips.data.totaltriptime / (1000 * 60);
+                const tripCount = deviceTrips.data.totaltrips.length;
+
+                const displayName = vehicle?.registration_number || deviceTrips.deviceName || deviceTrips.deviceId;
+                const displaySubtext = vehicle ? `${vehicle.make} ${vehicle.model}` : 'GPS Enhet';
 
                 return (
-                  <Link key={vehicle.id} to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`}>
-                    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-slate-900">{vehicle.registration_number}</h3>
-                            <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
-                          </div>
-                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                            {tripCount} {tripCount === 1 ? 'resa' : 'resor'}
-                          </Badge>
+                  <Card key={deviceTrips.deviceId} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="font-semibold text-slate-900">{displayName}</h3>
+                          <p className="text-xs text-slate-500">{displaySubtext}</p>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Navigation className="h-4 w-4 text-slate-400" />
-                            <span className="text-slate-600">{totalDistance.toFixed(1)} km</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-slate-400" />
-                            <span className="text-slate-600">{Math.round(totalTime)} min</span>
-                          </div>
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                          {tripCount} {tripCount === 1 ? 'resa' : 'resor'}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Navigation className="h-4 w-4 text-slate-400" />
+                          <span className="text-slate-600">{totalDistance.toFixed(1)} km</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-slate-400" />
+                          <span className="text-slate-600">{Math.round(totalTime)} min</span>
+                        </div>
+                      </div>
+                      {vehicle && (
+                        <Link to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`} className="block mt-3">
+                          <button className="text-xs text-blue-600 hover:underline">
+                            Visa fordonsdetaljer →
+                          </button>
+                        </Link>
+                      )}
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
