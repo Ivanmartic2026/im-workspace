@@ -8,6 +8,7 @@ import { Plus, Search, Bell, Sparkles } from "lucide-react";
 import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
+import ClockInOutCard from "@/components/time/ClockInOutCard";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
@@ -26,6 +27,18 @@ export default function Home() {
     queryKey: ['newsPosts'],
     queryFn: () => base44.entities.NewsPost.list('-created_date', 50),
   });
+
+  const { data: timeEntries = [], refetch: refetchTimeEntries } = useQuery({
+    queryKey: ['timeEntries', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const entries = await base44.entities.TimeEntry.filter({ employee_email: user.email }, '-created_date', 10);
+      return entries;
+    },
+    enabled: !!user?.email
+  });
+
+  const activeTimeEntry = timeEntries.find(entry => entry.status === 'active');
 
   const updatePostMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.NewsPost.update(id, data),
@@ -97,7 +110,7 @@ export default function Home() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -115,6 +128,18 @@ export default function Home() {
                 Ny nyhet
               </Button>
             )}
+          </div>
+
+          {/* Clock In/Out Card */}
+          <div className="mb-6">
+            <ClockInOutCard 
+              userEmail={user?.email}
+              activeEntry={activeTimeEntry}
+              onUpdate={() => {
+                refetchTimeEntries();
+                queryClient.invalidateQueries({ queryKey: ['employees'] });
+              }}
+            />
           </div>
 
           {/* Search */}
