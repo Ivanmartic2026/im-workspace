@@ -30,6 +30,11 @@ export default function EditVehicle() {
     enabled: !!vehicleId,
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+  });
+
   useEffect(() => {
     if (vehicle) {
       setFormData({
@@ -42,6 +47,7 @@ export default function EditVehicle() {
         vehicle_type: vehicle.vehicle_type || 'personbil',
         fuel_type: vehicle.fuel_type || 'bensin',
         fuel_cards: vehicle.fuel_cards || [],
+        assigned_driver: vehicle.assigned_driver || '',
         current_mileage: vehicle.current_mileage || '',
         next_service_date: vehicle.next_service_date || '',
         next_service_mileage: vehicle.next_service_mileage || '',
@@ -368,6 +374,26 @@ export default function EditVehicle() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="assigned_driver">Förare</Label>
+                  <Select
+                    value={formData.assigned_driver || ''}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_driver: value }))}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Välj förare" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Ingen förare</SelectItem>
+                      {employees.map(emp => (
+                        <SelectItem key={emp.id} value={emp.user_email}>
+                          {emp.user_email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

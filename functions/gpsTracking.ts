@@ -5,9 +5,9 @@ let GPS_URL = Deno.env.get("GALAGPS_URL");
 const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
 const GPS_PASSWORD = Deno.env.get("GALAGPS_PASSWORD");
 
-// Säkerställ att URL:en pekar på API-endpointen
-if (GPS_URL && !GPS_URL.includes('/api')) {
-  GPS_URL = GPS_URL.replace(/\/$/, '') + '/api';
+// Rensa URL och lägg till korrekt path
+if (GPS_URL) {
+  GPS_URL = GPS_URL.replace(/\/$/, '').replace('www.', '');
 }
 
 // Cache för GPS token (giltig i 24 timmar)

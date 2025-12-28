@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Upload, Loader2, Sparkles, X, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, Sparkles, X } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion } from "framer-motion";
@@ -16,6 +16,12 @@ export default function AddVehicle() {
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(null);
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+  });
+
   const [formData, setFormData] = useState({
     registration_number: '',
     gps_device_id: '',
@@ -373,6 +379,26 @@ export default function AddVehicle() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="assigned_driver">Förare</Label>
+                  <Select
+                    value={formData.assigned_driver}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_driver: value }))}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Välj förare" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Ingen förare</SelectItem>
+                      {employees.map(emp => (
+                        <SelectItem key={emp.id} value={emp.user_email}>
+                          {emp.user_email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
