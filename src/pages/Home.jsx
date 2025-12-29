@@ -94,6 +94,24 @@ export default function Home() {
     } : null);
   };
 
+  const handleAcknowledge = async (postId) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post || !user) return;
+
+    const acknowledgment = {
+      email: user.email,
+      name: user.full_name,
+      acknowledged_at: new Date().toISOString()
+    };
+
+    await updatePostMutation.mutateAsync({
+      id: postId,
+      data: {
+        acknowledged_by: [...(post.acknowledged_by || []), acknowledgment]
+      }
+    });
+  };
+
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.content.toLowerCase().includes(searchQuery.toLowerCase());
@@ -183,6 +201,7 @@ export default function Home() {
                   post={post}
                   onReact={handleReact}
                   onComment={setSelectedPost}
+                  onAcknowledge={handleAcknowledge}
                   currentUserEmail={user?.email}
                 />
               ))}
@@ -215,6 +234,7 @@ export default function Home() {
                   post={post}
                   onReact={handleReact}
                   onComment={setSelectedPost}
+                  onAcknowledge={handleAcknowledge}
                   currentUserEmail={user?.email}
                 />
               ))

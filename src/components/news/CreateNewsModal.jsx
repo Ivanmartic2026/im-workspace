@@ -17,6 +17,7 @@ export default function CreateNewsModal({ open, onClose, onSuccess }) {
     content: '',
     category: 'allmänt',
     is_important: false,
+    requires_acknowledgment: false,
     image_url: ''
   });
 
@@ -51,6 +52,7 @@ export default function CreateNewsModal({ open, onClose, onSuccess }) {
         content: '',
         category: 'allmänt',
         is_important: false,
+        requires_acknowledgment: false,
         image_url: ''
       });
     } catch (error) {
@@ -150,16 +152,30 @@ export default function CreateNewsModal({ open, onClose, onSuccess }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-200">
-            <div>
-              <Label htmlFor="important" className="text-amber-800 font-medium">Markera som viktig</Label>
-              <p className="text-xs text-amber-600 mt-0.5">Visas med markering högst upp</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <div>
+                <Label htmlFor="important" className="text-amber-800 font-medium">Markera som viktig</Label>
+                <p className="text-xs text-amber-600 mt-0.5">Visas med markering högst upp</p>
+              </div>
+              <Switch
+                id="important"
+                checked={formData.is_important}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_important: checked }))}
+              />
             </div>
-            <Switch
-              id="important"
-              checked={formData.is_important}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_important: checked }))}
-            />
+
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div>
+                <Label htmlFor="acknowledgment" className="text-blue-800 font-medium">Kräv bekräftelse</Label>
+                <p className="text-xs text-blue-600 mt-0.5">Användare måste godkänna att de läst</p>
+              </div>
+              <Switch
+                id="acknowledgment"
+                checked={formData.requires_acknowledgment}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, requires_acknowledgment: checked }))}
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

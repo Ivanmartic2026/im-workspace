@@ -1,18 +1,18 @@
 import AddVehicle from './pages/AddVehicle';
 import Documents from './pages/Documents';
 import EditVehicle from './pages/EditVehicle';
+import Employees from './pages/Employees';
+import GPS from './pages/GPS';
 import Home from './pages/Home';
 import Leave from './pages/Leave';
 import Profile from './pages/Profile';
+import Reports from './pages/Reports';
 import Schedule from './pages/Schedule';
 import Team from './pages/Team';
 import VehicleDetails from './pages/VehicleDetails';
-import Vehicles from './pages/Vehicles';
-import VehicleTracking from './pages/VehicleTracking';
-import GPS from './pages/GPS';
-import Employees from './pages/Employees';
-import Reports from './pages/Reports';
 import VehicleReports from './pages/VehicleReports';
+import VehicleTracking from './pages/VehicleTracking';
+import Vehicles from './pages/Vehicles';
 import __Layout from './Layout.jsx';
 
 
@@ -20,18 +20,18 @@ export const PAGES = {
     "AddVehicle": AddVehicle,
     "Documents": Documents,
     "EditVehicle": EditVehicle,
+    "Employees": Employees,
+    "GPS": GPS,
     "Home": Home,
     "Leave": Leave,
     "Profile": Profile,
+    "Reports": Reports,
     "Schedule": Schedule,
     "Team": Team,
     "VehicleDetails": VehicleDetails,
-    "Vehicles": Vehicles,
-    "VehicleTracking": VehicleTracking,
-    "GPS": GPS,
-    "Employees": Employees,
-    "Reports": Reports,
     "VehicleReports": VehicleReports,
+    "VehicleTracking": VehicleTracking,
+    "Vehicles": Vehicles,
 }
 
 export const pagesConfig = {
