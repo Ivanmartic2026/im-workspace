@@ -64,8 +64,10 @@ export default function RouteHistoryMap({ vehicles }) {
         throw new Error('Fordon saknar GPS-enhet');
       }
 
-      const startTime = new Date(startDate + 'T00:00:00').getTime() / 1000;
-      const endTime = new Date(endDate + 'T23:59:59').getTime() / 1000;
+      const startTime = Math.floor(new Date(startDate + 'T00:00:00').getTime() / 1000);
+      const endTime = Math.floor(new Date(endDate + 'T23:59:59').getTime() / 1000);
+
+      console.log('Fetching route:', { deviceId: vehicle.gps_device_id, startTime, endTime });
 
       const response = await base44.functions.invoke('gpsTracking', {
         action: 'getTrackHistory',
@@ -75,6 +77,12 @@ export default function RouteHistoryMap({ vehicles }) {
           endTime
         }
       });
+
+      console.log('GPS Route response:', response.data);
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
 
       if (response.data?.status !== 0) {
         throw new Error(response.data?.cause || 'Kunde inte hämta ruttdata');
