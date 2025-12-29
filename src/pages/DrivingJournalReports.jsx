@@ -32,6 +32,16 @@ export default function DrivingJournalReports() {
     queryFn: () => base44.entities.DrivingJournalEntry.list('-created_date', 500),
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+  });
+
+  const { data: policies = [] } = useQuery({
+    queryKey: ['policies'],
+    queryFn: () => base44.entities.JournalPolicy.list(),
+  });
+
   // Generate month options for last 12 months
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const date = subMonths(new Date(), i);
@@ -68,6 +78,33 @@ export default function DrivingJournalReports() {
 
   // Get all anomalies
   const anomalies = filteredEntries.filter(e => e.is_anomaly);
+
+  // Calculate stats per employee
+  const employeeStats = employees.map(employee => {
+    const employeeEntries = filteredEntries.filter(e => e.driver_email === employee.user_email);
+    const businessDistance = employeeEntries.filter(e => e.trip_type === 'tjänst').reduce((sum, e) => sum + (e.distance_km || 0), 0);
+    const privateDistance = employeeEntries.filter(e => e.trip_type === 'privat').reduce((sum, e) => sum + (e.distance_km || 0), 0);
+    
+    // Calculate cost based on policy (18.50 kr/km for business trips as example)
+    const costPerKm = 18.50;
+    const totalCost = businessDistance * costPerKm;
+
+    return {
+      employee,
+      totalTrips: employeeEntries.length,
+      totalDistance: businessDistance + privateDistance,
+      businessTrips: employeeEntries.filter(e => e.trip_type === 'tjänst').length,
+      privateTrips: employeeEntries.filter(e => e.trip_type === 'privat').length,
+      businessDistance,
+      privateDistance,
+      totalCost,
+      entries: employeeEntries
+    };
+  }).filter(stat => stat.totalTrips > 0);
+
+  // Calculate total costs
+  const totalBusinessDistance = filteredEntries.filter(e => e.trip_type === 'tjänst').reduce((sum, e) => sum + (e.distance_km || 0), 0);
+  const totalCost = totalBusinessDistance * 18.50;
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -210,16 +247,24 @@ export default function DrivingJournalReports() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-            <TabsList className="w-full bg-white shadow-sm">
-              <TabsTrigger value="monthly" className="flex-1">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Månadsöversikt
+            <TabsList className="w-full bg-white shadow-sm grid grid-cols-4">
+              <TabsTrigger value="monthly">
+                <Car className="h-4 w-4 mr-1" />
+                Fordon
               </TabsTrigger>
-              <TabsTrigger value="anomalies" className="flex-1">
-                <AlertTriangle className="h-4 w-4 mr-2" />
+              <TabsTrigger value="employees">
+                <BarChart3 className="h-4 w-4 mr-1" />
+                Anställda
+              </TabsTrigger>
+              <TabsTrigger value="costs">
+                <FileText className="h-4 w-4 mr-1" />
+                Kostnader
+              </TabsTrigger>
+              <TabsTrigger value="anomalies">
+                <AlertTriangle className="h-4 w-4 mr-1" />
                 Avvikelser
                 {anomalies.length > 0 && (
-                  <Badge className="ml-2 bg-rose-500">{anomalies.length}</Badge>
+                  <Badge className="ml-1 bg-rose-500 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">{anomalies.length}</Badge>
                 )}
               </TabsTrigger>
             </TabsList>
@@ -318,6 +363,182 @@ export default function DrivingJournalReports() {
                     </Card>
                   ))}
                 </>
+              )}
+            </div>
+          )}
+
+          {/* Employees Report */}
+          {activeTab === 'employees' && (
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
+                </div>
+              ) : employeeStats.length === 0 ? (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-12 text-center">
+                    <Calendar className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga resor</h3>
+                    <p className="text-slate-500 text-sm">Inga körjournaler för vald period</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Summary Card */}
+                  <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50">
+                    <CardContent className="p-5">
+                      <h3 className="font-semibold text-slate-900 mb-3">Total översikt</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-2xl font-bold text-slate-900">{employeeStats.length}</p>
+                          <p className="text-xs text-slate-600">Aktiva förare</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-slate-900">
+                            {employeeStats.reduce((sum, s) => sum + s.totalDistance, 0).toFixed(0)} km
+                          </p>
+                          <p className="text-xs text-slate-600">Total sträcka</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-emerald-600">
+                            {employeeStats.reduce((sum, s) => sum + s.businessDistance, 0).toFixed(0)} km
+                          </p>
+                          <p className="text-xs text-slate-600">Tjänsteresor</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-slate-600">
+                            {employeeStats.reduce((sum, s) => sum + s.privateDistance, 0).toFixed(0)} km
+                          </p>
+                          <p className="text-xs text-slate-600">Privatresor</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Per Employee Stats */}
+                  {employeeStats.sort((a, b) => b.totalDistance - a.totalDistance).map(stat => (
+                    <Card key={stat.employee.user_email} className="border-0 shadow-sm">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{stat.employee.user_email}</CardTitle>
+                            <p className="text-sm text-slate-500">
+                              {stat.employee.department || 'Ingen avdelning'}
+                            </p>
+                          </div>
+                          <Badge className="bg-emerald-100 text-emerald-800">
+                            {stat.totalTrips} resor
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-3 gap-3 text-center">
+                            <div className="p-3 bg-slate-50 rounded-lg">
+                              <p className="text-xl font-bold text-slate-900">{stat.totalDistance.toFixed(0)}</p>
+                              <p className="text-xs text-slate-600">Total km</p>
+                            </div>
+                            <div className="p-3 bg-emerald-50 rounded-lg">
+                              <p className="text-xl font-bold text-emerald-900">{stat.businessDistance.toFixed(0)}</p>
+                              <p className="text-xs text-emerald-600">Tjänst km</p>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-lg">
+                              <p className="text-xl font-bold text-slate-900">{stat.privateDistance.toFixed(0)}</p>
+                              <p className="text-xs text-slate-600">Privat km</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <span className="text-sm text-blue-700 font-medium">Ersättning (18.50 kr/km)</span>
+                            <span className="text-lg font-bold text-blue-900">{stat.totalCost.toFixed(0)} kr</span>
+                          </div>
+
+                          <div className="flex gap-2 text-xs">
+                            <div className="flex-1 text-center p-2 bg-emerald-100 rounded">
+                              <span className="font-semibold text-emerald-900">{stat.businessTrips}</span>
+                              <span className="text-emerald-700 ml-1">tjänst</span>
+                            </div>
+                            <div className="flex-1 text-center p-2 bg-slate-100 rounded">
+                              <span className="font-semibold text-slate-900">{stat.privateTrips}</span>
+                              <span className="text-slate-700 ml-1">privat</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Costs Report */}
+          {activeTab === 'costs' && (
+            <div className="space-y-3">
+              {/* Total Costs Summary */}
+              <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-cyan-50">
+                <CardContent className="p-5">
+                  <h3 className="font-semibold text-slate-900 mb-4">Kostnadssammanfattning</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+                      <div>
+                        <p className="text-sm text-slate-600">Total tjänstekörning</p>
+                        <p className="text-2xl font-bold text-slate-900">{totalBusinessDistance.toFixed(0)} km</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-slate-600">Total ersättning</p>
+                        <p className="text-2xl font-bold text-blue-600">{totalCost.toFixed(0)} kr</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-white rounded-lg">
+                        <p className="text-xs text-slate-500 mb-1">Ersättning/km</p>
+                        <p className="text-lg font-bold text-slate-900">18.50 kr</p>
+                      </div>
+                      <div className="p-3 bg-white rounded-lg">
+                        <p className="text-xs text-slate-500 mb-1">Antal förare</p>
+                        <p className="text-lg font-bold text-slate-900">{employeeStats.length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cost Breakdown by Employee */}
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-base">Kostnadsfördelning per anställd</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {employeeStats.sort((a, b) => b.totalCost - a.totalCost).map(stat => (
+                      <div key={stat.employee.user_email} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-900">{stat.employee.user_email}</p>
+                          <p className="text-xs text-slate-500">{stat.businessDistance.toFixed(0)} km × 18.50 kr/km</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-blue-600">{stat.totalCost.toFixed(0)} kr</p>
+                          <p className="text-xs text-slate-500">{stat.businessTrips} resor</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Policy Information */}
+              {policies.length > 0 && (
+                <Card className="border-0 shadow-sm bg-amber-50 border-l-4 border-l-amber-500">
+                  <CardContent className="p-4">
+                    <h4 className="text-sm font-semibold text-amber-900 mb-2">Policynformation</h4>
+                    <p className="text-xs text-amber-800">
+                      Ersättningsbelopp baseras på Skatteverkets schablon för tjänsteresor med egen bil. 
+                      Automatiska beräkningar görs endast för godkända tjänsteresor.
+                    </p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}
