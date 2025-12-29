@@ -15,6 +15,7 @@ import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
 import DrivingJournal from './pages/DrivingJournal';
 import DrivingJournalReports from './pages/DrivingJournalReports';
+import JournalPolicySettings from './pages/JournalPolicySettings';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "Vehicles": Vehicles,
     "DrivingJournal": DrivingJournal,
     "DrivingJournalReports": DrivingJournalReports,
+    "JournalPolicySettings": JournalPolicySettings,
 }
 
 export const pagesConfig = {
