@@ -21,7 +21,7 @@ import EditJournalModal from "@/components/journal/EditJournalModal";
 export default function DrivingJournal() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
-  const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -449,11 +449,23 @@ export default function DrivingJournal() {
               <CardContent className="p-12 text-center">
                 <Car className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga resor att visa</h3>
-                <p className="text-slate-500 text-sm">
-                  {activeTab === 'pending' 
+                <p className="text-slate-500 text-sm mb-4">
+                  {entries.length === 0 
+                    ? 'Inga körjournalsposter finns i systemet ännu.' 
+                    : activeTab === 'pending' 
                     ? 'Inga väntande körjournaler just nu' 
                     : 'Inga resor hittades för denna period'}
                 </p>
+                {entries.length === 0 && user?.role === 'admin' && (
+                  <div className="text-xs text-slate-500 space-y-2">
+                    <p>För att få körjournalsposter:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Se till att fordon har GPS Device ID</li>
+                      <li>Välj ett specifikt fordon och klicka synkronisera-knappen</li>
+                      <li>Eller använd "Registrera" i GPS-vyn för att lägga till resor manuellt</li>
+                    </ul>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (
