@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
@@ -334,6 +336,7 @@ export default function DrivingJournal() {
                     <SelectItem value="today">Idag</SelectItem>
                     <SelectItem value="week">Denna vecka</SelectItem>
                     <SelectItem value="month">Denna månad</SelectItem>
+                    <SelectItem value="custom">Anpassat intervall</SelectItem>
                     <SelectItem value="all">Alla</SelectItem>
                   </SelectContent>
                 </Select>
@@ -351,6 +354,22 @@ export default function DrivingJournal() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                {user?.role === 'admin' && (
+                  <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Välj medarbetare" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Alla medarbetare</SelectItem>
+                      {employees.map(emp => (
+                        <SelectItem key={emp.user_email} value={emp.user_email}>
+                          {emp.user_email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               {/* Export Buttons */}
