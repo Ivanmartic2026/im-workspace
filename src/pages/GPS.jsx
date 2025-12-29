@@ -35,23 +35,22 @@ export default function GPS() {
   const { data: gpsDevices, isLoading: devicesLoading, error: devicesError } = useQuery({
     queryKey: ['gps-devices'],
     queryFn: async () => {
-      try {
-        const response = await base44.functions.invoke('gpsTracking', {
-          action: 'getDeviceList',
-          params: {}
-        });
-        
-        if (response.data?.error) {
-          throw new Error(response.data.error);
-        }
-        
-        return response.data;
-      } catch (error) {
-        console.error('GPS Devices Error:', error);
-        throw error;
+      const response = await base44.functions.invoke('gpsTracking', {
+        action: 'getDeviceList',
+        params: {}
+      });
+      
+      if (response.data?.error) {
+        throw new Error(response.data.error);
       }
+      
+      if (response.data?.status !== 0) {
+        throw new Error(response.data?.cause || 'Kunde inte hämta GPS-enheter');
+      }
+      
+      return response.data;
     },
-    retry: 2,
+    retry: 1,
   });
 
   // Extract devices from all groups
@@ -128,12 +127,16 @@ export default function GPS() {
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-6 pb-24">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold text-slate-900 mb-6">GPS Spårning</h1>
-          <Card className="border-0 shadow-sm border-red-200 bg-red-50">
+          <Card className="border-0 shadow-sm bg-rose-50 border-l-4 border-l-rose-500">
             <CardContent className="p-12 text-center">
-              <MapPin className="h-16 w-16 text-red-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-red-900 mb-2">Kunde inte hämta GPS-enheter</h3>
-              <p className="text-red-600 text-sm mb-4">{devicesError.message}</p>
-              <p className="text-slate-500 text-xs">Kontrollera att GPS-inloggningsuppgifter är korrekta.</p>
+              <MapPin className="h-16 w-16 text-rose-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-rose-900 mb-2">Kunde inte hämta GPS-enheter</h3>
+              <p className="text-rose-700 text-sm mb-2">
+                {devicesError.message || 'Ett okänt fel uppstod'}
+              </p>
+              <p className="text-slate-600 text-xs mt-4">
+                Kontrollera att GPS-inloggningsuppgifter är korrekta i inställningarna.
+              </p>
             </CardContent>
           </Card>
         </div>
