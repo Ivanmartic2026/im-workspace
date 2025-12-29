@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Car, Fuel, Wrench, Calendar, AlertTriangle, User } from "lucide-react";
+import { Car, Fuel, Wrench, Calendar, AlertTriangle, User, Radio } from "lucide-react";
 import { format, isPast, differenceInDays } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -29,7 +29,7 @@ const statusLabels = {
   avställd: "Avställd"
 };
 
-export default function VehicleCard({ vehicle, onClick, index = 0, employees = [] }) {
+export default function VehicleCard({ vehicle, onClick, index = 0, employees = [], gpsStatus = null }) {
   const assignedEmployee = employees.find(e => e.user_email === vehicle.assigned_driver);
   
   const getUpcomingAlert = () => {
@@ -89,9 +89,19 @@ export default function VehicleCard({ vehicle, onClick, index = 0, employees = [
                   {vehicle.make} {vehicle.model} {vehicle.year ? `(${vehicle.year})` : ''}
                 </p>
               </div>
-              <Badge variant="outline" className={`${statusColors[vehicle.status]} text-xs flex-shrink-0`}>
-                {statusLabels[vehicle.status]}
-              </Badge>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {vehicle.gps_device_id && (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                    gpsStatus?.online ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    <Radio className={`h-3 w-3 ${gpsStatus?.online ? 'animate-pulse' : ''}`} />
+                    <span>{gpsStatus?.online ? 'Online' : 'Offline'}</span>
+                  </div>
+                )}
+                <Badge variant="outline" className={`${statusColors[vehicle.status]} text-xs`}>
+                  {statusLabels[vehicle.status]}
+                </Badge>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
