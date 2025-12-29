@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Edit } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO, format, eachDayOfInterval, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -18,7 +19,7 @@ const categoryLabels = {
   interntid: "Interntid"
 };
 
-export default function TimeHistory({ entries }) {
+export default function TimeHistory({ entries, onEdit }) {
   const [view, setView] = useState('week');
   const now = new Date();
   
@@ -113,12 +114,12 @@ export default function TimeHistory({ entries }) {
                   {dayEntries.length > 0 && (
                     <div className="space-y-2 mt-3 pt-3 border-t border-slate-100">
                       {dayEntries.map((entry) => (
-                        <div key={entry.id} className="flex items-center justify-between text-xs">
+                        <div key={entry.id} className="flex items-center justify-between text-xs group">
                           <div className="flex items-center gap-2">
                             <div className={`h-2 w-2 rounded-full ${categoryColors[entry.category]}`} />
                             <span className="text-slate-600">{categoryLabels[entry.category]}</span>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <span className="text-slate-500">
                               {format(parseISO(entry.clock_in_time), 'HH:mm')}
                               {entry.clock_out_time && ` - ${format(parseISO(entry.clock_out_time), 'HH:mm')}`}
@@ -126,10 +127,19 @@ export default function TimeHistory({ entries }) {
                             {entry.total_hours && (
                               <span className="font-semibold text-slate-900">{entry.total_hours.toFixed(1)}h</span>
                             )}
-                            {entry.status === 'active' && (
+                            {entry.status === 'active' ? (
                               <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
                                 Pågår
                               </span>
+                            ) : onEdit && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => onEdit(entry)}
+                              >
+                                <Edit className="h-3 w-3 text-slate-400" />
+                              </Button>
                             )}
                           </div>
                         </div>
