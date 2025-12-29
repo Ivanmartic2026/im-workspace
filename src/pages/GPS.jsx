@@ -71,16 +71,21 @@ export default function GPS() {
       const today = new Date();
       const startDate = selectedPeriod === 'today' ? today : subDays(today, 7);
       
-      const promises = allDevices.map(device => 
-        base44.functions.invoke('gpsTracking', {
+      const promises = allDevices.map(device => {
+        const startTime = new Date(startDate);
+        startTime.setHours(0, 0, 0, 0);
+        const endTime = new Date(today);
+        endTime.setHours(23, 59, 59, 999);
+        
+        return base44.functions.invoke('gpsTracking', {
           action: 'getTrips',
           params: {
             deviceId: device.deviceid,
-            begintime: format(startDate, 'yyyy-MM-dd') + ' 00:00:00',
-            endtime: format(today, 'yyyy-MM-dd') + ' 23:59:59'
+            begintime: Math.floor(startTime.getTime() / 1000),
+            endtime: Math.floor(endTime.getTime() / 1000)
           }
-        })
-      );
+        });
+      });
 
       const results = await Promise.all(promises);
       return results.map((r, i) => ({ deviceId: allDevices[i].deviceid, deviceName: allDevices[i].devicename, data: r.data }));
