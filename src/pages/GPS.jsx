@@ -95,6 +95,9 @@ export default function GPS() {
             begintime: Math.floor(startTime.getTime() / 1000),
             endtime: Math.floor(endTime.getTime() / 1000)
           }
+        }).catch(error => {
+          console.error(`Failed to fetch trips for device ${device.deviceid}:`, error);
+          return { data: { totaltrips: [] } };
         });
       });
 
@@ -241,7 +244,7 @@ export default function GPS() {
                                 {Math.round(pos.speed * 3.6)} km/h
                               </p>
                               <p className="text-xs text-slate-500">
-                                {format(new Date(pos.posiTime * 1000), 'PPp', { locale: sv })}
+                                {pos.posiTime ? format(new Date(pos.posiTime * 1000), 'PPp', { locale: sv }) : 'Ingen tid'}
                               </p>
                             </div>
                             {vehicle && (
@@ -303,10 +306,10 @@ export default function GPS() {
             <div className="space-y-3">
               {tripsData?.map((deviceTrips) => {
                 const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === deviceTrips.deviceId);
-                if (!deviceTrips.data.totaltrips?.length) return null;
+                if (!deviceTrips?.data?.totaltrips?.length) return null;
 
-                const totalDistance = deviceTrips.data.totaldistance / 1000;
-                const totalTime = deviceTrips.data.totaltriptime / (1000 * 60);
+                const totalDistance = (deviceTrips.data.totaldistance || 0) / 1000;
+                const totalTime = (deviceTrips.data.totaltriptime || 0) / (1000 * 60);
                 const tripCount = deviceTrips.data.totaltrips.length;
 
                 const displayName = vehicle?.registration_number || deviceTrips.deviceName || deviceTrips.deviceId;
