@@ -33,13 +33,15 @@ export default function GPS() {
     queryKey: ['gps-devices'],
     queryFn: async () => {
       const response = await base44.functions.invoke('gpsTracking', {
-        action: 'getDeviceList'
+        action: 'getDeviceList',
+        params: {}
       });
       return response.data;
     },
   });
 
-  const allDevices = gpsDevices?.records || [];
+  // Extract devices from all groups
+  const allDevices = gpsDevices?.groups?.flatMap(group => group.devices || []) || [];
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
 
   const { data: positionsData, isLoading: positionsLoading } = useQuery({
