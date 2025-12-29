@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, MapPin, Navigation, Gauge, Clock, Fuel, Activity, Loader2, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Gauge, Clock, Fuel, Activity, Loader2, Calendar, BarChart3, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -17,6 +17,7 @@ export default function VehicleTracking() {
   const urlParams = new URLSearchParams(window.location.search);
   const vehicleId = urlParams.get('id');
   const [selectedTab, setSelectedTab] = useState('position');
+  const [historyDays, setHistoryDays] = useState(7);
 
   const { data: vehicle, isLoading: vehicleLoading } = useQuery({
     queryKey: ['vehicle', vehicleId],
@@ -77,6 +78,48 @@ export default function VehicleTracking() {
       return response.data;
     },
     enabled: !!vehicle?.gps_device_id && selectedTab === 'month',
+  });
+
+  const { data: historyData, isLoading: historyLoading } = useQuery({
+    queryKey: ['gps-history', vehicle?.gps_device_id, historyDays],
+    queryFn: async () => {
+      if (!vehicle?.gps_device_id) return null;
+      const now = new Date();
+      const startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - historyDays);
+      
+      const response = await base44.functions.invoke('gpsTracking', {
+        action: 'getTrips',
+        params: {
+          deviceId: vehicle.gps_device_id,
+          begintime: format(startDate, 'yyyy-MM-dd') + ' 00:00:00',
+          endtime: format(now, 'yyyy-MM-dd') + ' 23:59:59'
+        }
+      });
+      return response.data;
+    },
+    enabled: !!vehicle?.gps_device_id && selectedTab === 'history',
+  });
+
+  const { data: fuelData, isLoading: fuelLoading } = useQuery({
+    queryKey: ['gps-fuel', vehicle?.gps_device_id],
+    queryFn: async () => {
+      if (!vehicle?.gps_device_id) return null;
+      const now = new Date();
+      const startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 30);
+      
+      const response = await base44.functions.invoke('gpsTracking', {
+        action: 'getFuelMileageReport',
+        params: {
+          deviceId: vehicle.gps_device_id,
+          startTime: Math.floor(startDate.getTime() / 1000),
+          endTime: Math.floor(now.getTime() / 1000)
+        }
+      });
+      return response.data;
+    },
+    enabled: !!vehicle?.gps_device_id && selectedTab === 'fuel',
   });
 
   if (vehicleLoading || !vehicle) {
@@ -144,15 +187,21 @@ export default function VehicleTracking() {
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-3">
-              <TabsTrigger value="position" className="rounded-xl data-[state=active]:shadow-sm">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-2 gap-1">
+              <TabsTrigger value="position" className="rounded-xl data-[state=active]:shadow-sm text-xs">
                 Position
               </TabsTrigger>
-              <TabsTrigger value="trips" className="rounded-xl data-[state=active]:shadow-sm">
+              <TabsTrigger value="trips" className="rounded-xl data-[state=active]:shadow-sm text-xs">
                 Idag
               </TabsTrigger>
-              <TabsTrigger value="month" className="rounded-xl data-[state=active]:shadow-sm">
+              <TabsTrigger value="month" className="rounded-xl data-[state=active]:shadow-sm text-xs">
                 Månad
+              </TabsTrigger>
+              <TabsTrigger value="history" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+                Historik
+              </TabsTrigger>
+              <TabsTrigger value="fuel" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+                Bränsle
               </TabsTrigger>
             </TabsList>
 
@@ -417,6 +466,184 @@ export default function VehicleTracking() {
                   <CardContent className="p-12 text-center">
                     <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                     <p className="text-slate-500">Inga resor registrerade denna månad</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="history" className="mt-6 space-y-3">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-slate-700 mb-3">Visa historik för:</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[7, 14, 30, 90].map(days => (
+                      <button
+                        key={days}
+                        onClick={() => setHistoryDays(days)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          historyDays === days
+                            ? 'bg-slate-900 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {days}d
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {historyLoading ? (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-12 text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
+                  </CardContent>
+                </Card>
+              ) : historyData?.totaltrips?.length > 0 ? (
+                <>
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-5">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Total sträcka</p>
+                          <p className="text-lg font-bold text-slate-900">
+                            {(historyData.totaldistance / 1000).toFixed(0)} km
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Total tid</p>
+                          <p className="text-lg font-bold text-slate-900">
+                            {Math.round(historyData.totaltriptime / (1000 * 60 * 60))} tim
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Antal resor</p>
+                          <p className="text-lg font-bold text-slate-900">
+                            {historyData.totaltrips.length}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-5">
+                      <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        Statistik per dag
+                      </h3>
+                      {Object.entries(
+                        historyData.totaltrips.reduce((acc, trip) => {
+                          const day = format(new Date(trip.starttime), 'yyyy-MM-dd');
+                          if (!acc[day]) {
+                            acc[day] = { distance: 0, time: 0, trips: 0 };
+                          }
+                          acc[day].distance += trip.tripdistance;
+                          acc[day].time += trip.triptime;
+                          acc[day].trips += 1;
+                          return acc;
+                        }, {})
+                      ).reverse().slice(0, 10).map(([day, stats]) => (
+                        <div key={day} className="py-3 border-b border-slate-100 last:border-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-medium text-slate-900">
+                              {format(new Date(day), 'd MMM', { locale: sv })}
+                            </p>
+                            <p className="text-xs text-slate-500">{stats.trips} resor</p>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-slate-600">
+                            <span className="flex items-center gap-1">
+                              <Navigation className="h-3 w-3" />
+                              {(stats.distance / 1000).toFixed(1)} km
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {Math.round(stats.time / (1000 * 60))} min
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-12 text-center">
+                    <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-500">Inga resor registrerade för denna period</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="fuel" className="mt-6 space-y-3">
+              {fuelLoading ? (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-12 text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
+                  </CardContent>
+                </Card>
+              ) : fuelData?.records?.length > 0 ? (
+                <>
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-5">
+                      <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        Bränsleförbrukning senaste 30 dagarna
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Total körsträcka</p>
+                          <p className="text-lg font-bold text-slate-900">
+                            {(fuelData.totalmileage / 1000).toFixed(0)} km
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Total bränsle</p>
+                          <p className="text-lg font-bold text-slate-900">
+                            {fuelData.totalfuel?.toFixed(1) || '0'} L
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {fuelData.records.map((record, idx) => (
+                    <Card key={idx} className="border-0 shadow-sm">
+                      <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-medium text-slate-900">
+                            {format(new Date(record.time * 1000), 'dd MMM yyyy', { locale: sv })}
+                          </p>
+                          <div className="flex items-center gap-1 text-emerald-600">
+                            <Fuel className="h-4 w-4" />
+                            <span className="font-semibold">{record.fuel?.toFixed(1) || '0'} L</span>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-xs text-slate-600">
+                          <div className="flex items-center gap-1">
+                            <Navigation className="h-3 w-3" />
+                            <span>{(record.mileage / 1000).toFixed(1)} km</span>
+                          </div>
+                          {record.fuel && record.mileage && (
+                            <div className="flex items-center gap-1">
+                              <Activity className="h-3 w-3" />
+                              <span>{((record.fuel / (record.mileage / 1000)) * 100).toFixed(1)} L/100km</span>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              ) : (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-12 text-center">
+                    <Fuel className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-500">Ingen bränsledata tillgänglig</p>
+                    <p className="text-xs text-slate-400 mt-2">
+                      Data hämtas från GPS-systemet och kan ta tid att registrera
+                    </p>
                   </CardContent>
                 </Card>
               )}
