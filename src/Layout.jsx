@@ -8,6 +8,7 @@ const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
   { name: 'Vehicles', label: 'Fordon', icon: Car },
   { name: 'GPS', label: 'GPS', icon: Navigation },
+  { name: 'DrivingJournal', label: 'Körjournal', icon: FileText },
   { name: 'Employees', label: 'Personal', icon: Users },
   { name: 'Reports', label: 'Rapport', icon: BarChart3 },
   { name: 'Leave', label: 'Tid', icon: Palmtree },
