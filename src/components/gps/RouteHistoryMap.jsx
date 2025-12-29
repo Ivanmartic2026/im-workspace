@@ -38,6 +38,18 @@ const endIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
+// Haversine formula for distance calculation
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 export default function RouteHistoryMap({ vehicles }) {
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -100,12 +112,27 @@ export default function RouteHistoryMap({ vehicles }) {
       const startPoint = tracks[0];
       const endPoint = tracks[tracks.length - 1];
 
+      // Calculate total distance
+      let totalDistance = 0;
+      for (let i = 1; i < tracks.length; i++) {
+        const prev = tracks[i - 1];
+        const curr = tracks[i];
+        const distance = calculateDistance(prev.lat, prev.lon, curr.lat, curr.lon);
+        totalDistance += distance;
+      }
+
+      // Calculate duration
+      const durationMs = (endPoint.time - startPoint.time) * 1000;
+      const durationMinutes = Math.round(durationMs / (1000 * 60));
+
       setRouteData({
         vehicle,
         routePoints,
         startPoint,
         endPoint,
         totalPoints: tracks.length,
+        totalDistance: totalDistance.toFixed(1),
+        duration: durationMinutes,
         startTime: new Date(startPoint.time * 1000),
         endTime: new Date(endPoint.time * 1000)
       });
@@ -191,22 +218,46 @@ export default function RouteHistoryMap({ vehicles }) {
         <>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-slate-900 mb-3">Ruttinformation</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                   <span className="text-slate-600">Fordon:</span>
                   <span className="font-semibold">{routeData.vehicle.registration_number}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Datapunkter:</span>
-                  <span className="font-semibold">{routeData.totalPoints}</span>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Navigation className="h-4 w-4 text-blue-600" />
+                      <span className="text-xs text-blue-600 font-medium">Total sträcka</span>
+                    </div>
+                    <p className="text-lg font-bold text-blue-900">{routeData.totalDistance} km</p>
+                  </div>
+                  
+                  <div className="bg-purple-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock className="h-4 w-4 text-purple-600" />
+                      <span className="text-xs text-purple-600 font-medium">Total tid</span>
+                    </div>
+                    <p className="text-lg font-bold text-purple-900">
+                      {routeData.duration < 60 ? `${routeData.duration} min` : `${Math.floor(routeData.duration / 60)}h ${routeData.duration % 60}m`}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Start:</span>
-                  <span className="font-semibold text-xs">{format(routeData.startTime, 'PPp', { locale: sv })}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Slut:</span>
-                  <span className="font-semibold text-xs">{format(routeData.endTime, 'PPp', { locale: sv })}</span>
+
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Start:</span>
+                    <span className="font-medium text-xs">{format(routeData.startTime, 'PPp', { locale: sv })}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Slut:</span>
+                    <span className="font-medium text-xs">{format(routeData.endTime, 'PPp', { locale: sv })}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Datapunkter:</span>
+                    <span className="font-medium">{routeData.totalPoints}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
