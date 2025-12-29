@@ -79,6 +79,15 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Flagga om förare saknas
+      let anomalyFlag = false;
+      let anomalyReason = '';
+      
+      if (!defaultDriver) {
+        anomalyFlag = true;
+        anomalyReason = 'Förare kunde inte identifieras automatiskt';
+      }
+
       // Skapa ny körjournalspost
       const journalEntry = {
         vehicle_id: vehicleId,
@@ -89,7 +98,9 @@ Deno.serve(async (req) => {
         distance_km: parseFloat((trip.mileage || 0).toFixed(2)),
         duration_minutes: Math.round((trip.endtime - trip.begintime) / 60),
         trip_type: 'väntar',
-        status: 'pending_review'
+        status: 'pending_review',
+        is_anomaly: anomalyFlag,
+        anomaly_reason: anomalyReason || null
       };
 
       // Lägg till förarinfo om tillgänglig
@@ -116,15 +127,15 @@ Deno.serve(async (req) => {
         };
       }
 
-      // Flagga avvikelser (t.ex. mycket lång resa)
+      // Flagga ytterligare avvikelser
       if (journalEntry.distance_km > 500) {
         journalEntry.is_anomaly = true;
-        journalEntry.anomaly_reason = 'Ovanligt lång resa (över 500 km)';
+        journalEntry.anomaly_reason = (journalEntry.anomaly_reason ? journalEntry.anomaly_reason + '. ' : '') + 'Ovanligt lång resa (över 500 km)';
       }
 
       if (journalEntry.duration_minutes > 720) {
         journalEntry.is_anomaly = true;
-        journalEntry.anomaly_reason = (journalEntry.anomaly_reason || '') + ' Ovanligt lång tid (över 12 timmar)';
+        journalEntry.anomaly_reason = (journalEntry.anomaly_reason ? journalEntry.anomaly_reason + '. ' : '') + 'Ovanligt lång tid (över 12 timmar)';
       }
 
       await base44.asServiceRole.entities.DrivingJournalEntry.create(journalEntry);
