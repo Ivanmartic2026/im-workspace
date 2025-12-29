@@ -3,14 +3,23 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, Gauge, Clock, Calendar, Loader2, Car } from "lucide-react";
+import { MapPin, Navigation, Gauge, Clock, Calendar, Loader2, Car, Route } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// Fix default marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 export default function GPS() {
   const [selectedPeriod, setSelectedPeriod] = useState('today');
@@ -116,50 +125,83 @@ export default function GPS() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-2xl font-bold text-slate-900 mb-6">GPS Spårning</h1>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">GPS Spårning</h1>
+              <p className="text-sm text-slate-500 mt-1">
+                {vehiclesWithGPS.length} fordon med GPS live
+              </p>
+            </div>
+            <Link to={createPageUrl('DrivingJournal')}>
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-slate-800 transition-colors">
+                <Route className="h-4 w-4" />
+                Körjournal
+              </button>
+            </Link>
+          </div>
 
           {/* Map */}
           <Card className="border-0 shadow-sm overflow-hidden mb-6">
-            <div className="h-96">
-              <MapContainer
-                center={centerPos}
-                zoom={10}
-                style={{ height: '100%', width: '100%' }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; OpenStreetMap contributors'
-                />
-                {positions.map((pos) => {
-                  const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === pos.deviceid);
-                  const device = allDevices.find(d => d.deviceid === pos.deviceid);
-                  
-                  return (
-                    <Marker key={pos.deviceid} position={[pos.callat, pos.callon]}>
-                      <Popup>
-                        <div className="text-center">
-                          <p className="font-semibold">
-                            {vehicle?.registration_number || device?.devicename || pos.deviceid}
-                          </p>
-                          {vehicle && (
-                            <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
-                          )}
-                          <p className="text-xs text-slate-600 mt-1">
-                            {Math.round(pos.speed * 3.6)} km/h
-                          </p>
-                          {vehicle && (
-                            <Link to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`}>
-                              <button className="text-xs text-blue-600 mt-1 hover:underline">
-                                Visa detaljer
-                              </button>
-                            </Link>
-                          )}
-                        </div>
-                      </Popup>
-                    </Marker>
-                  );
-                })}
-              </MapContainer>
+            <div className="h-[500px]">
+              {positionsLoading ? (
+                <div className="h-full flex items-center justify-center bg-slate-50">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                </div>
+              ) : positions.length > 0 ? (
+                <MapContainer
+                  center={centerPos}
+                  zoom={12}
+                  style={{ height: '100%', width: '100%' }}
+                  scrollWheelZoom={true}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; OpenStreetMap contributors'
+                  />
+                  {positions.map((pos) => {
+                    const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === pos.deviceid);
+                    const device = allDevices.find(d => d.deviceid === pos.deviceid);
+                    
+                    return (
+                      <Marker key={pos.deviceid} position={[pos.callat, pos.callon]}>
+                        <Popup>
+                          <div className="min-w-[200px]">
+                            <p className="font-semibold text-base mb-1">
+                              {vehicle?.registration_number || device?.devicename || pos.deviceid}
+                            </p>
+                            {vehicle && (
+                              <p className="text-xs text-slate-500 mb-2">{vehicle.make} {vehicle.model}</p>
+                            )}
+                            <div className="space-y-1 mb-2">
+                              <p className="text-sm text-slate-600 flex items-center gap-1">
+                                <Gauge className="h-3 w-3" />
+                                {Math.round(pos.speed * 3.6)} km/h
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {format(new Date(pos.posiTime * 1000), 'PPp', { locale: sv })}
+                              </p>
+                            </div>
+                            {vehicle && (
+                              <Link to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`}>
+                                <button className="text-sm text-blue-600 font-medium hover:underline">
+                                  Visa fordonsdetaljer →
+                                </button>
+                              </Link>
+                            )}
+                          </div>
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
+                </MapContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center bg-slate-50">
+                  <div className="text-center">
+                    <MapPin className="h-12 w-12 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-500">Ingen position tillgänglig</p>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
 
