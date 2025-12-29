@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 import JournalEntryCard from "@/components/journal/JournalEntryCard";
 import JournalStatsCard from "@/components/journal/JournalStatsCard";
 import EditJournalModal from "@/components/journal/EditJournalModal";
@@ -169,20 +171,29 @@ export default function DrivingJournal() {
                 {user?.role === 'admin' ? 'Administrera körjournaler' : 'Hantera dina resor'}
               </p>
             </div>
-            {user?.role === 'admin' && (
-              <Button
-                onClick={handleSync}
-                disabled={syncTripsMutation.isPending || selectedVehicle === 'all'}
-                size="sm"
-                variant="outline"
-              >
-                {syncTripsMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {user?.role === 'admin' && (
+                <>
+                  <Link to={createPageUrl('DrivingJournalReports')}>
+                    <Button size="sm" variant="outline">
+                      <BarChart3 className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Button
+                    onClick={handleSync}
+                    disabled={syncTripsMutation.isPending || selectedVehicle === 'all'}
+                    size="sm"
+                    variant="outline"
+                  >
+                    {syncTripsMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Stats */}

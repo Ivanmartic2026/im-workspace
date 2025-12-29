@@ -14,6 +14,7 @@ import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
 import DrivingJournal from './pages/DrivingJournal';
+import DrivingJournalReports from './pages/DrivingJournalReports';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
     "DrivingJournal": DrivingJournal,
+    "DrivingJournalReports": DrivingJournalReports,
 }
 
 export const pagesConfig = {
