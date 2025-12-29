@@ -180,12 +180,20 @@ export default function GPS() {
                 {vehiclesWithGPS.length} fordon med GPS live
               </p>
             </div>
-            <Link to={createPageUrl('DrivingJournal')}>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-slate-800 transition-colors">
-                <Route className="h-4 w-4" />
-                Körjournal
-              </button>
-            </Link>
+            <div className="flex gap-2">
+              <Link to={createPageUrl('AllVehicles')}>
+                <button className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+                  <Car className="h-4 w-4" />
+                  Alla fordon
+                </button>
+              </Link>
+              <Link to={createPageUrl('DrivingJournal')}>
+                <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-slate-800 transition-colors">
+                  <Route className="h-4 w-4" />
+                  Körjournal
+                </button>
+              </Link>
+            </div>
           </div>
 
           {/* Tabs */}
