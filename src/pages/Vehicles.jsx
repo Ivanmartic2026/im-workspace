@@ -38,6 +38,37 @@ export default function Vehicles() {
     queryFn: () => base44.entities.Employee.list(),
   });
 
+  const { data: gpsPositions } = useQuery({
+    queryKey: ['gps-positions'],
+    queryFn: async () => {
+      try {
+        const deviceIds = vehicles
+          .filter(v => v.gps_device_id)
+          .map(v => v.gps_device_id);
+        
+        if (deviceIds.length === 0) return {};
+
+        const response = await base44.functions.invoke('gpsTracking', {
+          action: 'getLastPosition',
+          params: { deviceIds }
+        });
+
+        const positions = {};
+        if (response.data?.positions) {
+          response.data.positions.forEach(pos => {
+            positions[pos.deviceid] = pos;
+          });
+        }
+        return positions;
+      } catch (error) {
+        console.error('Failed to fetch GPS positions:', error);
+        return {};
+      }
+    },
+    enabled: vehicles.length > 0,
+    refetchInterval: 30000,
+  });
+
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = 
       vehicle.registration_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -160,6 +191,9 @@ export default function Vehicles() {
                     vehicle={vehicle}
                     employees={employees}
                     index={idx}
+                    gpsStatus={vehicle.gps_device_id && gpsPositions?.[vehicle.gps_device_id] ? {
+                      online: gpsPositions[vehicle.gps_device_id].online === 1
+                    } : null}
                   />
                 </Link>
               ))
