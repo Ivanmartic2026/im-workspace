@@ -126,7 +126,7 @@ export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, on
           )}
 
           <div className="flex gap-2 mt-3">
-            {!isAdmin && entry.status !== 'approved' && (
+            {entry.status !== 'approved' && onEdit && (
               <Button
                 onClick={() => onEdit(entry)}
                 size="sm"
