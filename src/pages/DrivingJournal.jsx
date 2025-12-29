@@ -155,6 +155,7 @@ export default function DrivingJournal() {
     businessTrips: filteredEntries.filter(e => e.trip_type === 'tjänst').length,
     privateTrips: filteredEntries.filter(e => e.trip_type === 'privat').length,
     pendingTrips: filteredEntries.filter(e => e.trip_type === 'väntar').length,
+    actionRequired: filteredEntries.filter(e => e.status === 'pending_review' && e.trip_type === 'väntar').length,
   };
 
   return (

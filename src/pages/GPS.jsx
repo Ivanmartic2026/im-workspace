@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, Gauge, Clock, Calendar, Loader2, Car, Route } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MapPin, Navigation, Gauge, Clock, Calendar, Loader2, Car, Route, History } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -11,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import RouteHistoryMap from '@/components/gps/RouteHistoryMap';
 import 'leaflet/dist/leaflet.css';
 
 // Fix default marker icons
@@ -23,6 +25,7 @@ L.Icon.Default.mergeOptions({
 
 export default function GPS() {
   const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const [activeTab, setActiveTab] = useState('live');
 
   const { data: vehicles = [] } = useQuery({
     queryKey: ['vehicles'],
@@ -142,6 +145,24 @@ export default function GPS() {
             </Link>
           </div>
 
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
+            <TabsList className="w-full bg-white shadow-sm">
+              <TabsTrigger value="live" className="flex-1">
+                <Navigation className="h-4 w-4 mr-2" />
+                Live
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex-1">
+                <History className="h-4 w-4 mr-2" />
+                Historik
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {activeTab === 'history' ? (
+            <RouteHistoryMap vehicles={vehicles} />
+          ) : (
+            <>
           {/* Map */}
           <Card className="border-0 shadow-sm overflow-hidden mb-6">
             <div className="h-[500px]">
@@ -285,6 +306,8 @@ export default function GPS() {
                 );
               })}
             </div>
+          )}
+            </>
           )}
         </motion.div>
       </div>

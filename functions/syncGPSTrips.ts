@@ -53,14 +53,29 @@ Deno.serve(async (req) => {
     }
 
     for (const trip of trips) {
-      // Kontrollera om resan redan finns i körjournalen
+      // Kontrollera om resan redan finns i körjournalen (kolla både gps_trip_id och tidsmatchning)
+      const tripStartTime = new Date(trip.begintime * 1000).toISOString();
+      
       const existing = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
-        gps_trip_id: trip.tripid?.toString(),
         vehicle_id: vehicleId
       });
 
-      if (existing && existing.length > 0) {
-        skippedTrips.push({ tripId: trip.tripid, reason: 'Already exists' });
+      const matchingEntry = existing.find(e => {
+        if (e.gps_trip_id === trip.tripid?.toString()) return true;
+        // Kolla tidsmatchning (inom 5 minuter)
+        const entryStart = new Date(e.start_time).getTime();
+        const tripStart = trip.begintime * 1000;
+        return Math.abs(entryStart - tripStart) < 5 * 60 * 1000;
+      });
+
+      if (matchingEntry) {
+        // Uppdatera befintlig post med GPS-data om den saknas
+        if (!matchingEntry.gps_trip_id) {
+          await base44.asServiceRole.entities.DrivingJournalEntry.update(matchingEntry.id, {
+            gps_trip_id: trip.tripid?.toString()
+          });
+        }
+        skippedTrips.push({ tripId: trip.tripid, reason: 'Already exists or matched' });
         continue;
       }
 

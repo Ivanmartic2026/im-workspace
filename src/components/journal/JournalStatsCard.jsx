@@ -60,7 +60,7 @@ export default function JournalStatsCard({ stats }) {
         </motion.div>
       ))}
       
-      {stats.pendingTrips > 0 && (
+      {stats.actionRequired > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -73,10 +73,10 @@ export default function JournalStatsCard({ stats }) {
                 <AlertCircle className="h-5 w-5 text-amber-600" />
                 <div>
                   <p className="text-sm font-medium text-amber-900">
-                    {stats.pendingTrips} {stats.pendingTrips === 1 ? 'resa' : 'resor'} väntar på ifyllning
+                    {stats.actionRequired} {stats.actionRequired === 1 ? 'resa kräver' : 'resor kräver'} åtgärd
                   </p>
                   <p className="text-xs text-amber-700 mt-0.5">
-                    Fyll i syfte och typ för att kunna skicka in
+                    GPS-resor utan ifylld körjournal
                   </p>
                 </div>
               </div>
