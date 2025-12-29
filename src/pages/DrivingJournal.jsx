@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings } from "lucide-react";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -23,6 +23,10 @@ export default function DrivingJournal() {
   const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [exportLoading, setExportLoading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -32,6 +36,11 @@ export default function DrivingJournal() {
   const { data: vehicles = [] } = useQuery({
     queryKey: ['vehicles'],
     queryFn: () => base44.entities.Vehicle.list(),
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
   });
 
   const { data: entries = [], isLoading } = useQuery({
@@ -149,6 +158,56 @@ export default function DrivingJournal() {
     await syncTripsMutation.mutateAsync({ vehicleId: selectedVehicle });
   };
 
+  const handleExportPDF = async () => {
+    setExportLoading(true);
+    try {
+      const response = await base44.functions.invoke('exportJournalPDF', {
+        startDate: startDate,
+        endDate: endDate,
+        vehicleId: selectedVehicle !== 'all' ? selectedVehicle : null,
+        employeeEmail: selectedEmployee !== 'all' ? selectedEmployee : null
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `körjournal_${startDate}_${endDate}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      alert('Kunde inte exportera PDF: ' + error.message);
+    }
+    setExportLoading(false);
+  };
+
+  const handleExportCSV = async () => {
+    setExportLoading(true);
+    try {
+      const response = await base44.functions.invoke('exportJournalCSV', {
+        startDate: startDate,
+        endDate: endDate,
+        vehicleId: selectedVehicle !== 'all' ? selectedVehicle : null,
+        employeeEmail: selectedEmployee !== 'all' ? selectedEmployee : null
+      });
+      
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `körjournal_${startDate}_${endDate}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      alert('Kunde inte exportera CSV: ' + error.message);
+    }
+    setExportLoading(false);
+  };
+
   // Filter entries
   const filteredEntries = entries.filter(entry => {
     const matchesTab = user?.role === 'admin' 
@@ -161,6 +220,7 @@ export default function DrivingJournal() {
     
     const matchesDriver = user?.role === 'admin' || entry.driver_email === user?.email;
     const matchesVehicle = selectedVehicle === 'all' || entry.vehicle_id === selectedVehicle;
+    const matchesEmployee = selectedEmployee === 'all' || entry.driver_email === selectedEmployee;
     
     // Period filter
     const entryDate = new Date(entry.start_time);
@@ -174,9 +234,14 @@ export default function DrivingJournal() {
                       entryDate <= endOfWeek(now, { weekStartsOn: 1 });
     } else if (selectedPeriod === 'month') {
       matchesPeriod = entryDate >= startOfMonth(now) && entryDate <= endOfMonth(now);
+    } else if (selectedPeriod === 'custom') {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      matchesPeriod = entryDate >= start && entryDate <= end;
     }
     
-    return matchesTab && matchesDriver && matchesVehicle && matchesPeriod;
+    return matchesTab && matchesDriver && matchesVehicle && matchesPeriod && matchesEmployee;
   });
 
   // Calculate stats
@@ -240,6 +305,26 @@ export default function DrivingJournal() {
           {/* Filters */}
           <Card className="border-0 shadow-sm mb-4">
             <CardContent className="p-4">
+              {selectedPeriod === 'custom' && (
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <Label className="text-xs mb-1 block">Från datum</Label>
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs mb-1 block">Till datum</Label>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                   <SelectTrigger>
@@ -267,10 +352,44 @@ export default function DrivingJournal() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Tabs */}
+              {/* Export Buttons */}
+              {user?.role === 'admin' && (
+                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-200">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExportPDF}
+                    disabled={exportLoading}
+                    className="flex-1"
+                  >
+                    {exportLoading ? (
+                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                    ) : (
+                      <FileDown className="h-3 w-3 mr-2" />
+                    )}
+                    Export PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExportCSV}
+                    disabled={exportLoading}
+                    className="flex-1"
+                  >
+                    {exportLoading ? (
+                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                    ) : (
+                      <FileDown className="h-3 w-3 mr-2" />
+                    )}
+                    Export CSV
+                  </Button>
+                </div>
+              )}
+              </CardContent>
+              </Card>
+
+              {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
             <TabsList className="w-full bg-white shadow-sm">
               {user?.role === 'admin' ? (

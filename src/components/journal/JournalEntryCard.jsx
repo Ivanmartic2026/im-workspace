@@ -20,7 +20,7 @@ const tripTypeConfig = {
   väntar: { label: 'Ej angiven', color: 'bg-amber-100 text-amber-800' }
 };
 
-export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, onRequestInfo, isAdmin }) {
+export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, onRequestInfo, isAdmin, canEdit = true }) {
   const status = statusConfig[entry.status] || statusConfig.pending_review;
   const tripType = tripTypeConfig[entry.trip_type] || tripTypeConfig.väntar;
   const StatusIcon = status.icon;
