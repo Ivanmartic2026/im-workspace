@@ -6,17 +6,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
-import { Loader2, CalendarDays } from "lucide-react";
-import { differenceInDays, format } from "date-fns";
+import { useQuery } from '@tanstack/react-query';
+import { Loader2, CalendarDays, User } from "lucide-react";
+import { differenceInDays } from "date-fns";
 
-export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }) {
+export default function AdminLeaveModal({ open, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    employee_email: '',
     type: 'semester',
     start_date: '',
     end_date: '',
     hours_per_day: 8,
     reason: ''
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+    enabled: open,
   });
 
   const days = formData.start_date && formData.end_date 
@@ -28,15 +36,20 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
     setLoading(true);
     
     try {
+      const user = await base44.auth.me();
+      
       await base44.entities.LeaveRequest.create({
         ...formData,
-        employee_email: userEmail,
         days,
-        status: 'pending'
+        status: 'approved',
+        reviewed_by: user.email,
+        reviewed_at: new Date().toISOString()
       });
+      
       onSuccess();
       onClose();
       setFormData({
+        employee_email: '',
         type: 'semester',
         start_date: '',
         end_date: '',
@@ -44,7 +57,8 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
         reason: ''
       });
     } catch (error) {
-      console.error('Error creating leave request:', error);
+      console.error('Error creating leave:', error);
+      alert('Kunde inte registrera ledighet: ' + error.message);
     }
     
     setLoading(false);
@@ -54,10 +68,32 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Ansök om ledighet</DialogTitle>
+          <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Registrera ledighet
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+          <div className="space-y-2">
+            <Label>Välj anställd</Label>
+            <Select
+              value={formData.employee_email}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, employee_email: value }))}
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Välj anställd..." />
+              </SelectTrigger>
+              <SelectContent>
+                {employees.map(emp => (
+                  <SelectItem key={emp.user_email} value={emp.user_email}>
+                    {emp.user_email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label>Typ av ledighet</Label>
             <Select
@@ -121,9 +157,9 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
           </div>
 
           {days > 0 && (
-            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-              <CalendarDays className="h-4 w-4 text-slate-500" />
-              <span className="text-sm text-slate-600">
+            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+              <CalendarDays className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-blue-800">
                 Totalt <span className="font-semibold">{days} {days === 1 ? 'dag' : 'dagar'}</span>
                 {formData.hours_per_day && formData.hours_per_day !== 8 && (
                   <span className="ml-2">({formData.hours_per_day}h/dag = {days * formData.hours_per_day}h totalt)</span>
@@ -133,12 +169,12 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Anledning (valfritt)</Label>
+            <Label htmlFor="reason">Anteckning (valfritt)</Label>
             <Textarea
               id="reason"
               value={formData.reason}
               onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-              placeholder="Beskriv anledningen..."
+              placeholder="Lägg till en notering..."
               className="min-h-[80px] resize-none"
             />
           </div>
@@ -147,8 +183,8 @@ export default function CreateLeaveModal({ open, onClose, onSuccess, userEmail }
             <Button type="button" variant="outline" onClick={onClose}>
               Avbryt
             </Button>
-            <Button type="submit" disabled={loading || days <= 0} className="min-w-[100px]">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Skicka ansökan'}
+            <Button type="submit" disabled={loading || days <= 0 || !formData.employee_email} className="min-w-[100px]">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Registrera'}
             </Button>
           </div>
         </form>

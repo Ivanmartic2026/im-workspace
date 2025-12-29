@@ -162,7 +162,13 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
-    return `${hours}h ${minutes}m`;
+    return { hours, minutes, formatted: `${hours}h ${minutes}m` };
+  };
+
+  const isOvertime = () => {
+    const duration = getWorkDuration();
+    if (!duration) return false;
+    return duration.hours >= 10; // Varning efter 10 timmar
   };
 
   const getCategoryInfo = (categoryId) => {
@@ -208,12 +214,20 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                 )}
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-emerald-900">{getWorkDuration()}</p>
-                <p className="text-xs text-emerald-600">arbetad tid</p>
+                <p className="text-lg font-bold text-emerald-900">{getWorkDuration()?.formatted}</p>
+                <p className="text-xs text-emerald-600">arbetad tid idag</p>
               </div>
-            </div>
+              </div>
 
-            <Button
+              {isOvertime() && (
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                <p className="text-xs text-amber-800">
+                  Du har arbetat mer än ordinarie arbetstid idag. Glöm inte att stämpla ut.
+                </p>
+              </div>
+              )}
+
+              <Button
               onClick={handleClockOut}
               disabled={loading}
               className="w-full h-14 bg-rose-600 hover:bg-rose-700 rounded-2xl text-base font-medium"
