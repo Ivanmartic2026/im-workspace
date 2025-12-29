@@ -4,13 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, MapPin, Navigation, Gauge, Clock, Fuel, Activity, Loader2, Calendar, BarChart3, TrendingUp } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Gauge, Clock, Fuel, Activity, Loader2, Calendar, BarChart3, TrendingUp, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import RegisterTripModal from '@/components/gps/RegisterTripModal';
 import 'leaflet/dist/leaflet.css';
 
 export default function VehicleTracking() {
@@ -18,6 +19,8 @@ export default function VehicleTracking() {
   const vehicleId = urlParams.get('id');
   const [selectedTab, setSelectedTab] = useState('position');
   const [historyDays, setHistoryDays] = useState(7);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [selectedDateTrips, setSelectedDateTrips] = useState([]);
 
   const { data: vehicle, isLoading: vehicleLoading } = useQuery({
     queryKey: ['vehicle', vehicleId],
@@ -536,11 +539,12 @@ export default function VehicleTracking() {
                         historyData.totaltrips.reduce((acc, trip) => {
                           const day = format(new Date(trip.starttime), 'yyyy-MM-dd');
                           if (!acc[day]) {
-                            acc[day] = { distance: 0, time: 0, trips: 0 };
+                            acc[day] = { distance: 0, time: 0, trips: 0, tripsList: [] };
                           }
                           acc[day].distance += trip.tripdistance;
                           acc[day].time += trip.triptime;
                           acc[day].trips += 1;
+                          acc[day].tripsList.push(trip);
                           return acc;
                         }, {})
                       ).reverse().slice(0, 10).map(([day, stats]) => (
@@ -549,7 +553,18 @@ export default function VehicleTracking() {
                             <p className="text-sm font-medium text-slate-900">
                               {format(new Date(day), 'd MMM', { locale: sv })}
                             </p>
-                            <p className="text-xs text-slate-500">{stats.trips} resor</p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedDateTrips(stats.tripsList);
+                                setShowRegisterModal(true);
+                              }}
+                              className="h-7 text-xs"
+                            >
+                              <FileText className="h-3 w-3 mr-1" />
+                              Registrera
+                            </Button>
                           </div>
                           <div className="flex items-center gap-4 text-xs text-slate-600">
                             <span className="flex items-center gap-1">
@@ -560,6 +575,7 @@ export default function VehicleTracking() {
                               <Clock className="h-3 w-3" />
                               {Math.round(stats.time / (1000 * 60))} min
                             </span>
+                            <span className="text-slate-500">{stats.trips} resor</span>
                           </div>
                         </div>
                       ))}
@@ -651,6 +667,20 @@ export default function VehicleTracking() {
           </Tabs>
         </motion.div>
       </div>
+
+      <RegisterTripModal
+        open={showRegisterModal}
+        onClose={() => {
+          setShowRegisterModal(false);
+          setSelectedDateTrips([]);
+        }}
+        trips={selectedDateTrips}
+        vehicleId={vehicleId}
+        vehicleReg={vehicle?.registration_number}
+        onSuccess={() => {
+          // Refresh journal entries if needed
+        }}
+      />
     </div>
   );
 }
