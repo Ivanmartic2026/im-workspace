@@ -12,6 +12,9 @@ import TimeEntryList from "@/components/time/TimeEntryList";
 import TimeStats from "@/components/time/TimeStats";
 import TimeHistory from "@/components/time/TimeHistory";
 import WeeklyOverview from "@/components/time/WeeklyOverview";
+import EditTimeEntryModal from "@/components/time/EditTimeEntryModal";
+import AdminLeaveModal from "@/components/time/AdminLeaveModal";
+import AdminTimeReview from "@/components/time/AdminTimeReview";
 import AdminWeeklyReports from "@/components/time/AdminWeeklyReports";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,6 +22,9 @@ export default function Leave() {
   const [user, setUser] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAdminLeaveModal, setShowAdminLeaveModal] = useState(false);
+  const [showEditTimeModal, setShowEditTimeModal] = useState(false);
+  const [selectedTimeEntry, setSelectedTimeEntry] = useState(null);
   const [activeTab, setActiveTab] = useState('time');
   const queryClient = useQueryClient();
 
@@ -112,7 +118,7 @@ export default function Leave() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-          <TabsList className={`w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid ${user?.role === 'admin' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className={`w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid ${user?.role === 'admin' ? 'grid-cols-5' : 'grid-cols-3'}`}>
             <TabsTrigger value="time" className="rounded-xl text-xs data-[state=active]:shadow-sm">
               Tidrapport
             </TabsTrigger>
@@ -123,9 +129,14 @@ export default function Leave() {
               Ledighet
             </TabsTrigger>
             {user?.role === 'admin' && (
-              <TabsTrigger value="team" className="rounded-xl text-xs data-[state=active]:shadow-sm">
-                Team ({teamRequests.length})
-              </TabsTrigger>
+              <>
+                <TabsTrigger value="review" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+                  Granska
+                </TabsTrigger>
+                <TabsTrigger value="team" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+                  Team ({teamRequests.length})
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -147,7 +158,13 @@ export default function Leave() {
             
             <div>
               <h3 className="text-sm font-medium text-slate-500 mb-3">Historik</h3>
-              <TimeHistory entries={timeEntries} />
+              <TimeHistory 
+                entries={timeEntries}
+                onEdit={(entry) => {
+                  setSelectedTimeEntry(entry);
+                  setShowEditTimeModal(true);
+                }}
+              />
             </div>
           </TabsContent>
 
@@ -159,14 +176,27 @@ export default function Leave() {
           <TabsContent value="mine" className="mt-6 space-y-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-slate-900">Mina ansökningar</h3>
-              <Button 
-                onClick={() => setShowCreateModal(true)}
-                size="sm"
-                className="rounded-full shadow-sm"
-              >
-                <Plus className="w-4 h-4 mr-1.5" />
-                Ansök
-              </Button>
+              <div className="flex gap-2">
+                {user?.role === 'admin' && (
+                  <Button 
+                    onClick={() => setShowAdminLeaveModal(true)}
+                    size="sm"
+                    variant="outline"
+                    className="rounded-full shadow-sm"
+                  >
+                    <Plus className="w-4 h-4 mr-1.5" />
+                    Registrera
+                  </Button>
+                )}
+                <Button 
+                  onClick={() => setShowCreateModal(true)}
+                  size="sm"
+                  className="rounded-full shadow-sm"
+                >
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Ansök
+                </Button>
+              </div>
             </div>
 
             {/* Pending */}
@@ -227,7 +257,13 @@ export default function Leave() {
           </TabsContent>
 
           {user?.role === 'admin' && (
-            <TabsContent value="team" className="mt-6">
+            <>
+              <TabsContent value="review" className="mt-6">
+                <h3 className="font-semibold text-slate-900 mb-4">Granska tidrapporter</h3>
+                <AdminTimeReview />
+              </TabsContent>
+
+              <TabsContent value="team" className="mt-6">
               <AdminWeeklyReports currentUser={user} />
               
               <h3 className="font-semibold text-slate-900 mb-4 mt-8">Väntande ansökningar</h3>
@@ -263,6 +299,7 @@ export default function Leave() {
                 )}
               </AnimatePresence>
             </TabsContent>
+            </>
           )}
         </Tabs>
       </div>
@@ -272,6 +309,28 @@ export default function Leave() {
         onClose={() => setShowCreateModal(false)}
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['myLeaveRequests'] })}
         userEmail={user?.email}
+      />
+
+      <AdminLeaveModal
+        open={showAdminLeaveModal}
+        onClose={() => setShowAdminLeaveModal(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['myLeaveRequests'] });
+          queryClient.invalidateQueries({ queryKey: ['teamLeaveRequests'] });
+        }}
+      />
+
+      <EditTimeEntryModal
+        open={showEditTimeModal}
+        onClose={() => {
+          setShowEditTimeModal(false);
+          setSelectedTimeEntry(null);
+        }}
+        entry={selectedTimeEntry}
+        onSuccess={() => {
+          refetchTimeEntries();
+          queryClient.invalidateQueries({ queryKey: ['timeEntriesReview'] });
+        }}
       />
     </div>
   );
