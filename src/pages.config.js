@@ -1,9 +1,12 @@
 import AddVehicle from './pages/AddVehicle';
 import Documents from './pages/Documents';
+import DrivingJournal from './pages/DrivingJournal';
+import DrivingJournalReports from './pages/DrivingJournalReports';
 import EditVehicle from './pages/EditVehicle';
 import Employees from './pages/Employees';
 import GPS from './pages/GPS';
 import Home from './pages/Home';
+import JournalPolicySettings from './pages/JournalPolicySettings';
 import Leave from './pages/Leave';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
@@ -13,19 +16,19 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import DrivingJournal from './pages/DrivingJournal';
-import DrivingJournalReports from './pages/DrivingJournalReports';
-import JournalPolicySettings from './pages/JournalPolicySettings';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AddVehicle": AddVehicle,
     "Documents": Documents,
+    "DrivingJournal": DrivingJournal,
+    "DrivingJournalReports": DrivingJournalReports,
     "EditVehicle": EditVehicle,
     "Employees": Employees,
     "GPS": GPS,
     "Home": Home,
+    "JournalPolicySettings": JournalPolicySettings,
     "Leave": Leave,
     "Profile": Profile,
     "Reports": Reports,
@@ -35,9 +38,6 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "DrivingJournal": DrivingJournal,
-    "DrivingJournalReports": DrivingJournalReports,
-    "JournalPolicySettings": JournalPolicySettings,
 }
 
 export const pagesConfig = {

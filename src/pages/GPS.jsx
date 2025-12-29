@@ -32,15 +32,26 @@ export default function GPS() {
     queryFn: () => base44.entities.Vehicle.list(),
   });
 
-  const { data: gpsDevices, isLoading: devicesLoading } = useQuery({
+  const { data: gpsDevices, isLoading: devicesLoading, error: devicesError } = useQuery({
     queryKey: ['gps-devices'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('gpsTracking', {
-        action: 'getDeviceList',
-        params: {}
-      });
-      return response.data;
+      try {
+        const response = await base44.functions.invoke('gpsTracking', {
+          action: 'getDeviceList',
+          params: {}
+        });
+        
+        if (response.data?.error) {
+          throw new Error(response.data.error);
+        }
+        
+        return response.data;
+      } catch (error) {
+        console.error('GPS Devices Error:', error);
+        throw error;
+      }
     },
+    retry: 2,
   });
 
   // Extract devices from all groups
@@ -101,6 +112,7 @@ export default function GPS() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-12 text-center">
               <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
+              <p className="text-sm text-slate-500 mt-4">Hämtar GPS-enheter...</p>
             </CardContent>
           </Card>
         </div>
@@ -108,7 +120,25 @@ export default function GPS() {
     );
   }
 
-  if (allDevices.length === 0) {
+  if (devicesError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-6 pb-24">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold text-slate-900 mb-6">GPS Spårning</h1>
+          <Card className="border-0 shadow-sm border-red-200 bg-red-50">
+            <CardContent className="p-12 text-center">
+              <MapPin className="h-16 w-16 text-red-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-red-900 mb-2">Kunde inte hämta GPS-enheter</h3>
+              <p className="text-red-600 text-sm mb-4">{devicesError.message}</p>
+              <p className="text-slate-500 text-xs">Kontrollera att GPS-inloggningsuppgifter är korrekta.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!gpsDevices || allDevices.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-6 pb-24">
         <div className="max-w-2xl mx-auto">
@@ -117,7 +147,12 @@ export default function GPS() {
             <CardContent className="p-12 text-center">
               <MapPin className="h-16 w-16 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga GPS-enheter hittades</h3>
-              <p className="text-slate-500">Kontrollera att dina GPS-enheter är kopplade till ditt konto.</p>
+              <p className="text-slate-500 text-sm mb-2">Kontrollera att dina GPS-enheter är kopplade till ditt konto.</p>
+              {gpsDevices && (
+                <p className="text-xs text-slate-400 mt-4">
+                  API-svar: {JSON.stringify(gpsDevices).substring(0, 100)}...
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
