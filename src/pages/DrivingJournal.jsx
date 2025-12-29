@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users } from "lucide-react";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { createPageUrl } from '../utils';
 import JournalEntryCard from "@/components/journal/JournalEntryCard";
 import JournalStatsCard from "@/components/journal/JournalStatsCard";
 import EditJournalModal from "@/components/journal/EditJournalModal";
+import SuggestionsView from "@/components/journal/SuggestionsView";
 
 export default function DrivingJournal() {
   const [user, setUser] = useState(null);
@@ -29,6 +30,9 @@ export default function DrivingJournal() {
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [exportLoading, setExportLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [analyzingAI, setAnalyzingAI] = useState(false);
+  const [selectedForAI, setSelectedForAI] = useState(new Set());
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -208,6 +212,83 @@ export default function DrivingJournal() {
       alert('Kunde inte exportera CSV: ' + error.message);
     }
     setExportLoading(false);
+  };
+
+  const handleAnalyzeWithAI = async () => {
+    const entriesToAnalyze = filteredEntries.filter(e => 
+      e.trip_type === 'väntar' && e.status === 'pending_review'
+    );
+
+    if (entriesToAnalyze.length === 0) {
+      alert('Inga resor att analysera. Endast resor med typ "väntar" kan analyseras.');
+      return;
+    }
+
+    setAnalyzingAI(true);
+    setActiveTab('suggestions');
+
+    try {
+      const response = await base44.functions.invoke('analyzeTrips', {
+        entryIds: entriesToAnalyze.map(e => e.id)
+      });
+
+      setAiSuggestions(response.data.suggestions);
+    } catch (error) {
+      console.error('Error analyzing trips:', error);
+      alert('Kunde inte analysera resor med AI: ' + error.message);
+      setActiveTab('pending');
+    }
+
+    setAnalyzingAI(false);
+  };
+
+  const handleAcceptSuggestion = async (entryId, suggestion) => {
+    const updateData = {
+      trip_type: suggestion.tripType,
+      status: 'submitted'
+    };
+
+    if (suggestion.tripType === 'tjänst') {
+      if (suggestion.purpose) updateData.purpose = suggestion.purpose;
+      if (suggestion.projectCode) updateData.project_code = suggestion.projectCode;
+      if (suggestion.customer) updateData.customer = suggestion.customer;
+    }
+
+    await updateEntryMutation.mutateAsync({ id: entryId, data: updateData });
+    setAiSuggestions(prev => prev.filter(s => s.entryId !== entryId));
+    
+    if (aiSuggestions.length <= 1) {
+      setActiveTab('pending');
+    }
+  };
+
+  const handleRejectSuggestion = (entryId) => {
+    setAiSuggestions(prev => prev.filter(s => s.entryId !== entryId));
+    
+    if (aiSuggestions.length <= 1) {
+      setActiveTab('pending');
+    }
+  };
+
+  const handleEditSuggestion = async (entryId, data) => {
+    const updateData = {
+      trip_type: data.trip_type,
+      status: 'submitted'
+    };
+
+    if (data.trip_type === 'tjänst') {
+      if (data.purpose) updateData.purpose = data.purpose;
+      if (data.project_code) updateData.project_code = data.project_code;
+      if (data.customer) updateData.customer = data.customer;
+      if (data.notes) updateData.notes = data.notes;
+    }
+
+    await updateEntryMutation.mutateAsync({ id: entryId, data: updateData });
+    setAiSuggestions(prev => prev.filter(s => s.entryId !== entryId));
+    
+    if (aiSuggestions.length <= 1) {
+      setActiveTab('pending');
+    }
   };
 
   // Filter entries
@@ -419,6 +500,12 @@ export default function DrivingJournal() {
                       <Badge className="ml-2 bg-amber-500">{entries.filter(e => e.status === 'pending_review' || e.status === 'submitted').length}</Badge>
                     )}
                   </TabsTrigger>
+                  <TabsTrigger value="suggestions" className="flex-1">
+                    AI-förslag
+                    {aiSuggestions.length > 0 && (
+                      <Badge className="ml-2 bg-indigo-500">{aiSuggestions.length}</Badge>
+                    )}
+                  </TabsTrigger>
                   <TabsTrigger value="approved" className="flex-1">Godkända</TabsTrigger>
                   <TabsTrigger value="all" className="flex-1">Alla</TabsTrigger>
                 </>
@@ -432,6 +519,12 @@ export default function DrivingJournal() {
                       </Badge>
                     )}
                   </TabsTrigger>
+                  <TabsTrigger value="suggestions" className="flex-1">
+                    AI-förslag
+                    {aiSuggestions.length > 0 && (
+                      <Badge className="ml-2 bg-indigo-500">{aiSuggestions.length}</Badge>
+                    )}
+                  </TabsTrigger>
                   <TabsTrigger value="submitted" className="flex-1">Inskickade</TabsTrigger>
                   <TabsTrigger value="approved" className="flex-1">Godkända</TabsTrigger>
                 </>
@@ -439,8 +532,57 @@ export default function DrivingJournal() {
             </TabsList>
           </Tabs>
 
-          {/* Entries List */}
-          {isLoading ? (
+          {/* AI Suggestions Tab */}
+          {activeTab === 'suggestions' ? (
+            <SuggestionsView
+              suggestions={aiSuggestions}
+              onAccept={handleAcceptSuggestion}
+              onReject={handleRejectSuggestion}
+              onEdit={handleEditSuggestion}
+              isLoading={analyzingAI}
+            />
+          ) : (
+            <>
+              {/* AI Analyze Button */}
+              {activeTab === 'pending' && filteredEntries.some(e => e.trip_type === 'väntar') && (
+                <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                          <Sparkles className="h-5 w-5 text-indigo-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">AI-assisterad klassificering</p>
+                          <p className="text-xs text-slate-600">
+                            Låt AI analysera och föreslå klassificering för dina resor
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleAnalyzeWithAI}
+                        disabled={analyzingAI}
+                        className="bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        {analyzingAI ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Analyserar...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Analysera med AI
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Entries List */}
+              {isLoading ? (
             <div className="text-center py-12">
               <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
             </div>
@@ -482,6 +624,8 @@ export default function DrivingJournal() {
                 />
               ))}
             </div>
+          )}
+            </>
           )}
         </motion.div>
       </div>
