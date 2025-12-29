@@ -39,6 +39,38 @@ export default function DrivingJournal() {
     queryFn: () => base44.entities.DrivingJournalEntry.list('-created_date', 200),
   });
 
+  // Auto-sync GPS trips on mount and periodically
+  useEffect(() => {
+    const autoSync = async () => {
+      if (user?.role !== 'admin' || vehicles.length === 0) return;
+      
+      const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
+      if (vehiclesWithGPS.length === 0) return;
+
+      const today = new Date();
+      const startDate = format(startOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
+      const endDate = format(endOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
+
+      for (const vehicle of vehiclesWithGPS) {
+        try {
+          await base44.functions.invoke('syncGPSTrips', {
+            vehicleId: vehicle.id,
+            startDate,
+            endDate
+          });
+        } catch (error) {
+          console.error(`Failed to auto-sync ${vehicle.registration_number}:`, error);
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
+    };
+
+    autoSync();
+    const interval = setInterval(autoSync, 5 * 60 * 1000); // Every 5 minutes
+    return () => clearInterval(interval);
+  }, [user, vehicles, queryClient]);
+
   const updateEntryMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DrivingJournalEntry.update(id, data),
     onSuccess: () => {
