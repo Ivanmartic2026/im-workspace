@@ -401,15 +401,14 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               </div>
             </div>
 
-            {selectedCategory === 'projekt' && projects.length > 0 && (
+            {(selectedCategory === 'projekt' || selectedCategory === 'support_service') && projects.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium text-slate-700">Välj projekt (valfritt)</p>
+                <p className="text-sm font-medium text-slate-700">Välj projekt *</p>
                 <Select value={selectedProject || ''} onValueChange={setSelectedProject}>
                   <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Inget projekt" />
+                    <SelectValue placeholder="Välj projekt" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>Inget projekt</SelectItem>
                     {projects.map(p => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name} ({p.project_code})
@@ -434,7 +433,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               </Button>
               <Button
                 onClick={handleClockIn}
-                disabled={loading || !selectedCategory}
+                disabled={loading || !selectedCategory || ((selectedCategory === 'projekt' || selectedCategory === 'support_service') && !selectedProject)}
                 className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 rounded-2xl"
               >
                 {loading ? (
