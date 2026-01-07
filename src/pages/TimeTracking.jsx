@@ -8,6 +8,8 @@ import LeaveRequestForm from "@/components/time/LeaveRequestForm.jsx";
 import PersonalBalance from "@/components/time/PersonalBalance.jsx";
 import TimeAdjustmentRequest from "@/components/time/TimeAdjustmentRequest.jsx";
 import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 
 export default function TimeTracking() {
   const [user, setUser] = useState(null);
@@ -42,6 +44,20 @@ export default function TimeTracking() {
 
   const activeEntry = timeEntries.find(entry => entry.status === 'active' || entry.status === 'paused');
 
+  // Calculate weekly stats
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+  
+  const weeklyEntries = timeEntries.filter(entry => {
+    const entryDate = new Date(entry.date);
+    return isWithinInterval(entryDate, { start: weekStart, end: weekEnd }) && 
+           (entry.status === 'completed' || entry.status === 'approved');
+  });
+  
+  const workedHours = weeklyEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+  const expectedHours = employee?.normal_work_hours_per_day * 5 || 40;
+  const difference = workedHours - expectedHours;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
@@ -55,6 +71,28 @@ export default function TimeTracking() {
             {user ? `Välkommen, ${user.full_name?.split(' ')[0]}` : 'Välkommen'}
           </p>
         </motion.div>
+
+        {/* Weekly Stats Overview */}
+        <Card className="border-0 shadow-sm mb-6">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Arbetade timmar</p>
+                <p className="text-2xl font-bold text-slate-900">{workedHours.toFixed(1)}h</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Förväntat</p>
+                <p className="text-2xl font-bold text-slate-600">{expectedHours}h</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 mb-1">Differens</p>
+                <p className={`text-2xl font-bold ${difference >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {difference >= 0 ? '+' : ''}{difference.toFixed(1)}h
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full grid grid-cols-5 mb-6">
