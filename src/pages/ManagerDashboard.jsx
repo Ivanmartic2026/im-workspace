@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Users, Clock, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
-import TeamPresence from "@/components/manager/TeamPresence";
-import ApprovalQueue from "@/components/manager/ApprovalQueue";
-import TeamTimeReports from "@/components/manager/TeamTimeReports";
+import TeamPresence from "@/components/manager/TeamPresence.jsx";
+import ApprovalQueue from "@/components/manager/ApprovalQueue.jsx";
+import TeamTimeReports from "@/components/manager/TeamTimeReports.jsx";
 import { motion } from "framer-motion";
 
 export default function ManagerDashboard() {

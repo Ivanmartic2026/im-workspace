@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import ClockInOutCard from "@/components/time/ClockInOutCard";
-import WeeklyTimeView from "@/components/time/WeeklyTimeView";
-import LeaveRequestForm from "@/components/time/LeaveRequestForm";
-import PersonalBalance from "@/components/time/PersonalBalance";
-import TimeAdjustmentRequest from "@/components/time/TimeAdjustmentRequest";
+import ClockInOutCard from "@/components/time/ClockInOutCard.jsx";
+import WeeklyTimeView from "@/components/time/WeeklyTimeView.jsx";
+import LeaveRequestForm from "@/components/time/LeaveRequestForm.jsx";
+import PersonalBalance from "@/components/time/PersonalBalance.jsx";
+import TimeAdjustmentRequest from "@/components/time/TimeAdjustmentRequest.jsx";
 import { motion } from "framer-motion";
 
 export default function TimeTracking() {

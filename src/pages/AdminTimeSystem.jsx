@@ -4,10 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import WorkPolicyConfig from "@/components/admin/WorkPolicyConfig";
-import SystemReports from "@/components/admin/SystemReports";
-import PayrollExport from "@/components/admin/PayrollExport";
-import NotificationSettings from "@/components/admin/NotificationSettings";
+import WorkPolicyConfig from "@/components/admin/WorkPolicyConfig.jsx";
+import SystemReports from "@/components/admin/SystemReports.jsx";
+import PayrollExport from "@/components/admin/PayrollExport.jsx";
+import NotificationSettings from "@/components/admin/NotificationSettings.jsx";
 import { motion } from "framer-motion";
 
 export default function AdminTimeSystem() {
