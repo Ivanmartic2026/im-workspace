@@ -18,6 +18,7 @@ import JournalEntryCard from "@/components/journal/JournalEntryCard";
 import JournalStatsCard from "@/components/journal/JournalStatsCard";
 import EditJournalModal from "@/components/journal/EditJournalModal";
 import SuggestionsView from "@/components/journal/SuggestionsView";
+import QuickApproveCard from "@/components/journal/QuickApproveCard";
 
 export default function DrivingJournal() {
   const [user, setUser] = useState(null);
@@ -33,6 +34,7 @@ export default function DrivingJournal() {
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [analyzingAI, setAnalyzingAI] = useState(false);
   const [selectedForAI, setSelectedForAI] = useState(new Set());
+  const [processingDrafts, setProcessingDrafts] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -291,13 +293,64 @@ export default function DrivingJournal() {
     }
   };
 
+  const handleProcessDrafts = async () => {
+    setProcessingDrafts(true);
+    try {
+      const response = await base44.functions.invoke('autoProcessJournal', {});
+      queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
+      
+      if (response.data.results.suggestions > 0) {
+        alert(`${response.data.results.suggestions} resor har fått AI-förslag. Granska dem under "Utkast"-fliken.`);
+        setActiveTab('drafts');
+      } else {
+        alert('Inga nya förslag skapades. Kanske finns det ingen historisk data att basera förslag på.');
+      }
+    } catch (error) {
+      alert('Kunde inte bearbeta resor: ' + error.message);
+    }
+    setProcessingDrafts(false);
+  };
+
+  const handleQuickApprove = async (entry) => {
+    await updateEntryMutation.mutateAsync({
+      id: entry.id,
+      data: {
+        status: 'submitted',
+        reviewed_at: new Date().toISOString()
+      }
+    });
+  };
+
+  const handleRejectDraft = async (entry) => {
+    await updateEntryMutation.mutateAsync({
+      id: entry.id,
+      data: {
+        trip_type: 'väntar',
+        purpose: null,
+        project_code: null,
+        customer: null,
+        suggested_classification: null,
+        notes: entry.notes?.replace(/\[AI\].*$/gm, '').trim()
+      }
+    });
+  };
+
   // Filter entries
+  const draftEntries = entries.filter(entry => 
+    entry.suggested_classification && 
+    entry.trip_type !== 'väntar' && 
+    entry.status === 'pending_review' &&
+    (user?.role === 'admin' || entry.driver_email === user?.email)
+  );
+
   const filteredEntries = entries.filter(entry => {
     const matchesTab = user?.role === 'admin' 
-      ? (activeTab === 'pending' ? entry.status === 'pending_review' || entry.status === 'submitted' :
+      ? (activeTab === 'pending' ? (entry.status === 'pending_review' || entry.status === 'submitted') && !entry.suggested_classification :
+         activeTab === 'drafts' ? entry.suggested_classification && entry.status === 'pending_review' :
          activeTab === 'approved' ? entry.status === 'approved' :
          activeTab === 'all' ? true : false)
-      : (activeTab === 'pending' ? entry.status === 'pending_review' || entry.status === 'requires_info' :
+      : (activeTab === 'pending' ? (entry.status === 'pending_review' || entry.status === 'requires_info') && entry.trip_type === 'väntar' :
+         activeTab === 'drafts' ? entry.suggested_classification && entry.status === 'pending_review' :
          activeTab === 'submitted' ? entry.status === 'submitted' :
          activeTab === 'approved' ? entry.status === 'approved' : false);
     
@@ -491,49 +544,124 @@ export default function DrivingJournal() {
 
               {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-            <TabsList className="w-full bg-white shadow-sm">
+            <TabsList className="w-full bg-white shadow-sm grid grid-cols-5">
               {user?.role === 'admin' ? (
                 <>
-                  <TabsTrigger value="pending" className="flex-1">
+                  <TabsTrigger value="pending">
                     Väntande
-                    {entries.filter(e => e.status === 'pending_review' || e.status === 'submitted').length > 0 && (
-                      <Badge className="ml-2 bg-amber-500">{entries.filter(e => e.status === 'pending_review' || e.status === 'submitted').length}</Badge>
+                    {entries.filter(e => (e.status === 'pending_review' || e.status === 'submitted') && !e.suggested_classification).length > 0 && (
+                      <Badge className="ml-1 bg-amber-500 text-xs">{entries.filter(e => (e.status === 'pending_review' || e.status === 'submitted') && !e.suggested_classification).length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="suggestions" className="flex-1">
-                    AI-förslag
+                  <TabsTrigger value="drafts">
+                    Utkast
+                    {draftEntries.length > 0 && (
+                      <Badge className="ml-1 bg-indigo-500 text-xs">{draftEntries.length}</Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="suggestions">
+                    AI-analys
                     {aiSuggestions.length > 0 && (
-                      <Badge className="ml-2 bg-indigo-500">{aiSuggestions.length}</Badge>
+                      <Badge className="ml-1 bg-purple-500 text-xs">{aiSuggestions.length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="approved" className="flex-1">Godkända</TabsTrigger>
-                  <TabsTrigger value="all" className="flex-1">Alla</TabsTrigger>
+                  <TabsTrigger value="approved">Godkända</TabsTrigger>
+                  <TabsTrigger value="all">Alla</TabsTrigger>
                 </>
               ) : (
                 <>
-                  <TabsTrigger value="pending" className="flex-1">
+                  <TabsTrigger value="pending">
                     Att fylla i
-                    {entries.filter(e => (e.status === 'pending_review' || e.status === 'requires_info') && e.driver_email === user?.email).length > 0 && (
-                      <Badge className="ml-2 bg-amber-500">
-                        {entries.filter(e => (e.status === 'pending_review' || e.status === 'requires_info') && e.driver_email === user?.email).length}
+                    {entries.filter(e => (e.status === 'pending_review' || e.status === 'requires_info') && e.driver_email === user?.email && e.trip_type === 'väntar').length > 0 && (
+                      <Badge className="ml-1 bg-amber-500 text-xs">
+                        {entries.filter(e => (e.status === 'pending_review' || e.status === 'requires_info') && e.driver_email === user?.email && e.trip_type === 'väntar').length}
                       </Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="suggestions" className="flex-1">
-                    AI-förslag
-                    {aiSuggestions.length > 0 && (
-                      <Badge className="ml-2 bg-indigo-500">{aiSuggestions.length}</Badge>
+                  <TabsTrigger value="drafts">
+                    Utkast
+                    {draftEntries.length > 0 && (
+                      <Badge className="ml-1 bg-indigo-500 text-xs">{draftEntries.length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="submitted" className="flex-1">Inskickade</TabsTrigger>
-                  <TabsTrigger value="approved" className="flex-1">Godkända</TabsTrigger>
+                  <TabsTrigger value="suggestions">
+                    AI-analys
+                    {aiSuggestions.length > 0 && (
+                      <Badge className="ml-1 bg-purple-500 text-xs">{aiSuggestions.length}</Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="submitted">Inskickade</TabsTrigger>
+                  <TabsTrigger value="approved">Godkända</TabsTrigger>
                 </>
               )}
             </TabsList>
           </Tabs>
 
-          {/* AI Suggestions Tab */}
-          {activeTab === 'suggestions' ? (
+          {/* Drafts Tab */}
+          {activeTab === 'drafts' ? (
+            <>
+              {/* Process Drafts Button */}
+              <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <Sparkles className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900">Skapa AI-utkast</p>
+                        <p className="text-xs text-slate-600">
+                          Analysera resor och skapa förslag baserat på historik
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleProcessDrafts}
+                      disabled={processingDrafts}
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      {processingDrafts ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Bearbetar...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Skapa utkast
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {draftEntries.length === 0 ? (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-12 text-center">
+                    <Sparkles className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga utkast</h3>
+                    <p className="text-slate-500 text-sm">
+                      Klicka på "Skapa utkast" för att låta AI analysera oklassificerade resor
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {draftEntries.map(entry => (
+                    <QuickApproveCard
+                      key={entry.id}
+                      entry={entry}
+                      vehicle={vehicles.find(v => v.id === entry.vehicle_id)}
+                      onApprove={handleQuickApprove}
+                      onEdit={handleEditEntry}
+                      onReject={handleRejectDraft}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : activeTab === 'suggestions' ? (
             <SuggestionsView
               suggestions={aiSuggestions}
               onAccept={handleAcceptSuggestion}

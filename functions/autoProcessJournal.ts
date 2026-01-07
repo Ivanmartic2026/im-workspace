@@ -21,25 +21,53 @@ Deno.serve(async (req) => {
       trip_type: 'väntar'
     });
 
+    // Hämta alla godkända historiska resor för ML-baserad klassificering
+    const historicalEntries = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
+      status: 'approved'
+    });
+
     const results = {
       processed: 0,
       categorized: 0,
       flagged: 0,
-      autoApproved: 0
+      autoApproved: 0,
+      suggestions: 0
     };
 
     for (const entry of entries) {
       let updated = false;
       const updateData = {};
 
-      // 1. Automatisk kategorisering baserat på tid och plats
+      // 1. Intelligent kategorisering baserat på historisk data och mönster
       if (policy.auto_categorize_enabled && entry.trip_type === 'väntar') {
-        const category = categorizeTrip(entry, policy);
-        if (category) {
-          updateData.trip_type = category;
-          updateData.notes = (entry.notes || '') + `\n[Auto] Kategoriserad som ${category} baserat på tid/plats`;
-          results.categorized++;
+        const suggestion = await suggestClassification(entry, historicalEntries, policy);
+        
+        if (suggestion) {
+          updateData.trip_type = suggestion.trip_type;
+          updateData.suggested_classification = {
+            ...suggestion,
+            timestamp: new Date().toISOString()
+          };
+          
+          // Om tjänsteresa, lägg till förslag på syfte, projekt, kund
+          if (suggestion.trip_type === 'tjänst') {
+            if (suggestion.purpose) updateData.purpose = suggestion.purpose;
+            if (suggestion.project_code) updateData.project_code = suggestion.project_code;
+            if (suggestion.customer) updateData.customer = suggestion.customer;
+          }
+          
+          updateData.notes = (entry.notes || '') + `\n[AI] Föreslagen klassificering baserat på ${suggestion.reasoning}`;
+          results.suggestions++;
           updated = true;
+        } else {
+          // Fallback till enkel kategorisering
+          const category = categorizeTrip(entry, policy);
+          if (category) {
+            updateData.trip_type = category;
+            updateData.notes = (entry.notes || '') + `\n[Auto] Kategoriserad som ${category} baserat på tid/plats`;
+            results.categorized++;
+            updated = true;
+          }
         }
       }
 
@@ -196,4 +224,122 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c; // Avstånd i meter
+}
+
+// Föreslå klassificering baserat på historisk data
+async function suggestClassification(entry, historicalEntries, policy) {
+  if (!historicalEntries || historicalEntries.length === 0) {
+    return null;
+  }
+
+  // Filtrera historiska resor för samma förare och fordon
+  const relevantHistory = historicalEntries.filter(h => 
+    h.driver_email === entry.driver_email &&
+    h.vehicle_id === entry.vehicle_id &&
+    h.trip_type !== 'väntar'
+  );
+
+  if (relevantHistory.length === 0) {
+    return null;
+  }
+
+  // Hitta liknande resor baserat på:
+  // 1. Samma start/slutpunkt (inom 500m radie)
+  // 2. Samma tid på dagen (±2 timmar)
+  // 3. Liknande avstånd (±20%)
+  
+  const startTime = new Date(entry.start_time);
+  const entryHour = startTime.getHours();
+  const entryDistance = entry.distance_km || 0;
+
+  const similarTrips = relevantHistory.filter(h => {
+    const hStartTime = new Date(h.start_time);
+    const hHour = hStartTime.getHours();
+    const timeDiff = Math.abs(entryHour - hHour);
+    
+    // Kontrollera tid
+    if (timeDiff > 2) return false;
+    
+    // Kontrollera avstånd
+    const hDistance = h.distance_km || 0;
+    if (entryDistance > 0 && hDistance > 0) {
+      const distanceDiff = Math.abs(entryDistance - hDistance) / entryDistance;
+      if (distanceDiff > 0.3) return false;
+    }
+    
+    // Kontrollera start/slut position
+    if (entry.start_location?.latitude && h.start_location?.latitude) {
+      const startDist = calculateDistance(
+        entry.start_location.latitude,
+        entry.start_location.longitude,
+        h.start_location.latitude,
+        h.start_location.longitude
+      );
+      
+      const endDist = entry.end_location?.latitude && h.end_location?.latitude ?
+        calculateDistance(
+          entry.end_location.latitude,
+          entry.end_location.longitude,
+          h.end_location.latitude,
+          h.end_location.longitude
+        ) : Infinity;
+      
+      // Acceptera om start ELLER slut är nära
+      return startDist < 500 || endDist < 500;
+    }
+    
+    return true;
+  });
+
+  if (similarTrips.length === 0) {
+    return null;
+  }
+
+  // Räkna vanligaste klassificeringen
+  const classificationCounts = {};
+  const purposeCounts = {};
+  const projectCounts = {};
+  const customerCounts = {};
+
+  similarTrips.forEach(trip => {
+    classificationCounts[trip.trip_type] = (classificationCounts[trip.trip_type] || 0) + 1;
+    if (trip.purpose) purposeCounts[trip.purpose] = (purposeCounts[trip.purpose] || 0) + 1;
+    if (trip.project_code) projectCounts[trip.project_code] = (projectCounts[trip.project_code] || 0) + 1;
+    if (trip.customer) customerCounts[trip.customer] = (customerCounts[trip.customer] || 0) + 1;
+  });
+
+  // Hitta vanligaste
+  const mostCommonType = Object.keys(classificationCounts).reduce((a, b) => 
+    classificationCounts[a] > classificationCounts[b] ? a : b
+  );
+  
+  const confidence = classificationCounts[mostCommonType] / similarTrips.length;
+  
+  // Kräv minst 60% konfidens
+  if (confidence < 0.6) {
+    return null;
+  }
+
+  const suggestion = {
+    trip_type: mostCommonType,
+    confidence: confidence,
+    reasoning: `${similarTrips.length} tidigare liknande resor`,
+    similar_trips_count: similarTrips.length
+  };
+
+  // Lägg till förslag för tjänsteresor
+  if (mostCommonType === 'tjänst') {
+    const mostCommonPurpose = Object.keys(purposeCounts).length > 0 ?
+      Object.keys(purposeCounts).reduce((a, b) => purposeCounts[a] > purposeCounts[b] ? a : b) : null;
+    const mostCommonProject = Object.keys(projectCounts).length > 0 ?
+      Object.keys(projectCounts).reduce((a, b) => projectCounts[a] > projectCounts[b] ? a : b) : null;
+    const mostCommonCustomer = Object.keys(customerCounts).length > 0 ?
+      Object.keys(customerCounts).reduce((a, b) => customerCounts[a] > customerCounts[b] ? a : b) : null;
+    
+    if (mostCommonPurpose) suggestion.purpose = mostCommonPurpose;
+    if (mostCommonProject) suggestion.project_code = mostCommonProject;
+    if (mostCommonCustomer) suggestion.customer = mostCommonCustomer;
+  }
+
+  return suggestion;
 }
