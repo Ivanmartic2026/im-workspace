@@ -35,7 +35,26 @@ export default function WorkPolicyConfig() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.WorkPolicy.create(data),
+    mutationFn: async (data) => {
+      const policy = await base44.entities.WorkPolicy.create(data);
+      
+      // Notifiera alla admins om ny policy
+      const allUsers = await base44.entities.User.list();
+      const admins = allUsers.filter(u => u.role === 'admin');
+      
+      for (const admin of admins) {
+        await base44.entities.Notification.create({
+          recipient_email: admin.email,
+          type: 'system',
+          title: 'Ny arbetspolicy skapad',
+          message: `En ny arbetspolicy "${data.name}" har skapats och är nu aktiv.`,
+          priority: 'normal',
+          sent_via: ['app']
+        });
+      }
+      
+      return policy;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workPolicies'] });
       setShowForm(false);
