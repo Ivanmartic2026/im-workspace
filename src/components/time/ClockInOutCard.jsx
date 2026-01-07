@@ -9,16 +9,16 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
+import ProjectAllocationEditor from "./ProjectAllocationEditor";
 
 
 
 export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [showClockInForm, setShowClockInForm] = useState(false);
-  const [projectNumber, setProjectNumber] = useState('');
   const [onBreak, setOnBreak] = useState(false);
   const [breakStart, setBreakStart] = useState(null);
+  const [showProjectAllocation, setShowProjectAllocation] = useState(false);
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -89,11 +89,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       return;
     }
     
-    if (!projectNumber.trim()) {
-      alert('Vänligen ange projektnummer');
-      return;
-    }
-    
     setLoading(true);
     
     try {
@@ -112,8 +107,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         date: today,
         clock_in_time: new Date().toISOString(),
         status: 'active',
-        breaks: [],
-        project_id: projectNumber.trim()
+        breaks: []
       };
       
       if (location) {
@@ -122,8 +116,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       
       await base44.entities.TimeEntry.create(entryData);
       
-      setShowClockInForm(false);
-      setProjectNumber('');
       onUpdate();
     } catch (error) {
       console.error('Error clocking in:', error);
@@ -173,30 +165,17 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     setLoading(false);
   };
 
-  const handleClockOut = async () => {
+  const handleClockOut = () => {
     if (!activeEntry) {
       alert('Ingen aktiv instämpling hittades');
       return;
     }
     
-    console.log('Attempting clock out with activeEntry:', {
-      id: activeEntry.id,
-      employee_email: activeEntry.employee_email,
-      date: activeEntry.date,
-      clock_in_time: activeEntry.clock_in_time,
-      status: activeEntry.status
-    });
-    
-    if (!activeEntry.employee_email || !activeEntry.date || !activeEntry.clock_in_time) {
-      console.error('Missing required fields in activeEntry:', {
-        has_employee_email: !!activeEntry.employee_email,
-        has_date: !!activeEntry.date,
-        has_clock_in_time: !!activeEntry.clock_in_time,
-        all_keys: Object.keys(activeEntry)
-      });
-      alert('Kunde inte stämpla ut: Obligatoriska fält saknas. Vänligen ladda om sidan.');
-      return;
-    }
+    setShowProjectAllocation(true);
+  };
+
+  const handleSaveProjectAllocation = async (allocations) => {
+    if (!activeEntry) return;
     
     setLoading(true);
     
@@ -224,7 +203,8 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         total_hours: Number(netHours.toFixed(2)),
         status: 'completed',
         breaks: activeEntry.breaks || [],
-        total_break_minutes: totalBreakMinutes
+        total_break_minutes: totalBreakMinutes,
+        project_allocations: allocations
       };
       
       if (location) {
@@ -234,19 +214,14 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       if (activeEntry.clock_in_location) {
         updateData.clock_in_location = activeEntry.clock_in_location;
       }
-      
-      if (activeEntry.project_id) {
-        updateData.project_id = activeEntry.project_id;
-      }
 
       if (activeEntry.notes) {
         updateData.notes = activeEntry.notes;
       }
       
-      console.log('Updating time entry with data:', updateData);
       await base44.entities.TimeEntry.update(activeEntry.id, updateData);
       
-      console.log('Clock out successful!');
+      setShowProjectAllocation(false);
       await onUpdate();
     } catch (error) {
       console.error('Error clocking out:', error);
@@ -276,6 +251,28 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
 
+
+  if (showProjectAllocation && activeEntry) {
+    const clockInTime = new Date(activeEntry.clock_in_time);
+    const clockOutTime = new Date();
+    const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
+    const totalBreakMinutes = activeEntry.total_break_minutes || 0;
+    const netHours = totalHours - (totalBreakMinutes / 60);
+
+    const tempEntry = {
+      ...activeEntry,
+      total_hours: Number(netHours.toFixed(2)),
+      clock_out_time: clockOutTime.toISOString()
+    };
+
+    return (
+      <ProjectAllocationEditor
+        timeEntry={tempEntry}
+        onSave={handleSaveProjectAllocation}
+        onCancel={() => setShowProjectAllocation(false)}
+      />
+    );
+  }
 
   return (
     <Card className="border-0 shadow-sm overflow-hidden">
@@ -365,58 +362,23 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               )}
             </Button>
           </div>
-        ) : showClockInForm ? (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-slate-700">Projektnummer</p>
-              <Input
-                value={projectNumber}
-                onChange={(e) => setProjectNumber(e.target.value)}
-                placeholder="Ange projektnummer..."
-                className="h-12 rounded-2xl"
-                autoFocus
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowClockInForm(false);
-                  setProjectNumber('');
-                }}
-                className="flex-1 h-12 rounded-2xl"
-              >
-                Avbryt
-              </Button>
-              <Button
-                onClick={handleClockIn}
-                disabled={loading || !projectNumber.trim()}
-                className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 rounded-2xl"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Stämplar in...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Stämpla in
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        ) : (
+          ) : (
           <Button
-            onClick={() => setShowClockInForm(true)}
-            disabled={!userEmail}
+            onClick={handleClockIn}
+            disabled={!userEmail || loading}
             className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium disabled:opacity-50"
           >
-            <LogIn className="w-5 h-5 mr-2" />
-            Stämpla in
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Stämplar in...
+              </>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5 mr-2" />
+                Stämpla in
+              </>
+            )}
           </Button>
         )}
 
