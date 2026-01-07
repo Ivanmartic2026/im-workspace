@@ -40,6 +40,12 @@ export default function Home() {
   });
 
   const activeTimeEntry = timeEntries.find(entry => entry.status === 'active');
+  
+  useEffect(() => {
+    if (activeTimeEntry) {
+      console.log('Active time entry found:', activeTimeEntry);
+    }
+  }, [activeTimeEntry]);
 
   const updatePostMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.NewsPost.update(id, data),

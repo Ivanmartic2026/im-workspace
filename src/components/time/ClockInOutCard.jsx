@@ -24,6 +24,20 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (activeEntry) {
+      console.log('Active entry received:', {
+        id: activeEntry.id,
+        category: activeEntry.category,
+        employee_email: activeEntry.employee_email,
+        date: activeEntry.date,
+        clock_in_time: activeEntry.clock_in_time,
+        status: activeEntry.status,
+        allKeys: Object.keys(activeEntry)
+      });
+    }
+  }, [activeEntry]);
+
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
