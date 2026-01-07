@@ -12,8 +12,8 @@ import CostAnalysisCard from "@/components/journal/CostAnalysisCard";
 
 export default function DrivingJournalReports() {
   const [filters, setFilters] = useState({
-    startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-    endDate: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
+    startDate: format(new Date(new Date().setMonth(new Date().getMonth() - 3)), 'yyyy-MM-dd'),
+    endDate: format(new Date(), 'yyyy-MM-dd'),
     vehicleId: 'all',
     driverId: 'all',
     vehicleType: 'all',
