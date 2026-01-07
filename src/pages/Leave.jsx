@@ -35,6 +35,9 @@ export default function Leave() {
         const employees = await base44.entities.Employee.filter({ user_email: u.email });
         if (employees.length > 0) setEmployee(employees[0]);
       }
+    }).catch(() => {
+      setUser(null);
+      setEmployee(null);
     });
   }, []);
 
