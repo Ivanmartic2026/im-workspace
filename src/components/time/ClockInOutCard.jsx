@@ -165,12 +165,22 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     setLoading(false);
   };
 
-  const handleClockOut = () => {
+  const handleClockOut = async () => {
     if (!activeEntry) {
       alert('Ingen aktiv instämpling hittades');
       return;
     }
-    
+
+    // Skapa notifikation om att fördela projekt
+    await base44.entities.Notification.create({
+      recipient_email: activeEntry.employee_email,
+      type: 'time_correction_needed',
+      title: 'Fördela arbetstid',
+      message: 'Du har stämplat ut. Vänligen fördela din arbetstid på projekt.',
+      priority: 'high',
+      sent_via: ['app']
+    });
+
     setShowProjectAllocation(true);
   };
 
@@ -206,6 +216,16 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         total_break_minutes: totalBreakMinutes,
         project_allocations: allocations
       };
+
+      // Skapa notifikation om projektfördelning slutförd
+      await base44.entities.Notification.create({
+        recipient_email: activeEntry.employee_email,
+        type: 'system',
+        title: 'Projektfördelning slutförd',
+        message: `Du har fördelat ${netHours.toFixed(1)}h på ${allocations.length} projekt.`,
+        priority: 'normal',
+        sent_via: ['app']
+      });
       
       if (location) {
         updateData.clock_out_location = location;
