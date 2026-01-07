@@ -10,8 +10,7 @@ const navItems = [
   { name: 'GPS', label: 'GPS', icon: Navigation },
   { name: 'DrivingJournal', label: 'Körjournal', icon: FileText },
   { name: 'TimeTracking', label: 'Tid', icon: Clock },
-  { name: 'Employees', label: 'Personal', icon: Users },
-  { name: 'Reports', label: 'Rapport', icon: BarChart3 },
+  { name: 'AdminTimeSystem', label: 'Admin', icon: BarChart3 },
   { name: 'Profile', label: 'Profil', icon: User },
 ];
 
