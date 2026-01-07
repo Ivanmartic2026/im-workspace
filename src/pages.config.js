@@ -17,6 +17,9 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
+import TimeTracking from './pages/TimeTracking';
+import ManagerDashboard from './pages/ManagerDashboard';
+import AdminTimeSystem from './pages/AdminTimeSystem';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +43,9 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
+    "TimeTracking": TimeTracking,
+    "ManagerDashboard": ManagerDashboard,
+    "AdminTimeSystem": AdminTimeSystem,
 }
 
 export const pagesConfig = {
