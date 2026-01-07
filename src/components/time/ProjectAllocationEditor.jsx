@@ -9,12 +9,10 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 
 const categories = [
-  { id: 'support_service', label: 'Support & Service' },
+  { id: 'support_service', label: 'Support & service' },
   { id: 'install', label: 'Install' },
-  { id: 'interntid', label: 'Interntid' },
-  { id: 'projekt', label: 'Projekt' },
-  { id: 'admin', label: 'Administration' },
-  { id: 'utbildning', label: 'Utbildning' }
+  { id: 'rental', label: 'Rental' },
+  { id: 'interntid', label: 'Interntid' }
 ];
 
 export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel }) {
@@ -115,11 +113,11 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel })
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs">Projektnummer</Label>
+                  <Label className="text-xs">RM ID</Label>
                   <Input
                     value={allocation.project_id}
                     onChange={(e) => handleUpdateAllocation(index, 'project_id', e.target.value)}
-                    placeholder="T.ex. P-1234"
+                    placeholder="T.ex. RM-1234"
                     className="h-10"
                   />
                 </div>

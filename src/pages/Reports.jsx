@@ -83,11 +83,22 @@ export default function Reports() {
   const employeeTimeStats = employees.map(employee => {
     const employeeEntries = filteredTimeEntries.filter(e => e.employee_email === employee.user_email);
     const totalHours = employeeEntries.reduce((sum, e) => sum + (e.total_hours || 0), 0);
-    const byCategory = {
-      support_service: employeeEntries.filter(e => e.category === 'support_service').reduce((sum, e) => sum + (e.total_hours || 0), 0),
-      install: employeeEntries.filter(e => e.category === 'install').reduce((sum, e) => sum + (e.total_hours || 0), 0),
-      interntid: employeeEntries.filter(e => e.category === 'interntid').reduce((sum, e) => sum + (e.total_hours || 0), 0),
-    };
+    // Samla alla kategorier från både entry.category och project_allocations
+    const categoryHours = { support_service: 0, install: 0, rental: 0, interntid: 0 };
+    
+    employeeEntries.forEach(entry => {
+      if (entry.project_allocations?.length > 0) {
+        entry.project_allocations.forEach(alloc => {
+          if (alloc.category && categoryHours.hasOwnProperty(alloc.category)) {
+            categoryHours[alloc.category] += alloc.hours || 0;
+          }
+        });
+      } else if (entry.category && categoryHours.hasOwnProperty(entry.category)) {
+        categoryHours[entry.category] += entry.total_hours || 0;
+      }
+    });
+
+    const byCategory = categoryHours;
 
     return {
       employee,
@@ -289,7 +300,7 @@ export default function Reports() {
                             <p className="text-xs text-slate-500">{stat.entryCount} registreringar</p>
                           </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-3 text-sm">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
                             <p className="text-xs text-slate-500">Support</p>
                             <p className="font-semibold text-slate-900">{stat.byCategory.support_service.toFixed(1)} h</p>
@@ -297,6 +308,10 @@ export default function Reports() {
                           <div>
                             <p className="text-xs text-slate-500">Install</p>
                             <p className="font-semibold text-slate-900">{stat.byCategory.install.toFixed(1)} h</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500">Rental</p>
+                            <p className="font-semibold text-slate-900">{stat.byCategory.rental.toFixed(1)} h</p>
                           </div>
                           <div>
                             <p className="text-xs text-slate-500">Intern</p>
