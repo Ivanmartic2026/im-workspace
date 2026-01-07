@@ -33,8 +33,8 @@ export default function Home() {
     queryKey: ['timeEntries', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const entries = await base44.entities.TimeEntry.filter({ employee_email: user.email }, '-created_date', 10);
-      return entries;
+      const entries = await base44.entities.TimeEntry.list('-created_date', 50);
+      return entries.filter(e => e.employee_email === user.email);
     },
     enabled: !!user?.email
   });
