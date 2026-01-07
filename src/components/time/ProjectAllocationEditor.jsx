@@ -58,6 +58,21 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel })
   const handleUpdateAllocation = (index, field, value) => {
     const updated = [...allocations];
     updated[index] = { ...updated[index], [field]: value };
+    
+    // Om vi uppdaterar timmar och det finns ett nästa projekt, uppdatera det med återstående timmar
+    if (field === 'hours' && index < allocations.length - 1) {
+      const newAllocatedHours = updated.reduce((sum, a, i) => 
+        i <= index ? sum + (Number(a.hours) || 0) : sum, 0
+      );
+      const newRemaining = totalHours - newAllocatedHours;
+      
+      // Uppdatera nästa projekt med återstående timmar
+      updated[index + 1] = { 
+        ...updated[index + 1], 
+        hours: Math.max(0, newRemaining) 
+      };
+    }
+    
     setAllocations(updated);
   };
 
