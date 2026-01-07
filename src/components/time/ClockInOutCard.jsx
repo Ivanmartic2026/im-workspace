@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, Loader2, LogIn, LogOut } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Clock, MapPin, Loader2, LogIn, LogOut, Coffee } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -10,7 +12,10 @@ import { motion } from "framer-motion";
 const categories = [
   { id: 'support_service', label: 'Support & Service', color: 'bg-blue-500' },
   { id: 'install', label: 'Install', color: 'bg-purple-500' },
-  { id: 'interntid', label: 'Interntid', color: 'bg-slate-500' }
+  { id: 'interntid', label: 'Interntid', color: 'bg-slate-500' },
+  { id: 'projekt', label: 'Projekt', color: 'bg-indigo-500' },
+  { id: 'admin', label: 'Administration', color: 'bg-slate-600' },
+  { id: 'utbildning', label: 'Utbildning', color: 'bg-emerald-500' }
 ];
 
 export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
@@ -18,6 +23,15 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showCategorySelect, setShowCategorySelect] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [onBreak, setOnBreak] = useState(false);
+  const [breakStart, setBreakStart] = useState(null);
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+    initialData: []
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -100,23 +114,69 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         date: today,
         category: selectedCategory,
         clock_in_time: new Date().toISOString(),
-        status: 'active'
+        status: 'active',
+        breaks: []
       };
       
       if (location) {
         entryData.clock_in_location = location;
+      }
+
+      if (selectedProject) {
+        entryData.project_id = selectedProject;
       }
       
       await base44.entities.TimeEntry.create(entryData);
       
       setShowCategorySelect(false);
       setSelectedCategory(null);
+      setSelectedProject(null);
       onUpdate();
     } catch (error) {
       console.error('Error clocking in:', error);
       alert('Kunde inte stämpla in: ' + error.message);
     }
     
+    setLoading(false);
+  };
+
+  const handleBreakToggle = async () => {
+    if (!activeEntry) return;
+
+    setLoading(true);
+    try {
+      if (!onBreak) {
+        // Start break
+        setOnBreak(true);
+        setBreakStart(new Date());
+      } else {
+        // End break
+        const breakEnd = new Date();
+        const breakDuration = Math.floor((breakEnd - breakStart) / (1000 * 60));
+        
+        const newBreak = {
+          start_time: breakStart.toISOString(),
+          end_time: breakEnd.toISOString(),
+          duration_minutes: breakDuration,
+          type: 'rast'
+        };
+
+        const updatedBreaks = [...(activeEntry.breaks || []), newBreak];
+        const totalBreakMinutes = updatedBreaks.reduce((sum, b) => sum + (b.duration_minutes || 0), 0);
+
+        await base44.entities.TimeEntry.update(activeEntry.id, {
+          breaks: updatedBreaks,
+          total_break_minutes: totalBreakMinutes
+        });
+
+        setOnBreak(false);
+        setBreakStart(null);
+        await onUpdate();
+      }
+    } catch (error) {
+      console.error('Error toggling break:', error);
+      alert('Kunde inte hantera rast: ' + error.message);
+    }
     setLoading(false);
   };
 
@@ -162,15 +222,19 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       const clockOutTime = new Date();
       const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
 
+      const totalBreakMinutes = activeEntry.total_break_minutes || 0;
+      const netHours = totalHours - (totalBreakMinutes / 60);
+
       const updateData = {
         employee_email: activeEntry.employee_email,
         date: activeEntry.date,
         category: activeEntry.category,
         clock_in_time: activeEntry.clock_in_time,
         clock_out_time: clockOutTime.toISOString(),
-        total_hours: Number(totalHours.toFixed(2)),
+        total_hours: Number(netHours.toFixed(2)),
         status: 'completed',
-        break_minutes: activeEntry.break_minutes || 0
+        breaks: activeEntry.breaks || [],
+        total_break_minutes: totalBreakMinutes
       };
       
       if (location) {
@@ -181,6 +245,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         updateData.clock_in_location = activeEntry.clock_in_location;
       }
       
+      if (activeEntry.project_id) {
+        updateData.project_id = activeEntry.project_id;
+      }
+
       if (activeEntry.notes) {
         updateData.notes = activeEntry.notes;
       }
@@ -274,8 +342,24 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               )}
 
               <Button
-              onClick={handleClockOut}
+              onClick={handleBreakToggle}
               disabled={loading}
+              variant="outline"
+              className="w-full h-12 rounded-2xl"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <>
+                  <Coffee className="w-4 h-4 mr-2" />
+                  {onBreak ? 'Avsluta rast' : 'Ta rast'}
+                </>
+              )}
+            </Button>
+
+              <Button
+              onClick={handleClockOut}
+              disabled={loading || onBreak}
               className="w-full h-14 bg-rose-600 hover:bg-rose-700 rounded-2xl text-base font-medium"
             >
               {loading ? (
@@ -316,6 +400,25 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                 ))}
               </div>
             </div>
+
+            {selectedCategory === 'projekt' && projects.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-700">Välj projekt (valfritt)</p>
+                <Select value={selectedProject || ''} onValueChange={setSelectedProject}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Inget projekt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Inget projekt</SelectItem>
+                    {projects.map(p => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} ({p.project_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex gap-3">
               <Button

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, FileText, Calendar, Palmtree, Users, User, Car, Navigation, BarChart3 } from 'lucide-react';
+import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [
@@ -9,9 +9,9 @@ const navItems = [
   { name: 'Vehicles', label: 'Fordon', icon: Car },
   { name: 'GPS', label: 'GPS', icon: Navigation },
   { name: 'DrivingJournal', label: 'Körjournal', icon: FileText },
+  { name: 'TimeTracking', label: 'Tid', icon: Clock },
   { name: 'Employees', label: 'Personal', icon: Users },
   { name: 'Reports', label: 'Rapport', icon: BarChart3 },
-  { name: 'Leave', label: 'Tid', icon: Palmtree },
   { name: 'Profile', label: 'Profil', icon: User },
 ];
 
