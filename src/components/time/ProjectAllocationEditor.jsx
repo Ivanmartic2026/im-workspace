@@ -175,7 +175,6 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel })
           variant="outline"
           onClick={handleAddAllocation}
           className="w-full h-11 rounded-xl"
-          disabled={remainingHours <= 0}
         >
           <Plus className="w-4 h-4 mr-2" />
           Lägg till projekt
