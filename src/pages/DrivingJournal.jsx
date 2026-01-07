@@ -36,7 +36,7 @@ export default function DrivingJournal() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
   const { data: vehicles = [] } = useQuery({

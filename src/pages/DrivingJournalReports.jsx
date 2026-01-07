@@ -19,7 +19,7 @@ export default function DrivingJournalReports() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
   const { data: vehicles = [] } = useQuery({
