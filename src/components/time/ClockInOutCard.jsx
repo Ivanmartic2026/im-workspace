@@ -128,10 +128,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
 
       const updateData = {
-        employee_email: activeEntry.employee_email,
-        date: activeEntry.date,
-        category: activeEntry.category,
-        clock_in_time: activeEntry.clock_in_time,
+        ...activeEntry,
         clock_out_time: clockOutTime.toISOString(),
         total_hours: Number(totalHours.toFixed(2)),
         status: 'completed'
@@ -139,18 +136,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       
       if (location) {
         updateData.clock_out_location = location;
-      }
-      
-      if (activeEntry.clock_in_location) {
-        updateData.clock_in_location = activeEntry.clock_in_location;
-      }
-      
-      if (activeEntry.notes) {
-        updateData.notes = activeEntry.notes;
-      }
-      
-      if (activeEntry.break_minutes !== undefined) {
-        updateData.break_minutes = activeEntry.break_minutes;
       }
       
       await base44.entities.TimeEntry.update(activeEntry.id, updateData);
