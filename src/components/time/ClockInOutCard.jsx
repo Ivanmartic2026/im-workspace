@@ -9,21 +9,13 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 
-const categories = [
-  { id: 'support_service', label: 'Support & Service', color: 'bg-blue-500' },
-  { id: 'install', label: 'Install', color: 'bg-purple-500' },
-  { id: 'interntid', label: 'Interntid', color: 'bg-slate-500' },
-  { id: 'projekt', label: 'Projekt', color: 'bg-indigo-500' },
-  { id: 'admin', label: 'Administration', color: 'bg-slate-600' },
-  { id: 'utbildning', label: 'Utbildning', color: 'bg-emerald-500' }
-];
+
 
 export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [showCategorySelect, setShowCategorySelect] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [showClockInForm, setShowClockInForm] = useState(false);
+  const [projectNumber, setProjectNumber] = useState('');
   const [onBreak, setOnBreak] = useState(false);
   const [breakStart, setBreakStart] = useState(null);
 
@@ -91,8 +83,13 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockIn = async () => {
-    if (!selectedCategory || !userEmail) {
+    if (!userEmail) {
       alert('Kunde inte identifiera användare. Vänligen ladda om sidan.');
+      return;
+    }
+    
+    if (!projectNumber.trim()) {
+      alert('Vänligen ange projektnummer');
       return;
     }
     
@@ -112,25 +109,20 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       const entryData = {
         employee_email: userEmail,
         date: today,
-        category: selectedCategory,
         clock_in_time: new Date().toISOString(),
         status: 'active',
-        breaks: []
+        breaks: [],
+        project_id: projectNumber.trim()
       };
       
       if (location) {
         entryData.clock_in_location = location;
       }
-
-      if (selectedProject) {
-        entryData.project_id = selectedProject;
-      }
       
       await base44.entities.TimeEntry.create(entryData);
       
-      setShowCategorySelect(false);
-      setSelectedCategory(null);
-      setSelectedProject(null);
+      setShowClockInForm(false);
+      setProjectNumber('');
       onUpdate();
     } catch (error) {
       console.error('Error clocking in:', error);
@@ -285,9 +277,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     return duration.hours >= 10; // Varning efter 10 timmar
   };
 
-  const getCategoryInfo = (categoryId) => {
-    return categories.find(c => c.id === categoryId) || categories[0];
-  };
+
 
   return (
     <Card className="border-0 shadow-sm overflow-hidden">
@@ -313,9 +303,11 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm font-medium text-emerald-900">Instämplad</p>
-                  <span className={`px-2 py-0.5 rounded-full text-xs text-white ${getCategoryInfo(activeEntry.category).color}`}>
-                    {getCategoryInfo(activeEntry.category).label}
-                  </span>
+                  {activeEntry.project_id && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-indigo-500 text-white">
+                      {activeEntry.project_id}
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-emerald-700 mt-1">
                   {format(new Date(activeEntry.clock_in_time), 'HH:mm')}
@@ -331,7 +323,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                 <p className="text-lg font-bold text-emerald-900">{getWorkDuration()?.formatted}</p>
                 <p className="text-xs text-emerald-600">arbetad tid idag</p>
               </div>
-              </div>
+            </div>
 
               {isOvertime() && (
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
@@ -375,57 +367,26 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               )}
             </Button>
           </div>
-        ) : showCategorySelect ? (
+        ) : showClockInForm ? (
           <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-slate-700 mb-3">Välj arbetskategori</p>
-              <div className="space-y-2">
-                {categories.map(category => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`w-full p-4 rounded-xl border-2 transition-all ${
-                      selectedCategory === category.id
-                        ? 'border-slate-900 bg-slate-50'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-lg ${category.color} flex items-center justify-center`}>
-                        <Clock className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="font-medium text-slate-900">{category.label}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-slate-700">Projektnummer</p>
+              <Input
+                value={projectNumber}
+                onChange={(e) => setProjectNumber(e.target.value)}
+                placeholder="Ange projektnummer..."
+                className="h-12 rounded-2xl"
+                autoFocus
+              />
             </div>
-
-            {(selectedCategory === 'projekt' || selectedCategory === 'support_service') && projects.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-slate-700">Välj projekt *</p>
-                <Select value={selectedProject || ''} onValueChange={setSelectedProject}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Välj projekt" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map(p => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name} ({p.project_code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="flex gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setShowCategorySelect(false);
-                  setSelectedCategory(null);
+                  setShowClockInForm(false);
+                  setProjectNumber('');
                 }}
                 className="flex-1 h-12 rounded-2xl"
               >
@@ -433,7 +394,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               </Button>
               <Button
                 onClick={handleClockIn}
-                disabled={loading || !selectedCategory || ((selectedCategory === 'projekt' || selectedCategory === 'support_service') && !selectedProject)}
+                disabled={loading || !projectNumber.trim()}
                 className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 rounded-2xl"
               >
                 {loading ? (
@@ -452,7 +413,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
           </div>
         ) : (
           <Button
-            onClick={() => setShowCategorySelect(true)}
+            onClick={() => setShowClockInForm(true)}
             disabled={!userEmail}
             className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium disabled:opacity-50"
           >
