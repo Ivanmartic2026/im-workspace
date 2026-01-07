@@ -128,7 +128,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
 
       const updateData = {
+        employee_email: activeEntry.employee_email,
+        date: activeEntry.date,
         category: activeEntry.category,
+        clock_in_time: activeEntry.clock_in_time,
         clock_out_time: clockOutTime.toISOString(),
         total_hours: Number(totalHours.toFixed(2)),
         status: 'completed'
@@ -146,7 +149,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         updateData.notes = activeEntry.notes;
       }
       
-      if (activeEntry.break_minutes) {
+      if (activeEntry.break_minutes !== undefined) {
         updateData.break_minutes = activeEntry.break_minutes;
       }
       
