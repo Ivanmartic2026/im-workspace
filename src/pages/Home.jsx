@@ -181,27 +181,7 @@ export default function Home() {
             />
           </div>
 
-          {/* Search */}
-          <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Sök nyheter..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 h-12 rounded-2xl border-0 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-slate-200"
-            />
-          </div>
 
-          {/* Category Tabs */}
-          <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-5">
-              <TabsTrigger value="alla" className="rounded-xl data-[state=active]:shadow-sm">Alla</TabsTrigger>
-              <TabsTrigger value="ledning" className="rounded-xl data-[state=active]:shadow-sm">Ledning</TabsTrigger>
-              <TabsTrigger value="hr" className="rounded-xl data-[state=active]:shadow-sm">HR</TabsTrigger>
-              <TabsTrigger value="event" className="rounded-xl data-[state=active]:shadow-sm">Event</TabsTrigger>
-              <TabsTrigger value="allmänt" className="rounded-xl data-[state=active]:shadow-sm">Allmänt</TabsTrigger>
-            </TabsList>
-          </Tabs>
         </motion.div>
 
         {/* Important Posts */}
