@@ -15,7 +15,9 @@ export default function TimeTracking() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    base44.auth.me().then(setUser).catch(() => {
+      base44.auth.redirectToLogin(window.location.pathname);
+    });
   }, []);
 
   const { data: employee } = useQuery({
