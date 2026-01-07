@@ -33,8 +33,11 @@ export default function Home() {
     queryKey: ['timeEntries', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const entries = await base44.entities.TimeEntry.list('-created_date', 50);
-      return entries.filter(e => e.employee_email === user.email);
+      // Use list() to get ALL fields for each entry
+      const allEntries = await base44.entities.TimeEntry.list();
+      const userEntries = allEntries.filter(e => e.employee_email === user.email);
+      console.log('Fetched time entries:', userEntries.length, 'entries');
+      return userEntries;
     },
     enabled: !!user?.email
   });
@@ -43,7 +46,15 @@ export default function Home() {
   
   useEffect(() => {
     if (activeTimeEntry) {
-      console.log('Active time entry found:', activeTimeEntry);
+      console.log('Active time entry with ALL fields:', {
+        id: activeTimeEntry.id,
+        employee_email: activeTimeEntry.employee_email,
+        date: activeTimeEntry.date,
+        category: activeTimeEntry.category,
+        clock_in_time: activeTimeEntry.clock_in_time,
+        status: activeTimeEntry.status,
+        allKeys: Object.keys(activeTimeEntry)
+      });
     }
   }, [activeTimeEntry]);
 

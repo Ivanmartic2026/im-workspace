@@ -126,8 +126,23 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       return;
     }
     
+    console.log('Attempting clock out with activeEntry:', {
+      id: activeEntry.id,
+      employee_email: activeEntry.employee_email,
+      date: activeEntry.date,
+      category: activeEntry.category,
+      clock_in_time: activeEntry.clock_in_time,
+      status: activeEntry.status
+    });
+    
     if (!activeEntry.category || !activeEntry.employee_email || !activeEntry.date || !activeEntry.clock_in_time) {
-      console.error('Missing required fields in activeEntry:', activeEntry);
+      console.error('Missing required fields in activeEntry:', {
+        has_category: !!activeEntry.category,
+        has_employee_email: !!activeEntry.employee_email,
+        has_date: !!activeEntry.date,
+        has_clock_in_time: !!activeEntry.clock_in_time,
+        all_keys: Object.keys(activeEntry)
+      });
       alert('Kunde inte stämpla ut: Obligatoriska fält saknas. Vänligen ladda om sidan.');
       return;
     }
@@ -173,6 +188,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       console.log('Updating time entry with data:', updateData);
       await base44.entities.TimeEntry.update(activeEntry.id, updateData);
       
+      console.log('Clock out successful!');
       await onUpdate();
     } catch (error) {
       console.error('Error clocking out:', error);
