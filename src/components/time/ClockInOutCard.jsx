@@ -112,6 +112,12 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       return;
     }
     
+    if (!activeEntry.category || !activeEntry.employee_email || !activeEntry.date || !activeEntry.clock_in_time) {
+      console.error('Missing required fields in activeEntry:', activeEntry);
+      alert('Kunde inte stämpla ut: Obligatoriska fält saknas. Vänligen ladda om sidan.');
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -128,16 +134,29 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
 
       const updateData = {
-        ...activeEntry,
+        employee_email: activeEntry.employee_email,
+        date: activeEntry.date,
+        category: activeEntry.category,
+        clock_in_time: activeEntry.clock_in_time,
         clock_out_time: clockOutTime.toISOString(),
         total_hours: Number(totalHours.toFixed(2)),
-        status: 'completed'
+        status: 'completed',
+        break_minutes: activeEntry.break_minutes || 0
       };
       
       if (location) {
         updateData.clock_out_location = location;
       }
       
+      if (activeEntry.clock_in_location) {
+        updateData.clock_in_location = activeEntry.clock_in_location;
+      }
+      
+      if (activeEntry.notes) {
+        updateData.notes = activeEntry.notes;
+      }
+      
+      console.log('Updating time entry with data:', updateData);
       await base44.entities.TimeEntry.update(activeEntry.id, updateData);
       
       await onUpdate();
