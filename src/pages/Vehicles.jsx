@@ -54,8 +54,8 @@ export default function Vehicles() {
         });
 
         const positions = {};
-        if (response.data?.positions) {
-          response.data.positions.forEach(pos => {
+        if (response.data?.records) {
+          response.data.records.forEach(pos => {
             positions[pos.deviceid] = pos;
           });
         }
@@ -65,7 +65,7 @@ export default function Vehicles() {
         return {};
       }
     },
-    enabled: vehicles.length > 0,
+    enabled: vehicles.length > 0 && !!user,
     refetchInterval: 30000,
   });
 
