@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Clock, Coffee, MapPin, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Coffee, MapPin, CheckCircle, AlertTriangle, XCircle, Edit } from "lucide-react";
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
+import ProjectAllocationEditor from "./ProjectAllocationEditor";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const statusConfig = {
   completed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Godkänd' },
@@ -17,6 +20,27 @@ const statusConfig = {
 
 export default function WeeklyTimeView({ timeEntries, employee }) {
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [editingEntry, setEditingEntry] = useState(null);
+  const queryClient = useQueryClient();
+
+  const updateEntryMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.TimeEntry.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+      setEditingEntry(null);
+    },
+  });
+
+  const handleSaveAllocation = async (allocations) => {
+    if (!editingEntry) return;
+    
+    await updateEntryMutation.mutateAsync({
+      id: editingEntry.id,
+      data: {
+        project_allocations: allocations
+      }
+    });
+  };
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
 
@@ -94,9 +118,19 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
         </CardContent>
       </Card>
 
+      {/* Project Allocation Editor */}
+      {editingEntry && (
+        <ProjectAllocationEditor
+          timeEntry={editingEntry}
+          onSave={handleSaveAllocation}
+          onCancel={() => setEditingEntry(null)}
+        />
+      )}
+
       {/* Day by Day */}
-      <div className="space-y-3">
-        {weekDays.map((day, index) => {
+      {!editingEntry && (
+        <div className="space-y-3">
+          {weekDays.map((day, index) => {
           const entries = getEntriesForDay(day);
           const dayTotal = calculateDayTotal(entries);
           const isToday = isSameDay(day, new Date());
@@ -143,10 +177,44 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
                                 {entry.category?.replace('_', ' ')}
                               </span>
                             </div>
-                            <span className="text-sm font-semibold text-slate-900">
-                              {entry.total_hours?.toFixed(1)}h
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-slate-900">
+                                {entry.total_hours?.toFixed(1)}h
+                              </span>
+                              {entry.status === 'completed' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setEditingEntry(entry)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
+                          
+                          {entry.project_allocations?.length > 0 ? (
+                            <div className="space-y-1 mb-2">
+                              {entry.project_allocations.map((alloc, idx) => (
+                                <div key={idx} className="flex items-center gap-2 text-xs">
+                                  <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-medium">
+                                    {alloc.project_id}
+                                  </span>
+                                  <span className="text-slate-600">{alloc.hours}h</span>
+                                  {alloc.notes && (
+                                    <span className="text-slate-400 truncate">· {alloc.notes}</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : entry.project_id && (
+                            <div className="flex items-center gap-2 text-xs mb-2">
+                              <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-medium">
+                                {entry.project_id}
+                              </span>
+                            </div>
+                          )}
                           
                           <div className="flex items-center gap-4 text-xs text-slate-600">
                             <div className="flex items-center gap-1">
@@ -193,7 +261,8 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
             </motion.div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
