@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,18 @@ export default function AddVehicle() {
   const [analyzing, setAnalyzing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(null);
 
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {
+      setUser(null);
+    });
+  }, []);
+
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
     queryFn: () => base44.entities.Employee.list(),
+    enabled: !!user,
   });
 
   const [formData, setFormData] = useState({
