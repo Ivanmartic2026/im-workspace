@@ -201,13 +201,13 @@ export default function TimeTracking() {
           </Card>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-3 lg:grid-cols-5 mb-6">
-            <TabsTrigger value="stämpla" className="text-xs lg:text-sm">Stämpla</TabsTrigger>
-            <TabsTrigger value="vecka" className="text-xs lg:text-sm">Vecka</TabsTrigger>
-            <TabsTrigger value="ledighet" className="text-xs lg:text-sm hidden lg:inline-flex">Ledighet</TabsTrigger>
-            <TabsTrigger value="saldo" className="text-xs lg:text-sm hidden lg:inline-flex">Saldo</TabsTrigger>
-            <TabsTrigger value="justera" className="text-xs lg:text-sm">Mera</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10">
+          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-5 gap-1 mb-8">
+            <TabsTrigger value="stämpla" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Stämpla</TabsTrigger>
+            <TabsTrigger value="vecka" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Vecka</TabsTrigger>
+            <TabsTrigger value="ledighet" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Ledighet</TabsTrigger>
+            <TabsTrigger value="saldo" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Saldo</TabsTrigger>
+            <TabsTrigger value="justera" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Mera</TabsTrigger>
           </TabsList>
 
           <TabsContent value="stämpla">
