@@ -504,24 +504,24 @@ export default function VehicleTracking() {
                 </Card>
               ) : historyData?.totaltrips?.length > 0 ? (
                 <>
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
                     <CardContent className="p-5">
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
-                          <p className="text-xs text-slate-500 mb-1">Total sträcka</p>
-                          <p className="text-lg font-bold text-slate-900">
+                          <p className="text-xs text-slate-600 mb-1">Total sträcka</p>
+                          <p className="text-2xl font-bold text-slate-900">
                             {(historyData.totaldistance / 1000).toFixed(0)} km
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 mb-1">Total tid</p>
-                          <p className="text-lg font-bold text-slate-900">
+                          <p className="text-xs text-slate-600 mb-1">Total tid</p>
+                          <p className="text-2xl font-bold text-slate-900">
                             {Math.round(historyData.totaltriptime / (1000 * 60 * 60))} tim
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 mb-1">Antal resor</p>
-                          <p className="text-lg font-bold text-slate-900">
+                          <p className="text-xs text-slate-600 mb-1">Antal resor</p>
+                          <p className="text-2xl font-bold text-slate-900">
                             {historyData.totaltrips.length}
                           </p>
                         </div>
@@ -529,64 +529,98 @@ export default function VehicleTracking() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-0 shadow-sm">
-                    <CardContent className="p-5">
-                      <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <BarChart3 className="h-4 w-4" />
-                        Statistik per dag
-                      </h3>
-                      {Object.entries(
-                        historyData.totaltrips.reduce((acc, trip) => {
-                          const day = format(new Date(trip.starttime), 'yyyy-MM-dd');
-                          if (!acc[day]) {
-                            acc[day] = { distance: 0, time: 0, trips: 0, tripsList: [] };
-                          }
-                          acc[day].distance += (trip?.tripdistance || 0);
-                          acc[day].time += (trip?.triptime || 0);
-                          acc[day].trips += 1;
-                          acc[day].tripsList.push(trip);
-                          return acc;
-                        }, {})
-                      ).reverse().slice(0, 10).map(([day, stats]) => (
-                        <div key={day} className="py-3 border-b border-slate-100 last:border-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-sm font-medium text-slate-900">
-                              {format(new Date(day), 'd MMM', { locale: sv })}
+                  {/* Individual trips grouped by day */}
+                  {Object.entries(
+                    historyData.totaltrips.reduce((acc, trip) => {
+                      const day = format(new Date(trip.starttime), 'yyyy-MM-dd');
+                      if (!acc[day]) {
+                        acc[day] = { distance: 0, time: 0, trips: 0, tripsList: [] };
+                      }
+                      acc[day].distance += (trip?.tripdistance || 0);
+                      acc[day].time += (trip?.triptime || 0);
+                      acc[day].trips += 1;
+                      acc[day].tripsList.push(trip);
+                      return acc;
+                    }, {})
+                  ).sort(([a], [b]) => new Date(b) - new Date(a)).map(([day, stats]) => (
+                    <Card key={day} className="border-0 shadow-sm">
+                      <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                          <div>
+                            <p className="text-base font-bold text-slate-900">
+                              {format(new Date(day), 'EEEE d MMMM', { locale: sv })}
                             </p>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedDateTrips(stats.tripsList);
-                                setShowRegisterModal(true);
-                              }}
-                              className="h-7 text-xs"
-                            >
-                              <FileText className="h-3 w-3 mr-1" />
-                              Registrera
-                            </Button>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {stats.trips} {stats.trips === 1 ? 'resa' : 'resor'} • {(stats.distance / 1000).toFixed(1)} km • {Math.round(stats.time / (1000 * 60))} min
+                            </p>
                           </div>
-                          <div className="flex items-center gap-4 text-xs text-slate-600">
-                            <span className="flex items-center gap-1">
-                              <Navigation className="h-3 w-3" />
-                              {(stats.distance / 1000).toFixed(1)} km
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {Math.round(stats.time / (1000 * 60))} min
-                            </span>
-                            <span className="text-slate-500">{stats.trips} resor</span>
-                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedDateTrips(stats.tripsList);
+                              setShowRegisterModal(true);
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                          >
+                            <FileText className="h-3 w-3 mr-1" />
+                            Registrera alla
+                          </Button>
                         </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+
+                        <div className="space-y-2">
+                          {stats.tripsList.map((trip, idx) => (
+                            <div key={idx} className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <p className="text-sm font-semibold text-slate-900">
+                                      {format(new Date(trip.starttime), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
+                                    </p>
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                      {Math.round((trip?.triptime || 0) / (1000 * 60))} min
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                                    <span className="flex items-center gap-1">
+                                      <Navigation className="h-3 w-3" />
+                                      {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Gauge className="h-3 w-3" />
+                                      Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Activity className="h-3 w-3" />
+                                      Max: {Math.round((trip?.maxspeed || 0) * 3.6)} km/h
+                                    </span>
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedDateTrips([trip]);
+                                    setShowRegisterModal(true);
+                                  }}
+                                  className="h-8 text-xs ml-3"
+                                >
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  Registrera
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </>
               ) : (
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-12 text-center">
                     <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500">Inga resor registrerade för denna period</p>
+                    <p className="text-slate-500 mb-2">Inga resor registrerade för denna period</p>
+                    <p className="text-xs text-slate-400">Försök välja en längre tidsperiod eller kontrollera att fordonet har GPS-data</p>
                   </CardContent>
                 </Card>
               )}
