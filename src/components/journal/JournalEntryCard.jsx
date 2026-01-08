@@ -56,7 +56,7 @@ export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, on
             </Badge>
           </div>
 
-          <div className="space-y-2 mb-3">
+          <div className="space-y-3 mb-3">
             <div className="flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4 text-slate-400" />
               <span className="text-slate-600">
@@ -64,19 +64,28 @@ export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, on
               </span>
             </div>
 
-            {entry.start_location && (
-              <div className="flex items-start gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-600 line-clamp-1">{entry.start_location.address}</span>
-              </div>
-            )}
+            {/* Reseväg */}
+            <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+              {entry.start_location && (
+                <div className="flex items-start gap-2">
+                  <div className="flex items-center gap-1.5 min-w-[60px]">
+                    <MapPin className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                    <span className="text-xs font-medium text-slate-600">Start:</span>
+                  </div>
+                  <span className="text-sm text-slate-700">{entry.start_location.address}</span>
+                </div>
+              )}
 
-            {entry.end_location && (
-              <div className="flex items-start gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-rose-500 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-600 line-clamp-1">{entry.end_location.address}</span>
-              </div>
-            )}
+              {entry.end_location && (
+                <div className="flex items-start gap-2">
+                  <div className="flex items-center gap-1.5 min-w-[60px]">
+                    <MapPin className="h-4 w-4 text-rose-500 flex-shrink-0" />
+                    <span className="text-xs font-medium text-slate-600">Slut:</span>
+                  </div>
+                  <span className="text-sm text-slate-700">{entry.end_location.address}</span>
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
