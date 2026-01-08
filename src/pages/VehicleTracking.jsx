@@ -541,8 +541,8 @@ export default function VehicleTracking() {
                           if (!acc[day]) {
                             acc[day] = { distance: 0, time: 0, trips: 0, tripsList: [] };
                           }
-                          acc[day].distance += trip.tripdistance;
-                          acc[day].time += trip.triptime;
+                          acc[day].distance += (trip?.tripdistance || 0);
+                          acc[day].time += (trip?.triptime || 0);
                           acc[day].trips += 1;
                           acc[day].tripsList.push(trip);
                           return acc;
