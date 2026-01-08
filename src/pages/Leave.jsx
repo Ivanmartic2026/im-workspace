@@ -14,6 +14,7 @@ import TimeHistory from "@/components/time/TimeHistory";
 import WeeklyOverview from "@/components/time/WeeklyOverview";
 import EditTimeEntryModal from "@/components/time/EditTimeEntryModal";
 import AdminLeaveModal from "@/components/time/AdminLeaveModal";
+import AdminFlexModal from "@/components/time/AdminFlexModal";
 import AdminTimeReview from "@/components/time/AdminTimeReview";
 import AdminWeeklyReports from "@/components/time/AdminWeeklyReports";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +24,7 @@ export default function Leave() {
   const [employee, setEmployee] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAdminLeaveModal, setShowAdminLeaveModal] = useState(false);
+  const [showAdminFlexModal, setShowAdminFlexModal] = useState(false);
   const [showEditTimeModal, setShowEditTimeModal] = useState(false);
   const [selectedTimeEntry, setSelectedTimeEntry] = useState(null);
   const [activeTab, setActiveTab] = useState('time');
@@ -181,15 +183,26 @@ export default function Leave() {
               <h3 className="font-semibold text-slate-900">Mina ansökningar</h3>
               <div className="flex gap-2">
                 {user?.role === 'admin' && (
-                  <Button 
-                    onClick={() => setShowAdminLeaveModal(true)}
-                    size="sm"
-                    variant="outline"
-                    className="rounded-full shadow-sm"
-                  >
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    Registrera
-                  </Button>
+                  <>
+                    <Button 
+                      onClick={() => setShowAdminFlexModal(true)}
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full shadow-sm"
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Flex
+                    </Button>
+                    <Button 
+                      onClick={() => setShowAdminLeaveModal(true)}
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full shadow-sm"
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Ledighet
+                    </Button>
+                  </>
                 )}
                 <Button 
                   onClick={() => setShowCreateModal(true)}
@@ -320,6 +333,14 @@ export default function Leave() {
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['myLeaveRequests'] });
           queryClient.invalidateQueries({ queryKey: ['teamLeaveRequests'] });
+        }}
+      />
+
+      <AdminFlexModal
+        open={showAdminFlexModal}
+        onClose={() => setShowAdminFlexModal(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['employees'] });
         }}
       />
 
