@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
 
   try {
     // Hämta alla GPS-enheter
-    const gpsResponse = await base44.functions.invoke('gpsTracking', {
+    const gpsResponse = await base44.asServiceRole.functions.invoke('gpsTracking', {
       action: 'getDeviceList',
       params: {}
     });
