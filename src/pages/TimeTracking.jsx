@@ -9,7 +9,8 @@ import PersonalBalance from "@/components/time/PersonalBalance.jsx";
 import TimeAdjustmentRequest from "@/components/time/TimeAdjustmentRequest.jsx";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+import { startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
+import { sv } from 'date-fns/locale';
 
 export default function TimeTracking() {
   const [user, setUser] = useState(null);
@@ -54,9 +55,44 @@ export default function TimeTracking() {
            (entry.status === 'completed' || entry.status === 'approved');
   });
   
-  const workedHours = weeklyEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
-  const expectedHours = employee?.normal_work_hours_per_day * 5 || 40;
-  const difference = workedHours - expectedHours;
+  const workedHoursWeek = weeklyEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+  const expectedHoursWeek = employee?.normal_work_hours_per_day * 5 || 40;
+  const differenceWeek = workedHoursWeek - expectedHoursWeek;
+
+  // Calculate daily stats
+  const today = new Date();
+  const dayStart = startOfDay(today);
+  const dayEnd = endOfDay(today);
+  const dailyEntries = timeEntries.filter(entry => {
+    const entryDate = new Date(entry.date);
+    return isWithinInterval(entryDate, { start: dayStart, end: dayEnd }) &&
+           (entry.status === 'completed' || entry.status === 'approved');
+  });
+  const workedHoursDay = dailyEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+  const expectedHoursDay = employee?.normal_work_hours_per_day || 8;
+  const differenceDay = workedHoursDay - expectedHoursDay;
+
+  // Calculate monthly stats
+  const monthStart = startOfMonth(today);
+  const monthEnd = endOfMonth(today);
+  const monthlyEntries = timeEntries.filter(entry => {
+    const entryDate = new Date(entry.date);
+    return isWithinInterval(entryDate, { start: monthStart, end: monthEnd }) &&
+           (entry.status === 'completed' || entry.status === 'approved');
+  });
+  const workedHoursMonth = monthlyEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+  const expectedWorkDaysMonth = (() => {
+    let count = 0;
+    let currentDate = new Date(monthStart);
+    while (currentDate <= monthEnd) {
+      const day = currentDate.getDay();
+      if (day !== 0 && day !== 6) count++;
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return count;
+  })();
+  const expectedHoursMonth = (employee?.normal_work_hours_per_day || 8) * expectedWorkDaysMonth;
+  const differenceMonth = workedHoursMonth - expectedHoursMonth;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -72,27 +108,77 @@ export default function TimeTracking() {
           </p>
         </motion.div>
 
-        {/* Weekly Stats Overview */}
-        <Card className="border-0 shadow-sm mb-6">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-xs text-slate-500 mb-1">Arbetade timmar</p>
-                <p className="text-2xl font-bold text-slate-900">{workedHours.toFixed(1)}h</p>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Idag</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Arbetat</p>
+                  <p className="text-sm font-bold text-slate-900">{workedHoursDay.toFixed(1)}h</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Förväntat</p>
+                  <p className="text-sm font-bold text-slate-600">{expectedHoursDay}h</p>
+                </div>
+                <div className="h-px bg-slate-200 my-2"></div>
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Differens</p>
+                  <p className={`text-sm font-bold ${differenceDay >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {differenceDay >= 0 ? '+' : ''}{differenceDay.toFixed(1)}h
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-slate-500 mb-1">Förväntat</p>
-                <p className="text-2xl font-bold text-slate-600">{expectedHours}h</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Veckan</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Arbetat</p>
+                  <p className="text-sm font-bold text-slate-900">{workedHoursWeek.toFixed(1)}h</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Förväntat</p>
+                  <p className="text-sm font-bold text-slate-600">{expectedHoursWeek}h</p>
+                </div>
+                <div className="h-px bg-slate-200 my-2"></div>
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Differens</p>
+                  <p className={`text-sm font-bold ${differenceWeek >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {differenceWeek >= 0 ? '+' : ''}{differenceWeek.toFixed(1)}h
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-slate-500 mb-1">Differens</p>
-                <p className={`text-2xl font-bold ${difference >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {difference >= 0 ? '+' : ''}{difference.toFixed(1)}h
-                </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Månad ({format(today, 'MMM', { locale: sv })})</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Arbetat</p>
+                  <p className="text-sm font-bold text-slate-900">{workedHoursMonth.toFixed(1)}h</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Förväntat</p>
+                  <p className="text-sm font-bold text-slate-600">{expectedHoursMonth}h</p>
+                </div>
+                <div className="h-px bg-slate-200 my-2"></div>
+                <div className="flex justify-between">
+                  <p className="text-xs text-slate-500">Differens</p>
+                  <p className={`text-sm font-bold ${differenceMonth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {differenceMonth >= 0 ? '+' : ''}{differenceMonth.toFixed(1)}h
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full grid grid-cols-3 lg:grid-cols-5 mb-6">
