@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Settings, Users, Car, FileText, Clock, Database, 
   AlertCircle, CheckCircle2, Loader2, TrendingUp, 
-  Shield, Bell, Calendar, BarChart3, Wrench, BookOpen
+  Shield, Bell, Calendar, BarChart3, Wrench, BookOpen, MapPin
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
@@ -290,12 +290,37 @@ export default function Admin() {
                 <TabsList className="w-full bg-white shadow-sm">
                   <TabsTrigger value="ai">AI-rapporter</TabsTrigger>
                   <TabsTrigger value="project">Projekttid</TabsTrigger>
+                  <TabsTrigger value="geofencing">Geofencing</TabsTrigger>
                 </TabsList>
                 <TabsContent value="ai">
                   <AIJournalReports />
                 </TabsContent>
                 <TabsContent value="project">
                   <ProjectTimeReport />
+                </TabsContent>
+                <TabsContent value="geofencing">
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-900">Geofencing</h3>
+                          <p className="text-sm text-slate-500 mt-1">
+                            Definiera platser för automatisk klassificering av resor
+                          </p>
+                        </div>
+                        <Link to={createPageUrl('GeofenceSettings')}>
+                          <Button>
+                            <MapPin className="h-4 w-4 mr-2" />
+                            Hantera geofences
+                          </Button>
+                        </Link>
+                      </div>
+                      <p className="text-sm text-slate-600">
+                        Skapa geografiska zoner (geofences) för kontor, kundplatser och andra platser. 
+                        Resor till och från dessa platser kan automatiskt klassificeras som tjänste- eller privatresor.
+                      </p>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
               </Tabs>
             </TabsContent>
