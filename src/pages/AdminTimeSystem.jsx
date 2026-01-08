@@ -10,6 +10,7 @@ import PayrollExport from "@/components/admin/PayrollExport.jsx";
 import NotificationSettings from "@/components/admin/NotificationSettings.jsx";
 import ProjectTimeReport from "@/components/admin/ProjectTimeReport.jsx";
 import EmployeeManagement from "@/components/admin/EmployeeManagement.jsx";
+import AIJournalReports from "@/components/admin/AIJournalReports.jsx";
 import { motion } from "framer-motion";
 
 export default function AdminTimeSystem() {
@@ -47,9 +48,10 @@ export default function AdminTimeSystem() {
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-6 mb-6">
+          <TabsList className="w-full grid grid-cols-7 mb-6">
             <TabsTrigger value="policies">Policys</TabsTrigger>
             <TabsTrigger value="reports">Rapporter</TabsTrigger>
+            <TabsTrigger value="ai-journal">AI Körjournal</TabsTrigger>
             <TabsTrigger value="project-time">Tidrapport</TabsTrigger>
             <TabsTrigger value="employees">Personal</TabsTrigger>
             <TabsTrigger value="payroll">Lön</TabsTrigger>
@@ -62,6 +64,10 @@ export default function AdminTimeSystem() {
 
           <TabsContent value="reports">
             <SystemReports />
+          </TabsContent>
+
+          <TabsContent value="ai-journal">
+            <AIJournalReports />
           </TabsContent>
 
           <TabsContent value="project-time">
