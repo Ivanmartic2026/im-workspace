@@ -10,11 +10,21 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Hämta alla GPS-enheter
-    const gpsResponse = await base44.asServiceRole.functions.invoke('gpsTracking', {
-      action: 'getDeviceList',
-      params: {}
+    // Hämta alla GPS-enheter från GPS-systemet direkt
+    const gpsTrackingUrl = `${Deno.env.get('BASE44_APP_URL')}/api/functions/gpsTracking`;
+    const gpsResponse = await fetch(gpsTrackingUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.get('Authorization')
+      },
+      body: JSON.stringify({
+        action: 'getDeviceList',
+        params: {}
+      })
     });
+
+    const gpsData = await gpsResponse.json();
 
     if (gpsResponse.data.status !== 0) {
       throw new Error('Failed to fetch GPS devices: ' + gpsResponse.data.cause);
