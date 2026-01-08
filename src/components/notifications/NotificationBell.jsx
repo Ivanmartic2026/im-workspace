@@ -10,7 +10,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import NotificationsList from './NotificationsList';
-import PushNotificationSetup from './PushNotificationSetup';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -151,35 +150,32 @@ export default function NotificationBell({ user }) {
   }, [open, refetch]);
 
   return (
-    <div className="flex items-center gap-2">
-      <PushNotificationSetup />
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative rounded-full hover:bg-slate-100"
-          >
-            <Bell className="h-5 w-5 text-slate-700" />
-            {unreadCount > 0 && (
-              <Badge 
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-rose-500 text-white text-xs"
-              >
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Badge>
-            )}
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="w-full sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Notifikationer</SheetTitle>
-          </SheetHeader>
-          <NotificationsList 
-            notifications={notifications} 
-            onClose={() => setOpen(false)}
-          />
-        </SheetContent>
-      </Sheet>
-    </div>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative rounded-full hover:bg-slate-100"
+        >
+          <Bell className="h-5 w-5 text-slate-700" />
+          {unreadCount > 0 && (
+            <Badge 
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-rose-500 text-white text-xs"
+            >
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Notifikationer</SheetTitle>
+        </SheetHeader>
+        <NotificationsList 
+          notifications={notifications} 
+          onClose={() => setOpen(false)}
+        />
+      </SheetContent>
+    </Sheet>
   );
 }
