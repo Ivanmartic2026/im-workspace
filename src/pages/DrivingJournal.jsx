@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles } from "lucide-react";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,7 @@ export default function DrivingJournal() {
   const [analyzingAI, setAnalyzingAI] = useState(false);
   const [selectedForAI, setSelectedForAI] = useState(new Set());
   const [processingDrafts, setProcessingDrafts] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -358,6 +359,14 @@ export default function DrivingJournal() {
     const matchesVehicle = selectedVehicle === 'all' || entry.vehicle_id === selectedVehicle;
     const matchesEmployee = selectedEmployee === 'all' || entry.driver_email === selectedEmployee;
     
+    // Search filter
+    const matchesSearch = !searchQuery || 
+      entry.registration_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.driver_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.purpose?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.project_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.customer?.toLowerCase().includes(searchQuery.toLowerCase());
+    
     // Period filter
     const entryDate = new Date(entry.start_time);
     const now = new Date();
@@ -377,7 +386,7 @@ export default function DrivingJournal() {
       matchesPeriod = entryDate >= start && entryDate <= end;
     }
     
-    return matchesTab && matchesDriver && matchesVehicle && matchesPeriod && matchesEmployee;
+    return matchesTab && matchesDriver && matchesVehicle && matchesPeriod && matchesEmployee && matchesSearch;
   });
 
   // Calculate stats
@@ -408,6 +417,11 @@ export default function DrivingJournal() {
             <div className="flex gap-2">
               {user?.role === 'admin' && (
                 <>
+                  <Link to={createPageUrl('AllVehicles')}>
+                    <Button size="sm" variant="outline" title="Visa alla GPS-enheter">
+                      <Car className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <Link to={createPageUrl('JournalPolicySettings')}>
                     <Button size="sm" variant="outline">
                       <Settings className="h-4 w-4" />
@@ -437,6 +451,18 @@ export default function DrivingJournal() {
 
           {/* Stats */}
           <JournalStatsCard stats={stats} />
+
+          {/* Search Bar */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              type="text"
+              placeholder="Sök fordon, förare, projekt, kund..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11 rounded-xl border-slate-200"
+            />
+          </div>
 
           {/* Filters */}
           <Card className="border-0 shadow-sm mb-4">
