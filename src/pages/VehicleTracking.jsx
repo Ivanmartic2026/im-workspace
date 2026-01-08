@@ -358,23 +358,23 @@ export default function VehicleTracking() {
                               {format(new Date(trip.starttime), 'HH:mm')} - {format(new Date(trip.endtime), 'HH:mm')}
                             </p>
                             <p className="text-xs text-slate-500 mt-1">
-                              {Math.round(trip.triptime / (1000 * 60))} minuter
+                              {Math.round((trip?.triptime || 0) / (1000 * 60))} minuter
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-slate-900">
-                              {(trip.tripdistance / 1000).toFixed(1)} km
+                              {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
                             </p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-xs text-slate-500">
                           <div className="flex items-center gap-1">
                             <Gauge className="h-3 w-3" />
-                            <span>Snitt: {Math.round(trip.averagespeed * 3.6)} km/h</span>
+                            <span>Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Activity className="h-3 w-3" />
-                            <span>Max: {Math.round(trip.maxspeed * 3.6)} km/h</span>
+                            <span>Max: {Math.round((trip?.maxspeed || 0) * 3.6)} km/h</span>
                           </div>
                         </div>
                       </CardContent>
@@ -434,23 +434,23 @@ export default function VehicleTracking() {
                               {format(new Date(trip.starttime), 'dd MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
                             </p>
                             <p className="text-xs text-slate-500 mt-1">
-                              {Math.round(trip.triptime / (1000 * 60))} minuter
+                              {Math.round((trip?.triptime || 0) / (1000 * 60))} minuter
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-slate-900">
-                              {(trip.tripdistance / 1000).toFixed(1)} km
+                              {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
                             </p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-xs text-slate-500">
                           <div className="flex items-center gap-1">
                             <Gauge className="h-3 w-3" />
-                            <span>Snitt: {Math.round(trip.averagespeed * 3.6)} km/h</span>
+                            <span>Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Activity className="h-3 w-3" />
-                            <span>Max: {Math.round(trip.maxspeed * 3.6)} km/h</span>
+                            <span>Max: {Math.round((trip?.maxspeed || 0) * 3.6)} km/h</span>
                           </div>
                         </div>
                       </CardContent>
