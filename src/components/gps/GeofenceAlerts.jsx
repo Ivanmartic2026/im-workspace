@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -45,7 +43,6 @@ export default function GeofenceAlerts({ positions, vehicles }) {
         const isInside = distance * 1000 <= geofence.radius_meters;
         const alertKey = `${pos.deviceid}-${geofence.id}`;
 
-        // Lagra tidigare status
         const previousStatus = localStorage.getItem(`geofence-${alertKey}`);
         const currentStatus = isInside ? 'inside' : 'outside';
 
@@ -70,7 +67,7 @@ export default function GeofenceAlerts({ positions, vehicles }) {
       setTimeout(() => {
         setAlerts(prev => prev.filter(a => {
           const age = Date.now() - a.timestamp.getTime();
-          return age < 10000; // Visa i 10 sekunder
+          return age < 10000;
         }));
       }, 100);
     }
