@@ -30,6 +30,19 @@ export default function AllVehicles() {
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
   const allDeviceIds = vehiclesWithGPS.map(v => v.gps_device_id);
 
+  const { data: gpsDevices } = useQuery({
+    queryKey: ['gps-devices'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('gpsTracking', {
+        action: 'getDeviceList',
+        params: {}
+      });
+      return response.data;
+    },
+  });
+
+  const allDevices = gpsDevices?.groups?.flatMap(group => group.devices || []) || [];
+
   const { data: positionsData, isLoading: positionsLoading } = useQuery({
     queryKey: ['gps-all-positions', allDeviceIds],
     queryFn: async () => {
@@ -45,6 +58,11 @@ export default function AllVehicles() {
   });
 
   const positions = positionsData?.records || [];
+  
+  const getDeviceName = (deviceId) => {
+    const device = allDevices.find(d => d.deviceid === deviceId);
+    return device?.devicename || deviceId;
+  };
 
   const getVehiclePosition = (vehicle) => {
     return positions.find(p => p.deviceid === vehicle.gps_device_id);
@@ -192,8 +210,12 @@ export default function AllVehicles() {
                         <tr key={vehicle.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                           <td className="p-4">
                             <div>
-                              <p className="font-semibold text-slate-900">{vehicle.registration_number}</p>
-                              <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
+                              <p className="font-semibold text-slate-900">
+                                {vehicle.registration_number || getDeviceName(vehicle.gps_device_id)}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {vehicle.registration_number ? `${vehicle.make} ${vehicle.model}` : 'Okänd GPS-enhet'}
+                              </p>
                             </div>
                           </td>
                           <td className="p-4">
