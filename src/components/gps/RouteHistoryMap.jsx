@@ -12,7 +12,7 @@ import { sv } from "date-fns/locale";
 import RegisterTripModal from './RegisterTripModal';
 
 export default function RouteHistoryMap({ vehicles }) {
-  const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [selectedPeriod, setSelectedPeriod] = useState('today');
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [selectedVehicleForRegister, setSelectedVehicleForRegister] = useState(null);
   const [selectedTrips, setSelectedTrips] = useState([]);
@@ -22,7 +22,12 @@ export default function RouteHistoryMap({ vehicles }) {
   // Calculate date range based on period
   const getDateRange = () => {
     const now = new Date();
-    if (selectedPeriod === 'week') {
+    if (selectedPeriod === 'today') {
+      return {
+        start: now,
+        end: now
+      };
+    } else if (selectedPeriod === 'week') {
       return {
         start: startOfWeek(now, { weekStartsOn: 1 }),
         end: endOfWeek(now, { weekStartsOn: 1 })
@@ -85,11 +90,14 @@ export default function RouteHistoryMap({ vehicles }) {
     <div className="space-y-4">
       {/* Period Selector */}
       <Tabs value={selectedPeriod} onValueChange={setSelectedPeriod}>
-        <TabsList className="w-full bg-white shadow-sm">
-          <TabsTrigger value="week" className="flex-1">
+        <TabsList className="w-full bg-white shadow-sm grid grid-cols-3">
+          <TabsTrigger value="today">
+            Idag
+          </TabsTrigger>
+          <TabsTrigger value="week">
             Denna vecka
           </TabsTrigger>
-          <TabsTrigger value="month" className="flex-1">
+          <TabsTrigger value="month">
             Denna månad
           </TabsTrigger>
         </TabsList>
