@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, format, isSameMonth, isSameDay } from "date-fns";
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, format, isSameMonth, isSameDay, parseISO } from "date-fns";
 import { sv } from "date-fns/locale";
-import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Clock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function TimeHistoryCalendar({ entries, view = 'month' }) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
   
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -17,13 +19,15 @@ export default function TimeHistoryCalendar({ entries, view = 'month' }) {
   
   const days = eachDayOfInterval({ start: startDate, end: endDate });
   
+  const getDayEntries = (day) => {
+    return entries.filter(entry => {
+      const entryDate = parseISO(entry.clock_in_time);
+      return isSameDay(entryDate, day) && (entry.status === 'completed' || entry.status === 'approved');
+    });
+  };
+
   const getDayHours = (day) => {
-    return entries
-      .filter(entry => {
-        const entryDate = new Date(entry.clock_in_time);
-        return isSameDay(entryDate, day) && (entry.status === 'completed' || entry.status === 'approved');
-      })
-      .reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+    return getDayEntries(day).reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
   };
 
   const getHoursColor = (hours) => {
@@ -78,12 +82,15 @@ export default function TimeHistoryCalendar({ entries, view = 'month' }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: idx * 0.02 }}
-                className={`aspect-square rounded-lg flex flex-col items-center justify-center p-2 cursor-pointer transition-all ${
+                onClick={() => isCurrentMonth && getDayHours(day) > 0 && setSelectedDay(day)}
+                className={`aspect-square rounded-lg flex flex-col items-center justify-center p-2 transition-all ${
                   isCurrentMonth 
                     ? 'bg-white border border-slate-200 hover:shadow-md' 
                     : 'bg-slate-50 border border-slate-100'
                 } ${
                   isToday ? 'ring-2 ring-blue-500' : ''
+                } ${
+                  isCurrentMonth && getDayHours(day) > 0 ? 'cursor-pointer' : 'cursor-default'
                 }`}
               >
                 <span className={`text-xs font-semibold mb-1 ${
@@ -120,6 +127,69 @@ export default function TimeHistoryCalendar({ entries, view = 'month' }) {
           </div>
         </div>
       </CardContent>
+
+      {/* Day Details Modal */}
+      <Dialog open={!!selectedDay} onOpenChange={(open) => !open && setSelectedDay(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedDay && format(selectedDay, 'EEEE d MMMM', { locale: sv })}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedDay && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <span className="text-sm text-slate-600">Totalt arbetat</span>
+                <span className="text-lg font-bold text-slate-900">{getDayHours(selectedDay).toFixed(1)}h</span>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-slate-900">Registreringar</h4>
+                {getDayEntries(selectedDay).map((entry, idx) => (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="p-3 bg-white border border-slate-200 rounded-lg space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-slate-400" />
+                        <span className="text-sm font-medium text-slate-900">
+                          {format(parseISO(entry.clock_in_time), 'HH:mm')}
+                          {entry.clock_out_time && ` – ${format(parseISO(entry.clock_out_time), 'HH:mm')}`}
+                        </span>
+                      </div>
+                      <Badge variant="outline">{entry.total_hours?.toFixed(1)}h</Badge>
+                    </div>
+                    
+                    {entry.category && (
+                      <div className="text-xs text-slate-500">
+                        {entry.category === 'support_service' && 'Support & Service'}
+                        {entry.category === 'install' && 'Installation'}
+                        {entry.category === 'rental' && 'Rental'}
+                        {entry.category === 'interntid' && 'Interntid'}
+                      </div>
+                    )}
+
+                    {entry.total_break_minutes > 0 && (
+                      <div className="text-xs text-slate-500">
+                        Rast: {entry.total_break_minutes} min
+                      </div>
+                    )}
+
+                    {entry.notes && (
+                      <p className="text-xs text-slate-600 italic">{entry.notes}</p>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
