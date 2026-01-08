@@ -1,0 +1,349 @@
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { base44 } from '@/api/base44Client';
+import { Upload, Loader2, FileText, X } from "lucide-react";
+
+const categoryOptions = [
+  { value: 'produkt', label: 'Produkt' },
+  { value: 'säkerhet', label: 'Säkerhet' },
+  { value: 'hr_policy', label: 'HR & Policy' },
+  { value: 'it_system', label: 'IT-system' },
+  { value: 'fordon', label: 'Fordon' },
+  { value: 'arbetsrutiner', label: 'Arbetsrutiner' },
+  { value: 'allmänt', label: 'Allmänt' }
+];
+
+const priorityOptions = [
+  { value: 'låg', label: 'Låg' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'hög', label: 'Hög' },
+  { value: 'kritisk', label: 'Kritisk' }
+];
+
+export default function UploadManualModal({ open, onClose, onSuccess, editManual = null }) {
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState(null);
+  const [tagInput, setTagInput] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'allmänt',
+    version: '1.0',
+    priority: 'normal',
+    requires_acknowledgment: false,
+    is_public: true,
+    tags: [],
+    expiry_date: ''
+  });
+
+  useEffect(() => {
+    if (editManual) {
+      setFormData({
+        title: editManual.title || '',
+        description: editManual.description || '',
+        category: editManual.category || 'allmänt',
+        version: editManual.version || '1.0',
+        priority: editManual.priority || 'normal',
+        requires_acknowledgment: editManual.requires_acknowledgment || false,
+        is_public: editManual.is_public ?? true,
+        tags: editManual.tags || [],
+        expiry_date: editManual.expiry_date || ''
+      });
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        category: 'allmänt',
+        version: '1.0',
+        priority: 'normal',
+        requires_acknowledgment: false,
+        is_public: true,
+        tags: [],
+        expiry_date: ''
+      });
+      setFile(null);
+    }
+  }, [editManual, open]);
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  };
+
+  const addTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData({
+        ...formData,
+        tags: [...formData.tags, tagInput.trim()]
+      });
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter(tag => tag !== tagToRemove)
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!editManual && !file) {
+      alert('Välj en fil att ladda upp');
+      return;
+    }
+
+    if (!formData.title) {
+      alert('Fyll i titel');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      let file_url = editManual?.file_url;
+      let file_type = editManual?.file_type;
+
+      // Upload new file if provided
+      if (file) {
+        const uploadResponse = await base44.integrations.Core.UploadFile({ file });
+        file_url = uploadResponse.file_url;
+        
+        const extension = file.name.split('.').pop().toLowerCase();
+        file_type = ['pdf', 'docx', 'xlsx', 'pptx'].includes(extension) ? extension : 'annat';
+      }
+
+      const user = await base44.auth.me();
+      
+      const manualData = {
+        ...formData,
+        file_url,
+        file_type,
+        uploaded_by: user.email
+      };
+
+      if (editManual) {
+        await base44.entities.Manual.update(editManual.id, manualData);
+      } else {
+        await base44.entities.Manual.create(manualData);
+      }
+
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Error saving manual:', error);
+      alert('Kunde inte spara manualen: ' + error.message);
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {editManual ? 'Redigera manual' : 'Ladda upp ny manual'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* File Upload */}
+          {!editManual && (
+            <div>
+              <Label>Fil *</Label>
+              <div className="mt-2">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                  {file ? (
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-slate-600" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{file.name}</p>
+                        <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(2)} KB</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-8 w-8 text-slate-400 mb-2" />
+                      <p className="text-sm text-slate-600">Klicka för att välja fil</p>
+                      <p className="text-xs text-slate-400 mt-1">PDF, DOCX, XLSX, PPTX</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    accept=".pdf,.docx,.xlsx,.pptx"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Title */}
+          <div>
+            <Label>Titel *</Label>
+            <Input
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="T.ex. Användarmanual GPS-system"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <Label>Beskrivning</Label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Kort beskrivning av manualens innehåll..."
+              rows={3}
+            />
+          </div>
+
+          {/* Category & Version */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Kategori</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Version</Label>
+              <Input
+                value={formData.version}
+                onChange={(e) => setFormData({ ...formData, version: e.target.value })}
+                placeholder="1.0"
+              />
+            </div>
+          </div>
+
+          {/* Priority & Expiry */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Prioritet</Label>
+              <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorityOptions.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Utgångsdatum (valfritt)</Label>
+              <Input
+                type="date"
+                value={formData.expiry_date}
+                onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <Label>Taggar</Label>
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                placeholder="Lägg till tagg..."
+              />
+              <Button type="button" onClick={addTag} variant="outline">
+                Lägg till
+              </Button>
+            </div>
+            {formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag, index) => (
+                  <div key={index} className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-md text-sm">
+                    <span>{tag}</span>
+                    <button onClick={() => removeTag(tag)} className="text-slate-500 hover:text-slate-700">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Checkboxes */}
+          <div className="space-y-3 pt-2 border-t border-slate-200">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="public"
+                checked={formData.is_public}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
+              />
+              <Label htmlFor="public" className="cursor-pointer">
+                Synlig för alla (om avmarkerad kan du fördela till specifika personer)
+              </Label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="ack"
+                checked={formData.requires_acknowledgment}
+                onCheckedChange={(checked) => setFormData({ ...formData, requires_acknowledgment: checked })}
+              />
+              <Label htmlFor="ack" className="cursor-pointer">
+                Kräver bekräftelse från läsare
+              </Label>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+              disabled={loading}
+            >
+              Avbryt
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex-1 bg-slate-900 hover:bg-slate-800"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {editManual ? 'Uppdaterar...' : 'Laddar upp...'}
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  {editManual ? 'Uppdatera' : 'Ladda upp'}
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
