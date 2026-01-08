@@ -570,9 +570,9 @@ export default function VehicleTracking() {
                         <div className="space-y-2">
                           {stats.tripsList.map((trip, idx) => (
                             <div key={idx} className="p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                              <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
+                                  <div className="flex items-center gap-2 mb-2">
                                     <p className="text-sm font-semibold text-slate-900">
                                       {format(new Date(trip.starttime), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
                                     </p>
@@ -580,6 +580,25 @@ export default function VehicleTracking() {
                                       {Math.round((trip?.triptime || 0) / (1000 * 60))} min
                                     </span>
                                   </div>
+                                  
+                                  {/* Addresses */}
+                                  {(trip.startaddress || trip.endaddress) && (
+                                    <div className="mb-2 space-y-1 text-xs">
+                                      {trip.startaddress && (
+                                        <div className="flex items-start gap-1.5">
+                                          <MapPin className="h-3 w-3 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                          <span className="text-slate-600 line-clamp-1">{trip.startaddress}</span>
+                                        </div>
+                                      )}
+                                      {trip.endaddress && (
+                                        <div className="flex items-start gap-1.5">
+                                          <MapPin className="h-3 w-3 text-rose-500 mt-0.5 flex-shrink-0" />
+                                          <span className="text-slate-600 line-clamp-1">{trip.endaddress}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
                                   <div className="flex items-center gap-3 text-xs text-slate-500">
                                     <span className="flex items-center gap-1">
                                       <Navigation className="h-3 w-3" />
