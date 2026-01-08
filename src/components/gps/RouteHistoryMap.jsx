@@ -49,20 +49,27 @@ export default function RouteHistoryMap({ vehicles }) {
       const promises = vehiclesWithGPS.map(async (vehicle) => {
         try {
           const response = await base44.functions.invoke('gpsTracking', {
-            action: 'getTrips',
-            params: {
-              deviceId: vehicle.gps_device_id,
-              begintime: format(dateRange.start, 'yyyy-MM-dd') + ' 00:00:00',
-              endtime: format(dateRange.end, 'yyyy-MM-dd') + ' 23:59:59'
-            }
+           action: 'getTrips',
+           params: {
+             deviceId: vehicle.gps_device_id,
+             begintime: format(dateRange.start, 'yyyy-MM-dd') + ' 00:00:00',
+             endtime: format(dateRange.end, 'yyyy-MM-dd') + ' 23:59:59'
+           }
           });
+
+          // Debug: log first trip to see available fields
+          if (response.data?.totaltrips?.[0]) {
+           console.log('Trip data fields:', Object.keys(response.data.totaltrips[0]));
+           console.log('First trip sample:', response.data.totaltrips[0]);
+          }
+
           return {
-            vehicle,
-            trips: response.data?.totaltrips || [],
-            stats: {
-              totalDistance: (response.data?.totaldistance || 0) / 1000,
-              totalTime: (response.data?.totaltriptime || 0) / (1000 * 60)
-            }
+           vehicle,
+           trips: response.data?.totaltrips || [],
+           stats: {
+             totalDistance: (response.data?.totaldistance || 0) / 1000,
+             totalTime: (response.data?.totaltriptime || 0) / (1000 * 60)
+           }
           };
         } catch (error) {
           console.error(`Error fetching trips for ${vehicle.registration_number}:`, error);
@@ -172,12 +179,15 @@ export default function RouteHistoryMap({ vehicles }) {
                     <div className="space-y-2 mb-4">
                       {trips.slice(0, 10).map((trip, idx) => {
                         // GPS API använder olika fältnamn beroende på endpoint
-                        const startAddress = trip.startaddress || trip.startAddress || trip.beginAddress;
-                        const endAddress = trip.endaddress || trip.endAddress || trip.stopAddress;
-                        const startLat = trip.startlat || trip.startLat || trip.beginLat;
-                        const startLon = trip.startlon || trip.startLon || trip.beginLon;
-                        const endLat = trip.endlat || trip.endLat || trip.stopLat;
-                        const endLon = trip.endlon || trip.endLon || trip.stopLon;
+                        // Logga alla fält för debugging
+                        if (idx === 0) console.log('Trip fields:', trip);
+                        
+                        const startAddress = trip.startaddress || trip.startAddress || trip.beginAddress || trip.beginaddress;
+                        const endAddress = trip.endaddress || trip.endAddress || trip.stopAddress || trip.stopaddress;
+                        const startLat = trip.startlat || trip.startLat || trip.beginLat || trip.beginlat;
+                        const startLon = trip.startlon || trip.startLon || trip.beginLon || trip.beginlon;
+                        const endLat = trip.endlat || trip.endLat || trip.stopLat || trip.stoplat;
+                        const endLon = trip.endlon || trip.endLon || trip.stopLon || trip.stoplon;
                         
                         return (
                         <div key={idx} className="p-3 bg-white rounded-lg border border-slate-200">
