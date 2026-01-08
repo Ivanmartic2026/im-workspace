@@ -57,8 +57,8 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
     const totalTime = selected.reduce((sum, trip) => sum + trip.triptime, 0);
 
     return {
-      start_time: firstTrip.starttime,
-      end_time: lastTrip.endtime,
+      start_time: new Date(firstTrip.starttime).toISOString(),
+      end_time: new Date(lastTrip.endtime).toISOString(),
       distance_km: totalDistance / 1000,
       duration_minutes: totalTime / (1000 * 60),
       start_location: {
