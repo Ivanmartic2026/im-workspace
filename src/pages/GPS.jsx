@@ -10,7 +10,7 @@ import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import RouteHistoryMap from '@/components/gps/RouteHistoryMap';
 import 'leaflet/dist/leaflet.css';
@@ -242,9 +242,15 @@ export default function GPS() {
                   {positions.map((pos) => {
                     const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === pos.deviceid);
                     const device = allDevices.find(d => d.deviceid === pos.deviceid);
+                    const displayName = vehicle?.registration_number || device?.devicename || pos.deviceid;
                     
                     return (
                       <Marker key={pos.deviceid} position={[pos.callat, pos.callon]}>
+                        <Tooltip permanent direction="top" offset={[0, -20]}>
+                          <div className="font-semibold text-xs">
+                            {displayName}
+                          </div>
+                        </Tooltip>
                         <Popup>
                           <div className="min-w-[200px]">
                             <div className="flex items-center gap-2 mb-2">
