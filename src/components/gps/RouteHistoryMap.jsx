@@ -162,39 +162,49 @@ export default function RouteHistoryMap({ vehicles }) {
 
                     {/* Trip Details */}
                     <div className="space-y-2 mb-4">
-                      {trips.slice(0, 10).map((trip, idx) => (
+                      {trips.slice(0, 10).map((trip, idx) => {
+                        // GPS API använder olika fältnamn beroende på endpoint
+                        const startAddress = trip.startaddress || trip.startAddress || trip.beginAddress;
+                        const endAddress = trip.endaddress || trip.endAddress || trip.stopAddress;
+                        const startLat = trip.startlat || trip.startLat || trip.beginLat;
+                        const startLon = trip.startlon || trip.startLon || trip.beginLon;
+                        const endLat = trip.endlat || trip.endLat || trip.stopLat;
+                        const endLon = trip.endlon || trip.endLon || trip.stopLon;
+                        
+                        return (
                         <div key={idx} className="p-3 bg-white rounded-lg border border-slate-200">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-semibold text-slate-900">
-                              {format(new Date(trip.starttime), 'dd MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
+                              {format(new Date(trip.starttime || trip.startTime || trip.beginTime), 'dd MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime || trip.endTime || trip.stopTime), 'HH:mm', { locale: sv })}
                             </span>
                             <span className="text-sm font-bold text-slate-900">
-                              {((trip.tripdistance || 0) / 1000).toFixed(1)} km
+                              {((trip.tripdistance || trip.tripDistance || trip.distance || 0) / 1000).toFixed(1)} km
                             </span>
                           </div>
-                          {trip.startaddress && (
+                          {startAddress && (
                             <div className="mb-1">
                               <p className="text-xs text-slate-500 mb-0.5">Start:</p>
                               <p className="text-sm text-slate-700">
-                                📍 {trip.startaddress}
+                                📍 {startAddress}
                               </p>
                             </div>
                           )}
-                          {trip.endaddress && trip.startaddress !== trip.endaddress && (
+                          {endAddress && startAddress !== endAddress && (
                             <div>
                               <p className="text-xs text-slate-500 mb-0.5">Slut:</p>
                               <p className="text-sm text-slate-700">
-                                🏁 {trip.endaddress}
+                                🏁 {endAddress}
                               </p>
                             </div>
                           )}
-                          {!trip.startaddress && !trip.endaddress && (
+                          {!startAddress && startLat && startLon && (
                             <p className="text-xs text-slate-500">
-                              Koordinater: {trip.startlat?.toFixed(4)}, {trip.startlon?.toFixed(4)}
+                              Start: {startLat.toFixed(4)}, {startLon.toFixed(4)}
                             </p>
                           )}
                         </div>
-                      ))}
+                      )})}
+                    </div>
                       {trips.length > 10 && (
                         <p className="text-xs text-slate-500 text-center py-2">
                           +{trips.length - 10} resor till
