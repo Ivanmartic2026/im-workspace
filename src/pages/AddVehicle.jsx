@@ -45,6 +45,55 @@ export default function AddVehicle() {
     notes: ''
   });
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const currentUser = await base44.auth.me();
+          setUser(currentUser);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+    enabled: !!user,
+  });
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-slate-400 animate-spin mx-auto mb-4" />
+          <p className="text-sm text-slate-500">Laddar...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
+        <Card className="max-w-md mx-4">
+          <CardContent className="p-6 text-center">
+            <p className="text-slate-900 mb-4">Du måste vara inloggad för att lägga till fordon</p>
+            <Button onClick={() => base44.auth.redirectToLogin()}>
+              Logga in
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
