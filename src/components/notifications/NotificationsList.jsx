@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Calendar, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Bell, Calendar, AlertTriangle, ChevronRight, Trash2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { motion } from 'framer-motion';
@@ -67,7 +67,7 @@ const typeConfig = {
   }
 };
 
-export default function NotificationsList({ notifications, onClose }) {
+export default function NotificationsList({ notifications, onClose, onDelete, onMarkAsRead }) {
   const navigate = useNavigate();
 
   const handleClick = (notification) => {
@@ -116,21 +116,47 @@ export default function NotificationsList({ notifications, onClose }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-semibold text-slate-900 text-sm">
-                        {notification.title}
-                      </h4>
-                      {notification.urgent && (
-                        <Badge variant="destructive" className="text-xs">
-                          AKUT
-                        </Badge>
-                      )}
-                    </div>
+                        <h4 className="font-semibold text-slate-900 text-sm">
+                          {notification.title}
+                        </h4>
+                        <div className="flex items-center gap-1">
+                          {notification.urgent && (
+                            <Badge variant="destructive" className="text-xs">
+                              AKUT
+                            </Badge>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete?.(notification.id);
+                            }}
+                            className="p-1 hover:bg-slate-200 rounded transition-colors"
+                            title="Ta bort"
+                          >
+                            <Trash2 className="h-4 w-4 text-slate-400 hover:text-slate-600" />
+                          </button>
+                        </div>
+                      </div>
                     <p className="text-sm text-slate-600 line-clamp-2 mb-2">
                       {notification.description}
                     </p>
-                    <p className="text-xs text-slate-400">
-                      {format(new Date(notification.date + 'Z'), "d MMM 'kl' HH:mm", { locale: sv })}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-slate-400">
+                       {format(new Date(notification.date + 'Z'), "d MMM 'kl' HH:mm", { locale: sv })}
+                     </p>
+                      {!notification.data?.is_read && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMarkAsRead?.(notification.id);
+                          }}
+                          className="ml-2 p-1 hover:bg-slate-200 rounded transition-colors"
+                          title="Markera som läst"
+                        >
+                          <Check className="h-4 w-4 text-indigo-600" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-slate-400 flex-shrink-0" />
                 </div>
