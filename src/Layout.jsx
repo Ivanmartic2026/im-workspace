@@ -30,13 +30,57 @@ const adminNavItems = [
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
+  const [employee, setEmployee] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    const fetchUserAndEmployee = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+        
+        if (userData?.email) {
+          const employees = await base44.entities.Employee.filter({ user_email: userData.email });
+          if (employees.length > 0) {
+            setEmployee(employees[0]);
+          }
+        }
+      } catch (error) {
+        setUser(null);
+        setEmployee(null);
+      }
+    };
+    
+    fetchUserAndEmployee();
   }, []);
 
   const isAdmin = user?.role === 'admin';
-  const items = isAdmin ? adminNavItems : navItems;
+  
+  // Filter navigation items based on user's assigned features
+  const hasFeatureAccess = (featureName) => {
+    if (isAdmin) return true; // Admins have access to everything
+    if (!employee?.assigned_features) return false;
+    return employee.assigned_features.includes(featureName);
+  };
+
+  const getVisibleItems = () => {
+    let baseItems = isAdmin ? adminNavItems : navItems;
+    return baseItems.filter(item => {
+      const featureMap = {
+        'TimeTracking': 'TimeTracking',
+        'Vehicles': 'Vehicles',
+        'GPS': 'GPS',
+        'DrivingJournal': 'DrivingJournal',
+        'Manuals': 'Manuals',
+        'Chat': 'Chat',
+        'Admin': 'Admin'
+      };
+      const feature = featureMap[item.name];
+      if (!feature) return true; // Show items without feature mapping
+      return hasFeatureAccess(feature);
+    });
+  };
+
+  const items = getVisibleItems();
 
   return (
     <div className="min-h-screen bg-slate-50">
