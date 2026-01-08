@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { base44 } from '@/api/base44Client';
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Loader2, MapPin, Navigation, Clock, Merge, CheckCircle2 } from "lucide-react";
+import { Loader2, MapPin, Navigation, Clock, Merge, CheckCircle2, CheckSquare } from "lucide-react";
 
 export default function RegisterTripModal({ open, onClose, trips = [], vehicleId, vehicleReg, onSuccess }) {
   const [selectedTrips, setSelectedTrips] = useState([]);
@@ -41,6 +41,14 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
         ? prev.filter(i => i !== tripIndex)
         : [...prev, tripIndex].sort((a, b) => a - b)
     );
+  };
+
+  const selectAllTrips = () => {
+    if (selectedTrips.length === trips.length) {
+      setSelectedTrips([]);
+    } else {
+      setSelectedTrips(trips.map((_, idx) => idx));
+    }
   };
 
   const getMergedTripData = () => {
@@ -137,7 +145,19 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
         <div className="space-y-6">
           {/* Trip Selection */}
           <div>
-            <Label className="mb-3 block">Välj resor att registrera</Label>
+            <div className="flex items-center justify-between mb-3">
+              <Label>Välj resor att registrera</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={selectAllTrips}
+                className="text-xs"
+              >
+                <CheckSquare className="h-3 w-3 mr-1" />
+                {selectedTrips.length === trips.length ? 'Avmarkera alla' : 'Markera alla'}
+              </Button>
+            </div>
             <div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-3 bg-slate-50">
               {trips.map((trip, idx) => (
                 <div
