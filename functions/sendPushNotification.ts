@@ -26,10 +26,10 @@ Deno.serve(async (req) => {
       message: message,
       priority: 'normal',
       is_read: false,
-      sent_via: ['push']
+      sent_via: ['push', 'database']
     }));
 
-    // Bulk create notifications
+    // Bulk create notifications in database
     if (notifications.length > 0) {
       await base44.asServiceRole.entities.Notification.bulkCreate(notifications);
     }
@@ -37,7 +37,8 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       notificationsSent: notifications.length,
-      message: `Push notification sent to ${notifications.length} users`
+      message: `Push notification sent to ${notifications.length} users`,
+      broadcast: true
     });
   } catch (error) {
     console.error('Error sending push notification:', error);
