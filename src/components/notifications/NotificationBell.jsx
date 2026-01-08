@@ -75,6 +75,24 @@ export default function NotificationBell({ user }) {
         });
       }
 
+      // Nya chattmeddelanden
+      const chatNotifications = await base44.entities.Notification.filter(
+        { recipient_email: user.email, type: 'chat', is_read: false },
+        '-created_date',
+        20
+      );
+      chatNotifications.forEach(notif => {
+        notifs.push({
+          id: `chat-${notif.id}`,
+          type: 'chat',
+          title: notif.title,
+          description: notif.message,
+          date: notif.created_date,
+          urgent: false,
+          data: notif
+        });
+      });
+
       // Akuta fordonsärenden
       const urgentIssues = await base44.entities.MaintenanceIssue.filter(
         { 

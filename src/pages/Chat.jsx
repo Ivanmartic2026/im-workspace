@@ -45,14 +45,11 @@ export default function Chat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
-      return base44.entities.Message.create({
+      const response = await base44.functions.invoke('createMessage', {
         conversation_id: selectedConversationId,
-        sender_email: user.email,
-        sender_name: user.full_name,
-        content,
-        is_read: false,
-        read_by: [user.email]
+        content
       });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', selectedConversationId] });
