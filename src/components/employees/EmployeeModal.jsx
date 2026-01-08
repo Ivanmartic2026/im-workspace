@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
 const SERVICES = ['support_service', 'install', 'rental', 'interntid'];
+const FEATURES = ['TimeTracking', 'Vehicles', 'GPS', 'DrivingJournal', 'Manuals', 'Chat', 'Reports'];
 
 export default function EmployeeModal({ open, onClose, employee }) {
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
     location: '',
     bio: '',
     assigned_services: [],
+    assigned_features: [],
   });
 
   const { data: users = [] } = useQuery({
@@ -42,6 +44,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         location: employee.location || '',
         bio: employee.bio || '',
         assigned_services: employee.assigned_services || [],
+        assigned_features: employee.assigned_features || [],
       });
     } else {
       setFormData({
@@ -54,6 +57,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         location: '',
         bio: '',
         assigned_services: [],
+        assigned_features: [],
       });
     }
   }, [employee, open]);
@@ -210,6 +214,35 @@ export default function EmployeeModal({ open, onClose, employee }) {
                     {service === 'rental' && 'Uthyrning'}
                     {service === 'interntid' && 'Interntid'}
                   </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Funktionsåtkomst</Label>
+            <div className="space-y-2">
+              {FEATURES.map(feature => (
+                <label key={feature} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.assigned_features.includes(feature)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData(prev => ({
+                          ...prev,
+                          assigned_features: [...prev.assigned_features, feature]
+                        }));
+                      } else {
+                        setFormData(prev => ({
+                          ...prev,
+                          assigned_features: prev.assigned_features.filter(f => f !== feature)
+                        }));
+                      }
+                    }}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className="text-sm text-slate-700">{feature}</span>
                 </label>
               ))}
             </div>
