@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, Edit } from "lucide-react";
+import { Clock, Edit, Briefcase, Wrench, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO, format, eachDayOfInterval, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 
-const categoryColors = {
-  support_service: "bg-blue-500",
-  install: "bg-purple-500",
-  interntid: "bg-slate-500"
-};
-
-const categoryLabels = {
-  support_service: "Support & Service",
-  install: "Install",
-  interntid: "Interntid"
+const categoryConfig = {
+  support_service: { color: "bg-blue-500", label: "Support & Service", icon: Briefcase },
+  install: { color: "bg-purple-500", label: "Installation", icon: Wrench },
+  interntid: { color: "bg-slate-500", label: "Interntid", icon: Zap }
 };
 
 export default function TimeHistory({ entries, onEdit }) {
@@ -112,38 +107,68 @@ export default function TimeHistory({ entries, onEdit }) {
                   </div>
 
                   {dayEntries.length > 0 && (
-                    <div className="space-y-2 mt-3 pt-3 border-t border-slate-100">
-                      {dayEntries.map((entry) => (
-                        <div key={entry.id} className="flex items-center justify-between text-xs group">
-                          <div className="flex items-center gap-2">
-                            <div className={`h-2 w-2 rounded-full ${categoryColors[entry.category]}`} />
-                            <span className="text-slate-600">{categoryLabels[entry.category]}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-500">
-                              {format(parseISO(entry.clock_in_time), 'HH:mm')}
-                              {entry.clock_out_time && ` - ${format(parseISO(entry.clock_out_time), 'HH:mm')}`}
-                            </span>
-                            {entry.total_hours && (
-                              <span className="font-semibold text-slate-900">{entry.total_hours.toFixed(1)}h</span>
-                            )}
-                            {entry.status === 'active' ? (
-                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                                Pågår
-                              </span>
-                            ) : onEdit && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => onEdit(entry)}
-                              >
-                                <Edit className="h-3 w-3 text-slate-400" />
-                              </Button>
-                            )}
-                          </div>
+                    <div className="space-y-3 mt-4 pt-4 border-t border-slate-100">
+                      {/* Progress bar */}
+                      <div className="mb-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-xs font-medium text-slate-600">Framsteg</p>
+                          <p className="text-xs font-semibold text-slate-700">{dayTotal.toFixed(1)} / 8h</p>
                         </div>
-                      ))}
+                        <div className="w-full bg-slate-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all ${
+                              dayTotal >= 8 ? 'bg-emerald-500' : dayTotal >= 6 ? 'bg-blue-500' : 'bg-slate-400'
+                            }`}
+                            style={{ width: `${Math.min((dayTotal / 8) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Entries */}
+                      {dayEntries.map((entry) => {
+                        const CategoryIcon = categoryConfig[entry.category]?.icon;
+                        return (
+                          <motion.div 
+                            key={entry.id} 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center justify-between p-3 bg-slate-50 rounded-lg group hover:bg-slate-100 transition-colors"
+                          >
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <Badge className={`${categoryConfig[entry.category]?.color} text-white shrink-0 text-xs`}>
+                                {categoryConfig[entry.category]?.label}
+                              </Badge>
+                              <div className="flex items-center gap-1.5 text-slate-600">
+                                <Clock className="h-3.5 w-3.5 text-slate-400" />
+                                <span className="text-sm font-medium">
+                                  {format(parseISO(entry.clock_in_time), 'HH:mm')}
+                                  {entry.clock_out_time && ` – ${format(parseISO(entry.clock_out_time), 'HH:mm')}`}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 shrink-0">
+                              {entry.total_hours && (
+                                <span className="font-bold text-slate-900 text-sm min-w-[40px] text-right">{entry.total_hours.toFixed(1)}h</span>
+                              )}
+                              {entry.status === 'active' ? (
+                                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
+                                  Pågår
+                                </span>
+                              ) : onEdit && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => onEdit(entry)}
+                                >
+                                  <Edit className="h-3.5 w-3.5 text-slate-400" />
+                                </Button>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
