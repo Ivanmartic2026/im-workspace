@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -12,10 +11,11 @@ import {
 } from "@/components/ui/sheet";
 import NotificationsList from './NotificationsList';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function NotificationBell({ user }) {
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: notifications = [], refetch } = useQuery({
     queryKey: ['notifications', user?.email],
@@ -160,6 +160,38 @@ export default function NotificationBell({ user }) {
     refetchInterval: 5000, // Uppdatera varje 5 sekunder
   });
 
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (notificationId) => {
+      const id = notificationId.replace('notification-', '');
+      return base44.entities.Notification.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.email] });
+    }
+  });
+
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId) => {
+      const id = notificationId.replace('notification-', '');
+      return base44.entities.Notification.update(id, { is_read: true });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.email] });
+    }
+  });
+
+  const handleDeleteNotification = (notificationId) => {
+    if (notificationId.startsWith('notification-')) {
+      deleteNotificationMutation.mutate(notificationId);
+    }
+  };
+
+  const handleMarkAsRead = (notificationId) => {
+    if (notificationId.startsWith('notification-')) {
+      markAsReadMutation.mutate(notificationId);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.data?.is_read).length;
 
   useEffect(() => {
@@ -193,6 +225,8 @@ export default function NotificationBell({ user }) {
         <NotificationsList 
           notifications={notifications} 
           onClose={() => setOpen(false)}
+          onDelete={handleDeleteNotification}
+          onMarkAsRead={handleMarkAsRead}
         />
       </SheetContent>
     </Sheet>
