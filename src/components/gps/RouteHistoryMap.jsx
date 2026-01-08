@@ -160,6 +160,37 @@ export default function RouteHistoryMap({ vehicles }) {
                       </div>
                     </div>
 
+                    {/* Trip Details */}
+                    <div className="space-y-2 max-h-60 overflow-y-auto mb-4">
+                      {trips.slice(0, 10).map((trip, idx) => (
+                        <div key={idx} className="p-3 bg-white rounded-lg border border-slate-200 text-xs">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-semibold text-slate-900">
+                              {format(new Date(trip.starttime), 'dd MMM, HH:mm', { locale: sv })}
+                            </span>
+                            <span className="font-bold text-slate-900">
+                              {((trip.tripdistance || 0) / 1000).toFixed(1)} km
+                            </span>
+                          </div>
+                          {trip.startaddress && (
+                            <p className="text-slate-600 mb-1">
+                              📍 Från: {trip.startaddress}
+                            </p>
+                          )}
+                          {trip.endaddress && (
+                            <p className="text-slate-600">
+                              📍 Till: {trip.endaddress}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                      {trips.length > 10 && (
+                        <p className="text-xs text-slate-500 text-center py-2">
+                          +{trips.length - 10} resor till
+                        </p>
+                      )}
+                    </div>
+
                     {unregisteredTrips.length > 0 && (
                       <Button
                         onClick={() => handleRegisterTrips(vehicle, unregisteredTrips)}
