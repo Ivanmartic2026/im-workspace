@@ -203,8 +203,8 @@ export default function RouteHistoryMap({ vehicles }) {
                             </p>
                           )}
                         </div>
-                      )})}
-                    </div>
+                        );
+                      })}
                       {trips.length > 10 && (
                         <p className="text-xs text-slate-500 text-center py-2">
                           +{trips.length - 10} resor till
