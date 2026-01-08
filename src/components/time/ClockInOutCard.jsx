@@ -88,6 +88,15 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       alert('Kunde inte identifiera användare. Vänligen ladda om sidan.');
       return;
     }
+
+    // Vänta om data hinner läsas in på PWA
+    if (!userEmail) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!userEmail) {
+        alert('Kunde inte identifiera användare.');
+        return;
+      }
+    }
     
     setLoading(true);
     
@@ -385,7 +394,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
           ) : (
           <Button
             onClick={handleClockIn}
-            disabled={!userEmail || loading}
+            disabled={loading}
             className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium disabled:opacity-50"
           >
             {loading ? (
