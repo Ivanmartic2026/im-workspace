@@ -24,7 +24,6 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import NotificationHistory from './pages/NotificationHistory';
 import __Layout from './Layout.jsx';
 
 
@@ -55,7 +54,6 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "NotificationHistory": NotificationHistory,
 }
 
 export const pagesConfig = {

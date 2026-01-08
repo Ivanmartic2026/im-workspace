@@ -23,11 +23,11 @@ export default function NotificationBell({ user }) {
 
       const notifs = [];
 
-      // Hämta systemnotifikationer
+      // Hämta systemnotifikationer (både lästa och olästa)
       const systemNotifications = await base44.entities.Notification.filter(
-        { recipient_email: user.email, is_read: false }, 
+        { recipient_email: user.email }, 
         '-created_date', 
-        50
+        100
       );
       systemNotifications.forEach(notif => {
         notifs.push({
@@ -141,7 +141,7 @@ export default function NotificationBell({ user }) {
     refetchInterval: 60000, // Uppdatera varje minut
   });
 
-  const unreadCount = notifications.length;
+  const unreadCount = notifications.filter(n => !n.data?.is_read).length;
 
   useEffect(() => {
     if (open) {
