@@ -43,8 +43,30 @@ export default function PushNotificationSetup({ onSetupComplete }) {
   const registerServiceWorker = async () => {
     try {
       if ('serviceWorker' in navigator) {
-        await navigator.serviceWorker.register('/service-worker.js');
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
         console.log('Service Worker registered');
+        
+        // Kolla för push support och subscriba
+        if ('pushManager' in registration) {
+          try {
+            const subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+              // Försök subscribe om användare godkänt notiser
+              const permission = Notification.permission;
+              if (permission === 'granted') {
+                const vapidPublicKey = document.querySelector('meta[name="vapid-public-key"]')?.content;
+                if (vapidPublicKey) {
+                  await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: vapidPublicKey
+                  }).catch(err => console.log('Push subscription optional:', err));
+                }
+              }
+            }
+          } catch (pushError) {
+            console.log('Push subscription not required:', pushError);
+          }
+        }
       }
     } catch (error) {
       console.error('Service Worker registration failed:', error);

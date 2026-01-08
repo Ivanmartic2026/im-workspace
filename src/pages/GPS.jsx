@@ -233,7 +233,9 @@ export default function GPS() {
                   center={centerPos}
                   zoom={12}
                   style={{ height: '100%', width: '100%' }}
-                  scrollWheelZoom={true}
+                  scrollWheelZoom={false}
+                  dragging={true}
+                  touchZoom={true}
                 >
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
