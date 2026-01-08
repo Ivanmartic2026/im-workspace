@@ -55,7 +55,7 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {/* Notification Bell - Fixed Top Right */}
-      <div className="fixed top-3 right-3 z-40">
+      <div className="fixed top-3 right-3 z-50">
         <NotificationBell user={user} />
       </div>
       
