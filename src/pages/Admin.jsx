@@ -20,6 +20,7 @@ import ProjectTimeReport from '@/components/admin/ProjectTimeReport';
 import EmployeeManagement from '@/components/admin/EmployeeManagement';
 import PayrollExport from '@/components/admin/PayrollExport';
 import NotificationSettings from '@/components/admin/NotificationSettings';
+import VehicleManagement from '@/components/admin/VehicleManagement';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -94,9 +95,12 @@ export default function Admin() {
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-4 gap-1 mb-6">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-5 gap-1 mb-6">
               <TabsTrigger value="overview" className="rounded-xl data-[state=active]:shadow-sm text-xs">
                 Översikt
+              </TabsTrigger>
+              <TabsTrigger value="vehicles" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+                Fordon
               </TabsTrigger>
               <TabsTrigger value="time" className="rounded-xl data-[state=active]:shadow-sm text-xs">
                 Tid
@@ -108,6 +112,11 @@ export default function Admin() {
                 Inställningar
               </TabsTrigger>
             </TabsList>
+
+            {/* Vehicles Tab */}
+            <TabsContent value="vehicles" className="space-y-4">
+              <VehicleManagement />
+            </TabsContent>
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
