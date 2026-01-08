@@ -4,7 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Send } from "lucide-react";
+import { Plus, Send, Users, X, ChevronLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import ConversationList from '@/components/chat/ConversationList';
 import MessageList from '@/components/chat/MessageList';
 import { motion } from "framer-motion";
@@ -13,6 +15,9 @@ export default function Chat() {
   const [user, setUser] = useState(null);
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [messageContent, setMessageContent] = useState('');
+  const [showNewConvModal, setShowNewConvModal] = useState(false);
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
+  const [conversationTitle, setConversationTitle] = useState('');
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -20,7 +25,12 @@ export default function Chat() {
     base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
-  const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  const { data: conversations = [], isLoading: conversationsLoading, refetch: refetchConversations } = useQuery({
     queryKey: ['conversations', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
@@ -28,6 +38,7 @@ export default function Chat() {
       return all.filter(conv => conv.participants.includes(user.email) && !conv.is_archived);
     },
     enabled: !!user?.email,
+    refetchInterval: 10000,
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
@@ -43,17 +54,70 @@ export default function Chat() {
     refetchInterval: 5000,
   });
 
+  const createConversationMutation = useMutation({
+    mutationFn: async () => {
+      const participants = [...new Set([user.email, ...selectedParticipants])];
+      const conversation = await base44.entities.Conversation.create({
+        title: conversationTitle || participants.map(p => allUsers.find(u => u.email === p)?.full_name || p).join(', '),
+        type: selectedParticipants.length === 1 ? 'direct' : 'group',
+        participants,
+        is_archived: false
+      });
+      return conversation;
+    },
+    onSuccess: (conversation) => {
+      refetchConversations();
+      setSelectedConversationId(conversation.id);
+      setShowNewConvModal(false);
+      setConversationTitle('');
+      setSelectedParticipants([]);
+    },
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
-      const response = await base44.functions.invoke('createMessage', {
+      const message = await base44.entities.Message.create({
         conversation_id: selectedConversationId,
-        content
+        sender_email: user.email,
+        sender_name: user.full_name,
+        content,
+        is_read: false,
+        read_by: [user.email]
       });
-      return response.data;
+
+      // Update conversation
+      await base44.entities.Conversation.update(selectedConversationId, {
+        last_message: content,
+        last_message_at: new Date().toISOString(),
+        last_message_by: user.email
+      });
+
+      // Get conversation to find participants
+      const convs = await base44.entities.Conversation.filter({ id: selectedConversationId }, null, 1);
+      if (convs.length > 0) {
+        const participants = convs[0].participants || [];
+        for (const participantEmail of participants) {
+          if (participantEmail !== user.email) {
+            await base44.entities.Notification.create({
+              recipient_email: participantEmail,
+              type: 'chat',
+              title: 'Nytt chattmeddelande',
+              message: `${user.full_name}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+              priority: 'normal',
+              is_read: false,
+              related_entity_id: message.id,
+              related_entity_type: 'Message',
+              sent_via: ['app', 'push']
+            });
+          }
+        }
+      }
+
+      return message;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', selectedConversationId] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      refetchConversations();
       setMessageContent('');
     },
   });
@@ -70,9 +134,12 @@ export default function Chat() {
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
+  const otherUsers = allUsers.filter(u => u.email !== user?.email);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
-      <div className="max-w-4xl mx-auto h-screen flex flex-col">
+      {/* Desktop Layout */}
+      <div className="hidden md:flex max-w-6xl mx-auto h-screen flex-col">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -80,14 +147,13 @@ export default function Chat() {
         >
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
-            <Button size="icon" variant="outline" className="rounded-full">
+            <Button onClick={() => setShowNewConvModal(true)} size="icon" variant="outline" className="rounded-full">
               <Plus className="h-5 w-5" />
             </Button>
           </div>
         </motion.div>
 
         <div className="flex flex-1 gap-4 p-4 min-h-0">
-          {/* Conversations List */}
           <div className="w-80 overflow-y-auto">
             <ConversationList
               conversations={conversations}
@@ -97,7 +163,6 @@ export default function Chat() {
             />
           </div>
 
-          {/* Messages View */}
           <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden">
             {selectedConversation ? (
               <>
@@ -145,6 +210,119 @@ export default function Chat() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Layout */}
+      <div className="md:hidden max-w-2xl mx-auto h-screen flex flex-col">
+        {selectedConversationId ? (
+          <>
+            <div className="sticky top-0 bg-white/95 backdrop-blur border-b p-4 flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setSelectedConversationId(null)}
+                className="rounded-full"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <h2 className="font-semibold text-slate-900 flex-1">{selectedConversation?.title}</h2>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {messagesLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-8 bg-slate-100 rounded-lg animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <MessageList messages={messages} currentUserEmail={user?.email} />
+                  <div ref={messagesEndRef} />
+                </>
+              )}
+            </div>
+
+            <form onSubmit={handleSendMessage} className="border-t p-4 flex gap-2">
+              <Input
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                placeholder="Skriv ett meddelande..."
+                className="flex-1 rounded-full h-11"
+              />
+              <Button
+                type="submit"
+                size="icon"
+                className="rounded-full h-11 w-11"
+                disabled={!messageContent.trim() || sendMessageMutation.isPending}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          </>
+        ) : (
+          <>
+            <div className="sticky top-0 bg-white/95 backdrop-blur border-b p-4 flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
+              <Button onClick={() => setShowNewConvModal(true)} size="icon" variant="outline" className="rounded-full">
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              <ConversationList
+                conversations={conversations}
+                selectedId={selectedConversationId}
+                onSelect={setSelectedConversationId}
+                loading={conversationsLoading}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* New Conversation Modal */}
+      <Dialog open={showNewConvModal} onOpenChange={setShowNewConvModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ny konversation</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Input
+              placeholder="Konversationsnamn (valfritt)"
+              value={conversationTitle}
+              onChange={(e) => setConversationTitle(e.target.value)}
+              className="rounded-lg"
+            />
+
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {otherUsers.map(u => (
+                <label key={u.email} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer">
+                  <Checkbox
+                    checked={selectedParticipants.includes(u.email)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedParticipants([...selectedParticipants, u.email]);
+                      } else {
+                        setSelectedParticipants(selectedParticipants.filter(e => e !== u.email));
+                      }
+                    }}
+                  />
+                  <span className="text-sm font-medium">{u.full_name}</span>
+                </label>
+              ))}
+            </div>
+
+            <Button
+              onClick={() => createConversationMutation.mutate()}
+              disabled={selectedParticipants.length === 0 || createConversationMutation.isPending}
+              className="w-full"
+            >
+              {createConversationMutation.isPending ? 'Skapar...' : 'Skapa konversation'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
