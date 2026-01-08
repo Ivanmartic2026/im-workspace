@@ -9,7 +9,7 @@ import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
 import ClockInOutCard from "@/components/time/ClockInOutCard";
-import NotificationBell from "@/components/notifications/NotificationBell";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
@@ -155,18 +155,15 @@ export default function Home() {
                 {user?.full_name || ''}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <NotificationBell user={user} />
-              {user?.role === 'admin' && (
-                <Button 
-                  onClick={() => setShowCreateModal(true)}
-                  className="rounded-full h-11 px-5 shadow-md hover:shadow-lg transition-all"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Ny nyhet
-                </Button>
-              )}
-            </div>
+            {user?.role === 'admin' && (
+              <Button 
+                onClick={() => setShowCreateModal(true)}
+                className="rounded-full h-11 px-5 shadow-md hover:shadow-lg transition-all"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Ny nyhet
+              </Button>
+            )}
           </div>
 
           {/* Clock In/Out Card */}
