@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Plus, Users, Mail, UserPlus, Pencil } from "lucide-react";
+import { Search, Plus, Users, Mail, UserPlus, Pencil, Trash2, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EmployeeModal from "@/components/employees/EmployeeModal";
 import InviteModal from "@/components/employees/InviteModal";
@@ -35,9 +35,22 @@ export default function Employees() {
     );
   });
 
+  const deleteEmployeeMutation = useMutation({
+    mutationFn: (employeeId) => base44.entities.Employee.delete(employeeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    },
+  });
+
   const handleEditEmployee = (employee) => {
     setEditingEmployee(employee);
     setShowEmployeeModal(true);
+  };
+
+  const handleDeleteEmployee = (employee) => {
+    if (window.confirm(`Är du säker på att du vill ta bort ${users.find(u => u.email === employee.user_email)?.full_name || employee.user_email}?`)) {
+      deleteEmployeeMutation.mutate(employee.id);
+    }
   };
 
   const handleModalClose = () => {
@@ -134,14 +147,25 @@ export default function Employees() {
                                 </div>
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditEmployee(employee)}
-                              className="flex-shrink-0"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditEmployee(employee)}
+                                className="h-8 w-8"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteEmployee(employee)}
+                                disabled={deleteEmployeeMutation.isPending}
+                                className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
