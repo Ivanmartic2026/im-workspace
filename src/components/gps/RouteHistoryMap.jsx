@@ -1,314 +1,204 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { base44 } from '@/api/base44Client';
-import { Loader2, MapPin, Navigation, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { useQuery } from '@tanstack/react-query';
+import { Loader2, Navigation, Clock, FileText, Car } from "lucide-react";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { sv } from "date-fns/locale";
-import 'leaflet/dist/leaflet.css';
-
-// Fix default marker icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-const startIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-const endIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-// Haversine formula for distance calculation
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
+import RegisterTripModal from './RegisterTripModal';
 
 export default function RouteHistoryMap({ vehicles }) {
-  const [selectedVehicle, setSelectedVehicle] = useState('');
-  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [loading, setLoading] = useState(false);
-  const [routeData, setRouteData] = useState(null);
-  const [error, setError] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [selectedVehicleForRegister, setSelectedVehicleForRegister] = useState(null);
+  const [selectedTrips, setSelectedTrips] = useState([]);
 
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
 
-  const handleLoadRoute = async () => {
-    if (!selectedVehicle) {
-      alert('Välj ett fordon');
-      return;
+  // Calculate date range based on period
+  const getDateRange = () => {
+    const now = new Date();
+    if (selectedPeriod === 'week') {
+      return {
+        start: startOfWeek(now, { weekStartsOn: 1 }),
+        end: endOfWeek(now, { weekStartsOn: 1 })
+      };
+    } else {
+      return {
+        start: startOfMonth(now),
+        end: endOfMonth(now)
+      };
     }
+  };
 
-    setLoading(true);
-    setError(null);
-    setRouteData(null);
+  const dateRange = getDateRange();
 
-    try {
-      const vehicle = vehicles.find(v => v.id === selectedVehicle);
-      if (!vehicle?.gps_device_id) {
-        throw new Error('Fordon saknar GPS-enhet');
-      }
-
-      const startTime = Math.floor(new Date(startDate + 'T00:00:00').getTime() / 1000);
-      const endTime = Math.floor(new Date(endDate + 'T23:59:59').getTime() / 1000);
-
-      console.log('Fetching route:', { deviceId: vehicle.gps_device_id, startTime, endTime });
-
-      const response = await base44.functions.invoke('gpsTracking', {
-        action: 'getTrackHistory',
-        params: {
-          deviceId: vehicle.gps_device_id,
-          startTime,
-          endTime
+  // Fetch trips for all vehicles with GPS
+  const { data: allTripsData, isLoading: tripsLoading } = useQuery({
+    queryKey: ['vehicle-trips-history', selectedPeriod, vehiclesWithGPS.map(v => v.gps_device_id)],
+    queryFn: async () => {
+      const promises = vehiclesWithGPS.map(async (vehicle) => {
+        try {
+          const response = await base44.functions.invoke('gpsTracking', {
+            action: 'getTrips',
+            params: {
+              deviceId: vehicle.gps_device_id,
+              begintime: format(dateRange.start, 'yyyy-MM-dd') + ' 00:00:00',
+              endtime: format(dateRange.end, 'yyyy-MM-dd') + ' 23:59:59'
+            }
+          });
+          return {
+            vehicle,
+            trips: response.data?.totaltrips || [],
+            stats: {
+              totalDistance: (response.data?.totaldistance || 0) / 1000,
+              totalTime: (response.data?.totaltriptime || 0) / (1000 * 60)
+            }
+          };
+        } catch (error) {
+          console.error(`Error fetching trips for ${vehicle.registration_number}:`, error);
+          return { vehicle, trips: [], stats: { totalDistance: 0, totalTime: 0 } };
         }
       });
+      return Promise.all(promises);
+    },
+    enabled: vehiclesWithGPS.length > 0
+  });
 
-      console.log('GPS Route response:', response.data);
+  // Fetch existing journal entries
+  const { data: journalEntries = [] } = useQuery({
+    queryKey: ['journal-entries'],
+    queryFn: () => base44.entities.DrivingJournalEntry.list()
+  });
 
-      if (response.data?.error) {
-        throw new Error(response.data.error);
-      }
-
-      if (response.data?.status !== 0) {
-        throw new Error(response.data?.cause || 'Kunde inte hämta ruttdata');
-      }
-
-      const tracks = response.data?.tracks || [];
-      if (tracks.length === 0) {
-        setError('Inga rutter hittades för vald period');
-        setLoading(false);
-        return;
-      }
-
-      // Process track data
-      const routePoints = tracks.map(point => [point.lat, point.lon]);
-      const startPoint = tracks[0];
-      const endPoint = tracks[tracks.length - 1];
-
-      // Calculate total distance
-      let totalDistance = 0;
-      for (let i = 1; i < tracks.length; i++) {
-        const prev = tracks[i - 1];
-        const curr = tracks[i];
-        const distance = calculateDistance(prev.lat, prev.lon, curr.lat, curr.lon);
-        totalDistance += distance;
-      }
-
-      // Calculate duration
-      const durationMs = (endPoint.time - startPoint.time) * 1000;
-      const durationMinutes = Math.round(durationMs / (1000 * 60));
-
-      setRouteData({
-        vehicle,
-        routePoints,
-        startPoint,
-        endPoint,
-        totalPoints: tracks.length,
-        totalDistance: totalDistance.toFixed(1),
-        duration: durationMinutes,
-        startTime: new Date(startPoint.time * 1000),
-        endTime: new Date(endPoint.time * 1000)
-      });
-
-    } catch (err) {
-      console.error('Error loading route:', err);
-      setError(err.message);
-    }
-
-    setLoading(false);
+  const handleRegisterTrips = (vehicle, trips) => {
+    setSelectedVehicleForRegister(vehicle);
+    setSelectedTrips(trips);
+    setShowRegisterModal(true);
   };
 
   return (
     <div className="space-y-4">
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div>
-              <Label>Välj fordon</Label>
-              <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj fordon..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehiclesWithGPS.map(v => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.registration_number} - {v.make} {v.model}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Period Selector */}
+      <Tabs value={selectedPeriod} onValueChange={setSelectedPeriod}>
+        <TabsList className="w-full bg-white shadow-sm">
+          <TabsTrigger value="week" className="flex-1">
+            Denna vecka
+          </TabsTrigger>
+          <TabsTrigger value="month" className="flex-1">
+            Denna månad
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Från datum</Label>
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Till datum</Label>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            </div>
+      {tripsLoading ? (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-12 text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto mb-4" />
+            <p className="text-sm text-slate-500">Hämtar resor...</p>
+          </CardContent>
+        </Card>
+      ) : allTripsData?.length > 0 ? (
+        <div className="space-y-3">
+          {allTripsData
+            .filter(data => data.trips.length > 0)
+            .map((data) => {
+              const { vehicle, trips, stats } = data;
+              const registeredGpsIds = new Set(
+                journalEntries
+                  .filter(e => e.vehicle_id === vehicle.id)
+                  .map(e => e.gps_trip_id)
+              );
+              const unregisteredTrips = trips.filter(t => !registeredGpsIds.has(t.tripid));
+              
+              return (
+                <Card key={vehicle.id} className="border-0 shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <Car className="h-5 w-5 text-slate-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-slate-900">{vehicle.registration_number}</h3>
+                          <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
+                          {vehicle.assigned_driver && (
+                            <p className="text-xs text-slate-500 mt-1">Förare: {vehicle.assigned_driver}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-slate-50">
+                          {trips.length} resor
+                        </Badge>
+                        {unregisteredTrips.length > 0 && (
+                          <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                            {unregisteredTrips.length} ej registrerade
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
 
-            <Button
-              onClick={handleLoadRoute}
-              disabled={loading || !selectedVehicle}
-              className="w-full"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Laddar rutt...
-                </>
-              ) : (
-                <>
-                  <Navigation className="h-4 w-4 mr-2" />
-                  Visa historisk rutt
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                    <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Navigation className="h-4 w-4 text-slate-400" />
+                        <div>
+                          <p className="text-xs text-slate-500">Total sträcka</p>
+                          <p className="text-sm font-semibold text-slate-900">{stats.totalDistance.toFixed(1)} km</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-slate-400" />
+                        <div>
+                          <p className="text-xs text-slate-500">Total tid</p>
+                          <p className="text-sm font-semibold text-slate-900">{Math.round(stats.totalTime)} min</p>
+                        </div>
+                      </div>
+                    </div>
 
-      {error && (
-        <Card className="border-0 shadow-sm bg-rose-50 border-rose-200">
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-rose-700">{error}</p>
+                    {unregisteredTrips.length > 0 && (
+                      <Button
+                        onClick={() => handleRegisterTrips(vehicle, unregisteredTrips)}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                        size="sm"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Registrera {unregisteredTrips.length} {unregisteredTrips.length === 1 ? 'resa' : 'resor'}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+        </div>
+      ) : (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-12 text-center">
+            <Navigation className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <p className="text-slate-500">Inga resor hittades för vald period</p>
           </CardContent>
         </Card>
       )}
 
-      {routeData && (
-        <>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Ruttinformation</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <span className="text-slate-600">Fordon:</span>
-                  <span className="font-semibold">{routeData.vehicle.registration_number}</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Navigation className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs text-blue-600 font-medium">Total sträcka</span>
-                    </div>
-                    <p className="text-lg font-bold text-blue-900">{routeData.totalDistance} km</p>
-                  </div>
-                  
-                  <div className="bg-purple-50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-4 w-4 text-purple-600" />
-                      <span className="text-xs text-purple-600 font-medium">Total tid</span>
-                    </div>
-                    <p className="text-lg font-bold text-purple-900">
-                      {routeData.duration < 60 ? `${routeData.duration} min` : `${Math.floor(routeData.duration / 60)}h ${routeData.duration % 60}m`}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600">Start:</span>
-                    <span className="font-medium text-xs">{format(routeData.startTime, 'PPp', { locale: sv })}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600">Slut:</span>
-                    <span className="font-medium text-xs">{format(routeData.endTime, 'PPp', { locale: sv })}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600">Datapunkter:</span>
-                    <span className="font-medium">{routeData.totalPoints}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm overflow-hidden">
-            <div className="h-[500px]">
-              <MapContainer
-                center={routeData.routePoints[0]}
-                zoom={13}
-                style={{ height: '100%', width: '100%' }}
-                scrollWheelZoom={true}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; OpenStreetMap contributors'
-                />
-                
-                <Polyline
-                  positions={routeData.routePoints}
-                  color="#3b82f6"
-                  weight={4}
-                  opacity={0.7}
-                />
-
-                <Marker position={[routeData.startPoint.lat, routeData.startPoint.lon]} icon={startIcon}>
-                  <Popup>
-                    <div className="text-center">
-                      <p className="font-semibold text-green-700">Start</p>
-                      <p className="text-xs text-slate-600 mt-1">
-                        {format(routeData.startTime, 'PPp', { locale: sv })}
-                      </p>
-                    </div>
-                  </Popup>
-                </Marker>
-
-                <Marker position={[routeData.endPoint.lat, routeData.endPoint.lon]} icon={endIcon}>
-                  <Popup>
-                    <div className="text-center">
-                      <p className="font-semibold text-rose-700">Slut</p>
-                      <p className="text-xs text-slate-600 mt-1">
-                        {format(routeData.endTime, 'PPp', { locale: sv })}
-                      </p>
-                    </div>
-                  </Popup>
-                </Marker>
-              </MapContainer>
-            </div>
-          </Card>
-        </>
-      )}
+      <RegisterTripModal
+        open={showRegisterModal}
+        onClose={() => {
+          setShowRegisterModal(false);
+          setSelectedVehicleForRegister(null);
+          setSelectedTrips([]);
+        }}
+        trips={selectedTrips}
+        vehicleId={selectedVehicleForRegister?.id}
+        vehicleReg={selectedVehicleForRegister?.registration_number}
+        onSuccess={() => {
+          // Refresh data after successful registration
+          setShowRegisterModal(false);
+        }}
+      />
     </div>
   );
 }
