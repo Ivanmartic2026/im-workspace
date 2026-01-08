@@ -243,24 +243,35 @@ export default function GPS() {
                       <Marker key={pos.deviceid} position={[pos.callat, pos.callon]}>
                         <Popup>
                           <div className="min-w-[200px]">
-                            <p className="font-semibold text-base mb-1">
-                              {vehicle?.registration_number || device?.devicename || pos.deviceid}
-                            </p>
-                            {vehicle && (
-                              <p className="text-xs text-slate-500 mb-2">{vehicle.make} {vehicle.model}</p>
-                            )}
-                            <div className="space-y-1 mb-2">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                                <Car className="h-4 w-4 text-slate-600" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-base">
+                                  {vehicle?.registration_number || device?.devicename || pos.deviceid}
+                                </p>
+                                {vehicle && (
+                                  <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
+                                )}
+                                {vehicle?.assigned_driver && (
+                                  <p className="text-xs text-slate-500">Förare: {vehicle.assigned_driver}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-1 mb-2 py-2 border-t border-slate-100">
                               <p className="text-sm text-slate-600 flex items-center gap-1">
                                 <Gauge className="h-3 w-3" />
-                                {Math.round(pos.speed * 3.6)} km/h
+                                <span className="font-medium">{Math.round(pos.speed * 3.6)} km/h</span>
                               </p>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-slate-500 flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
                                 {pos.posiTime ? format(new Date(pos.posiTime * 1000), 'PPp', { locale: sv }) : 'Ingen tid'}
                               </p>
                             </div>
                             {vehicle && (
                               <Link to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`}>
-                                <button className="text-sm text-blue-600 font-medium hover:underline">
+                                <button className="w-full text-sm bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors">
                                   Visa fordonsdetaljer →
                                 </button>
                               </Link>
