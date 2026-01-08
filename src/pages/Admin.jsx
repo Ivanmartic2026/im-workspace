@@ -22,6 +22,7 @@ import PayrollExport from '@/components/admin/PayrollExport';
 import NotificationSettings from '@/components/admin/NotificationSettings';
 import PushNotificationTest from '@/components/admin/PushNotificationTest';
 import VehicleManagement from '@/components/admin/VehicleManagement';
+import StaffLocationMap from '@/components/admin/StaffLocationMap';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -117,6 +118,7 @@ export default function Admin() {
             {/* Vehicles Tab */}
             <TabsContent value="vehicles" className="space-y-4">
               <VehicleManagement />
+              <StaffLocationMap />
             </TabsContent>
 
             {/* Overview Tab */}
