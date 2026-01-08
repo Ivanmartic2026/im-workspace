@@ -9,23 +9,30 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { month, vehicleId } = await req.json();
+    const { startDate, endDate, vehicleId, employeeEmail } = await req.json();
 
-    // Fetch entries for the selected month
+    // Fetch all entries
     const allEntries = await base44.asServiceRole.entities.DrivingJournalEntry.list('-start_time', 500);
     
-    // Filter by month
-    const monthStart = new Date(month + '-01T00:00:00');
-    const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59);
+    // Filter by date range
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
     
     let entries = allEntries.filter(entry => {
       const entryDate = new Date(entry.start_time);
-      return entryDate >= monthStart && entryDate <= monthEnd;
+      return entryDate >= start && entryDate <= end;
     });
 
     // Filter by vehicle if specified
     if (vehicleId && vehicleId !== 'all') {
       entries = entries.filter(e => e.vehicle_id === vehicleId);
+    }
+
+    // Filter by employee if specified
+    if (employeeEmail && employeeEmail !== 'all') {
+      entries = entries.filter(e => e.driver_email === employeeEmail);
     }
 
     // Fetch vehicle data
@@ -90,11 +97,13 @@ Deno.serve(async (req) => {
     const bom = '\uFEFF';
     const csvWithBom = bom + csvContent;
 
+    const filename = `korjournal_${startDate}_${endDate}.csv`;
+
     return new Response(csvWithBom, {
       status: 200,
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename=korjournal_${month}.csv`
+        'Content-Disposition': `attachment; filename="${filename}"`
       }
     });
 
