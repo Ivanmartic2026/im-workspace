@@ -97,92 +97,112 @@ export default function Manuals() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
-      <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-24">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Manualer & Dokumentation</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                {stats.total} tillgängliga manualer
-              </p>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <BookOpen className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                      Manualer & Dokumentation
+                    </h1>
+                    <p className="text-sm text-slate-600 mt-0.5">
+                      {stats.total} tillgängliga manualer
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {user?.role === 'admin' && (
+                <Button 
+                  onClick={() => setShowUploadModal(true)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ladda upp manual
+                </Button>
+              )}
             </div>
-            {user?.role === 'admin' && (
-              <Button 
-                onClick={() => setShowUploadModal(true)}
-                className="bg-slate-900 hover:bg-slate-800"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Ladda upp manual
-              </Button>
-            )}
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-slate-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-slate-50 overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-600 mb-1">Totalt</p>
+                      <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
+                      <p className="text-xs text-slate-500 mt-1">tillgängliga</p>
+                    </div>
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center shadow-inner">
+                      <BookOpen className="h-8 w-8 text-slate-600" />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Totalt</p>
-                    <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                    <AlertCircle className="h-6 w-6 text-amber-600" />
+            <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-amber-700 mb-1">Väntar</p>
+                      <p className="text-3xl font-bold text-amber-600">{stats.pending}</p>
+                      <p className="text-xs text-amber-600 mt-1">att bekräfta</p>
+                    </div>
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center shadow-inner">
+                      <AlertCircle className="h-8 w-8 text-amber-700" />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Väntar på bekräftelse</p>
-                    <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+            <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 to-teal-50 overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-emerald-700 mb-1">Bekräftade</p>
+                      <p className="text-3xl font-bold text-emerald-600">{stats.acknowledged}</p>
+                      <p className="text-xs text-emerald-600 mt-1">manualer</p>
+                    </div>
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-200 to-teal-200 flex items-center justify-center shadow-inner">
+                      <CheckCircle2 className="h-8 w-8 text-emerald-700" />
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Bekräftade</p>
-                    <p className="text-2xl font-bold text-emerald-600">{stats.acknowledged}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Filters */}
-          <Card className="border-0 shadow-sm mb-6">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-8">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="relative md:col-span-2">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <Input
                     placeholder="Sök manualer, taggar..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-12 h-12 bg-slate-50 border-slate-200 focus:bg-white rounded-xl"
                   />
                 </div>
 
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
                     <SelectValue placeholder="Kategori" />
                   </SelectTrigger>
                   <SelectContent>
@@ -194,7 +214,7 @@ export default function Manuals() {
                 </Select>
 
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
                     <SelectValue placeholder="Prioritet" />
                   </SelectTrigger>
                   <SelectContent>
@@ -211,35 +231,44 @@ export default function Manuals() {
 
           {/* Pending Acknowledgments */}
           {requiresAcknowledgment.length > 0 && (
-            <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-l-amber-500">
-              <CardContent className="p-5">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-amber-900 mb-1">
-                      Bekräftelse krävs
-                    </h3>
-                    <p className="text-sm text-amber-700 mb-3">
-                      {requiresAcknowledgment.length} {requiresAcknowledgment.length === 1 ? 'manual kräver' : 'manualer kräver'} att du bekräftar att du har läst och förstått innehållet.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {requiresAcknowledgment.slice(0, 3).map(manual => (
-                        <Link key={manual.id} to={createPageUrl('ManualDetail') + `?id=${manual.id}`}>
-                          <Button size="sm" variant="outline" className="bg-white">
-                            {manual.title}
-                          </Button>
-                        </Link>
-                      ))}
-                      {requiresAcknowledgment.length > 3 && (
-                        <Badge variant="outline" className="bg-white">
-                          +{requiresAcknowledgment.length - 3} till
-                        </Badge>
-                      )}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-0 shadow-xl mb-8 bg-gradient-to-br from-amber-100 via-amber-50 to-orange-50 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200 rounded-full blur-3xl opacity-30" />
+                <CardContent className="p-6 relative">
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg flex-shrink-0">
+                      <AlertCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-amber-900 mb-2 text-lg">
+                        ⚠️ Bekräftelse krävs
+                      </h3>
+                      <p className="text-sm text-amber-800 mb-4">
+                        {requiresAcknowledgment.length} {requiresAcknowledgment.length === 1 ? 'manual kräver' : 'manualer kräver'} att du bekräftar att du har läst och förstått innehållet.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {requiresAcknowledgment.slice(0, 3).map(manual => (
+                          <Link key={manual.id} to={createPageUrl('ManualDetail') + `?id=${manual.id}`}>
+                            <Button size="sm" className="bg-white hover:bg-amber-50 text-amber-900 border-2 border-amber-200 shadow-sm">
+                              {manual.title}
+                            </Button>
+                          </Link>
+                        ))}
+                        {requiresAcknowledgment.length > 3 && (
+                          <Badge className="bg-amber-200 text-amber-900 border-amber-300 shadow-sm">
+                            +{requiresAcknowledgment.length - 3} till
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
 
           {/* Manuals Grid */}
@@ -260,14 +289,20 @@ export default function Manuals() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredManuals.map(manual => (
-                <ManualCard 
-                  key={manual.id} 
-                  manual={manual} 
-                  user={user}
-                  isAdmin={user?.role === 'admin'}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredManuals.map((manual, index) => (
+                <motion.div
+                  key={manual.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                >
+                  <ManualCard 
+                    manual={manual} 
+                    user={user}
+                    isAdmin={user?.role === 'admin'}
+                  />
+                </motion.div>
               ))}
             </div>
           )}
