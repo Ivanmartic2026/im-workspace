@@ -20,6 +20,7 @@ import ProjectTimeReport from '@/components/admin/ProjectTimeReport';
 import EmployeeManagement from '@/components/admin/EmployeeManagement';
 import PayrollExport from '@/components/admin/PayrollExport';
 import NotificationSettings from '@/components/admin/NotificationSettings';
+import PushNotificationTest from '@/components/admin/PushNotificationTest';
 import VehicleManagement from '@/components/admin/VehicleManagement';
 
 export default function Admin() {
@@ -327,7 +328,18 @@ export default function Admin() {
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-4">
-              <NotificationSettings />
+              <Tabs defaultValue="notifications">
+                <TabsList className="w-full bg-white shadow-sm">
+                  <TabsTrigger value="notifications">Notiser</TabsTrigger>
+                  <TabsTrigger value="push">Push-test</TabsTrigger>
+                </TabsList>
+                <TabsContent value="notifications">
+                  <NotificationSettings />
+                </TabsContent>
+                <TabsContent value="push">
+                  <PushNotificationTest />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </motion.div>
