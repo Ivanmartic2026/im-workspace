@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Send, Users, X, ChevronLeft } from "lucide-react";
+import { Plus, Send, Users, X, ChevronLeft, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConversationList from '@/components/chat/ConversationList';
@@ -18,6 +18,9 @@ export default function Chat() {
   const [showNewConvModal, setShowNewConvModal] = useState(false);
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [conversationTitle, setConversationTitle] = useState('');
+  const [chatType, setChatType] = useState('direct'); // 'direct' or 'group'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -136,6 +139,18 @@ export default function Chat() {
 
   const otherUsers = allUsers.filter(u => u.email !== user?.email);
 
+  // Filter conversations based on search
+  const filteredConversations = conversations.filter(conv => {
+    const matchesSearch = conv.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
+
+  // Filter messages based on search
+  const filteredMessages = messages.filter(msg => {
+    if (!messageSearchQuery.trim()) return true;
+    return msg.content.toLowerCase().includes(messageSearchQuery.toLowerCase());
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
       {/* Desktop Layout */}
@@ -145,18 +160,27 @@ export default function Chat() {
           animate={{ opacity: 1, y: 0 }}
           className="sticky top-0 bg-white/95 backdrop-blur border-b p-4"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
-            <Button onClick={() => setShowNewConvModal(true)} size="icon" variant="outline" className="rounded-full">
+            <Button onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} size="icon" variant="outline" className="rounded-full">
               <Plus className="h-5 w-5" />
             </Button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Sök konversationer..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-lg h-10"
+            />
           </div>
         </motion.div>
 
         <div className="flex flex-1 gap-4 p-4 min-h-0">
           <div className="w-80 overflow-y-auto">
             <ConversationList
-              conversations={conversations}
+              conversations={filteredConversations}
               selectedId={selectedConversationId}
               onSelect={setSelectedConversationId}
               loading={conversationsLoading}
@@ -170,6 +194,20 @@ export default function Chat() {
                   <h2 className="font-semibold text-slate-900">{selectedConversation.title}</h2>
                 </div>
 
+                <div className="border-b p-3 flex items-center gap-2">
+                  {messages.length > 0 && (
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <Input
+                        placeholder="Sök i chathistorik..."
+                        value={messageSearchQuery}
+                        onChange={(e) => setMessageSearchQuery(e.target.value)}
+                        className="pl-10 h-9 text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex-1 overflow-y-auto p-4">
                   {messagesLoading ? (
                     <div className="space-y-2">
@@ -179,7 +217,7 @@ export default function Chat() {
                     </div>
                   ) : (
                     <>
-                      <MessageList messages={messages} currentUserEmail={user?.email} />
+                      <MessageList messages={filteredMessages} currentUserEmail={user?.email} />
                       <div ref={messagesEndRef} />
                     </>
                   )}
@@ -261,16 +299,27 @@ export default function Chat() {
           </>
         ) : (
           <>
-            <div className="sticky top-0 bg-white/95 backdrop-blur border-b p-4 flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
-              <Button onClick={() => setShowNewConvModal(true)} size="icon" variant="outline" className="rounded-full">
-                <Plus className="h-5 w-5" />
-              </Button>
+            <div className="sticky top-0 bg-white/95 backdrop-blur border-b p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
+                <Button onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} size="icon" variant="outline" className="rounded-full">
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Sök konversationer..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 rounded-lg h-10 text-sm"
+                />
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
               <ConversationList
-                conversations={conversations}
+                conversations={filteredConversations}
                 selectedId={selectedConversationId}
                 onSelect={setSelectedConversationId}
                 loading={conversationsLoading}
@@ -288,23 +337,62 @@ export default function Chat() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <Input
-              placeholder="Konversationsnamn (valfritt)"
-              value={conversationTitle}
-              onChange={(e) => setConversationTitle(e.target.value)}
-              className="rounded-lg"
-            />
+            {/* Chat Type Selector */}
+            <div className="flex gap-2">
+              <Button
+                variant={chatType === 'direct' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => { setChatType('direct'); setConversationTitle(''); }}
+                className="flex-1"
+              >
+                Privat
+              </Button>
+              <Button
+                variant={chatType === 'group' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setChatType('group')}
+                className="flex-1"
+              >
+                Grupp
+              </Button>
+            </div>
 
+            {/* Conversation Title - Only for Groups */}
+            {chatType === 'group' && (
+              <Input
+                placeholder="Gruppnamn (t.ex. 'Projekt Alpha')"
+                value={conversationTitle}
+                onChange={(e) => setConversationTitle(e.target.value)}
+                className="rounded-lg"
+              />
+            )}
+
+            {/* User Selection */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
+              {chatType === 'direct' && (
+                <p className="text-xs text-slate-500 px-3 pt-2">Välj en person för privat chat</p>
+              )}
+              {chatType === 'group' && (
+                <p className="text-xs text-slate-500 px-3 pt-2">Välj gruppmedlemmar (minst 2)</p>
+              )}
               {otherUsers.map(u => (
-                <label key={u.email} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer">
+                <label 
+                  key={u.email} 
+                  className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer ${chatType === 'direct' && selectedParticipants.includes(u.email) ? 'bg-blue-50' : ''}`}
+                >
                   <Checkbox
                     checked={selectedParticipants.includes(u.email)}
                     onCheckedChange={(checked) => {
-                      if (checked) {
-                        setSelectedParticipants([...selectedParticipants, u.email]);
+                      if (chatType === 'direct') {
+                        // For direct chats, only allow one selection
+                        setSelectedParticipants(checked ? [u.email] : []);
                       } else {
-                        setSelectedParticipants(selectedParticipants.filter(e => e !== u.email));
+                        // For group chats, allow multiple selections
+                        if (checked) {
+                          setSelectedParticipants([...selectedParticipants, u.email]);
+                        } else {
+                          setSelectedParticipants(selectedParticipants.filter(e => e !== u.email));
+                        }
                       }
                     }}
                   />
@@ -315,10 +403,10 @@ export default function Chat() {
 
             <Button
               onClick={() => createConversationMutation.mutate()}
-              disabled={selectedParticipants.length === 0 || createConversationMutation.isPending}
+              disabled={selectedParticipants.length === 0 || (chatType === 'group' && selectedParticipants.length < 2) || createConversationMutation.isPending}
               className="w-full"
             >
-              {createConversationMutation.isPending ? 'Skapar...' : 'Skapa konversation'}
+              {createConversationMutation.isPending ? 'Skapar...' : `Skapa ${chatType === 'direct' ? 'privat chat' : 'grupp'}`}
             </Button>
           </div>
         </DialogContent>
