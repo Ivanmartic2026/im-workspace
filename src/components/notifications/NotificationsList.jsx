@@ -8,6 +8,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 
+import { MessageCircle } from 'lucide-react';
+
 const typeConfig = {
   news: {
     icon: Bell,
@@ -56,6 +58,12 @@ const typeConfig = {
     color: 'text-amber-600',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-200'
+  },
+  chat: {
+    icon: MessageCircle,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200'
   }
 };
 
@@ -69,6 +77,8 @@ export default function NotificationsList({ notifications, onClose }) {
       navigate(createPageUrl('Leave'));
     } else if (notification.type === 'vehicle') {
       navigate(createPageUrl('VehicleReports'));
+    } else if (notification.type === 'chat') {
+      navigate(createPageUrl('Chat'));
     }
     onClose();
   };
