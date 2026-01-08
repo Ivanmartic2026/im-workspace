@@ -67,15 +67,15 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 safe-area-pb z-50">
-        <div className="max-w-2xl mx-auto px-1">
-          <div className="flex items-center justify-around py-2">
+        <div className="w-full overflow-x-auto">
+          <div className="flex items-center justify-start md:justify-around py-2 px-1 min-w-min md:min-w-0 md:max-w-2xl md:mx-auto gap-1">
             {items.map(({ name, label, icon: Icon }) => {
               const isActive = currentPageName === name;
               return (
                 <Link
                   key={name}
                   to={createPageUrl(name)}
-                  className="relative flex flex-col items-center py-1.5 px-3 min-w-[56px]"
+                  className="relative flex flex-col items-center py-1.5 px-3 min-w-[56px] flex-shrink-0"
                 >
                   <div className={`relative p-2 rounded-xl transition-all duration-200 ${
                     isActive 
@@ -93,7 +93,7 @@ export default function Layout({ children, currentPageName }) {
                       />
                     )}
                   </div>
-                  <span className={`text-[10px] mt-1 font-medium transition-colors ${
+                  <span className={`text-[10px] mt-1 font-medium transition-colors whitespace-nowrap ${
                     isActive ? 'text-slate-900' : 'text-slate-400'
                   }`}>
                     {label}
