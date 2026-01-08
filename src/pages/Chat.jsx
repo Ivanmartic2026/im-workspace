@@ -44,18 +44,26 @@ export default function Chat() {
     refetchInterval: 10000,
   });
 
-  const { data: messages = [], isLoading: messagesLoading } = useQuery({
-    queryKey: ['messages', selectedConversationId],
-    queryFn: async () => {
-      if (!selectedConversationId) return [];
-      const all = await base44.entities.Message.list('-created_date', 100);
-      return all
-        .filter(msg => msg.conversation_id === selectedConversationId)
-        .reverse();
-    },
-    enabled: !!selectedConversationId,
-    refetchInterval: 5000,
-  });
+  const [messages, setMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedConversationId) {
+      setMessages([]);
+      return;
+    }
+
+    setMessagesLoading(true);
+    const unsubscribe = base44.agents.subscribeToConversation(selectedConversationId, (data) => {
+      setMessages(data.messages.reverse());
+      setMessagesLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+      setMessagesLoading(false);
+    };
+  }, [selectedConversationId]);
 
   const createConversationMutation = useMutation({
     mutationFn: async () => {
@@ -119,7 +127,6 @@ export default function Chat() {
       return message;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', selectedConversationId] });
       refetchConversations();
       setMessageContent('');
     },
