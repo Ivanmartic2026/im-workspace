@@ -109,73 +109,94 @@ export default function TimeTracking() {
         </motion.div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Idag</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {/* Idag - Secondary */}
+          <Card className="border-0 bg-white/50 shadow-none">
+            <CardContent className="p-3">
+              <h3 className="text-xs font-medium text-slate-600 mb-2">Idag</h3>
+              <div className="space-y-1">
+                <div className="flex justify-between items-baseline">
                   <p className="text-xs text-slate-500">Arbetat</p>
-                  <p className="text-sm font-bold text-slate-900">{workedHoursDay.toFixed(1)}h</p>
+                  <p className="text-xs font-semibold text-slate-800">{workedHoursDay.toFixed(1)}h</p>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-baseline">
                   <p className="text-xs text-slate-500">Förväntat</p>
-                  <p className="text-sm font-bold text-slate-600">{expectedHoursDay}h</p>
+                  <p className="text-xs text-slate-600">{expectedHoursDay}h</p>
                 </div>
-                <div className="h-px bg-slate-200 my-2"></div>
-                <div className="flex justify-between">
-                  <p className="text-xs text-slate-500">Differens</p>
-                  <p className={`text-sm font-bold ${differenceDay >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {differenceDay >= 0 ? '+' : ''}{differenceDay.toFixed(1)}h
+                <div className="h-px bg-slate-100 my-1.5"></div>
+                <div className="flex justify-between items-baseline">
+                  <p className="text-xs text-slate-500">Status</p>
+                  <p className={`text-xs font-semibold ${differenceDay >= 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                    {differenceDay >= 0 ? `+${differenceDay.toFixed(1)}h` : `${differenceDay.toFixed(1)}h kvar`}
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Veckan</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <p className="text-xs text-slate-500">Arbetat</p>
-                  <p className="text-sm font-bold text-slate-900">{workedHoursWeek.toFixed(1)}h</p>
+          {/* Veckan - Primary */}
+          <Card className="border-0 shadow-lg md:col-span-1">
+            <CardContent className="p-5">
+              <h3 className="text-base font-bold text-slate-900 mb-4">Veckan</h3>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between items-baseline mb-2">
+                    <p className="text-xs text-slate-600">Arbetat / Förväntat</p>
+                    <p className="text-lg font-bold text-slate-900">{workedHoursWeek.toFixed(1)} / {expectedHoursWeek}h</p>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2.5">
+                    <div 
+                      className={`h-2.5 rounded-full transition-all ${
+                        workedHoursWeek >= expectedHoursWeek ? 'bg-emerald-500' : 'bg-blue-500'
+                      }`}
+                      style={{ width: `${Math.min((workedHoursWeek / expectedHoursWeek) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1.5">{Math.round((workedHoursWeek / expectedHoursWeek) * 100)}% genomfört</p>
                 </div>
-                <div className="flex justify-between">
-                  <p className="text-xs text-slate-500">Förväntat</p>
-                  <p className="text-sm font-bold text-slate-600">{expectedHoursWeek}h</p>
-                </div>
-                <div className="h-px bg-slate-200 my-2"></div>
-                <div className="flex justify-between">
-                  <p className="text-xs text-slate-500">Differens</p>
-                  <p className={`text-sm font-bold ${differenceWeek >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {differenceWeek >= 0 ? '+' : ''}{differenceWeek.toFixed(1)}h
+                <div className="h-px bg-slate-200"></div>
+                <div className="flex justify-between items-baseline pt-1">
+                  <p className="text-xs text-slate-600">Status</p>
+                  <p className={`text-base font-bold ${
+                    differenceWeek > 5 ? 'text-emerald-600' : 
+                    differenceWeek >= 0 ? 'text-blue-600' : 
+                    'text-amber-600'
+                  }`}>
+                    {differenceWeek > 0 ? `+${differenceWeek.toFixed(1)}h` : `${Math.abs(differenceWeek).toFixed(1)}h kvar`}
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Månad ({format(today, 'MMM', { locale: sv })})</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <p className="text-xs text-slate-500">Arbetat</p>
-                  <p className="text-sm font-bold text-slate-900">{workedHoursMonth.toFixed(1)}h</p>
+          {/* Månad - Secondary */}
+          <Card className="border-0 bg-white/50 shadow-none">
+            <CardContent className="p-3">
+              <h3 className="text-xs font-medium text-slate-600 mb-2">Månad ({format(today, 'MMM', { locale: sv })})</h3>
+              {expectedHoursMonth > 0 && workedHoursMonth / expectedHoursMonth < 0.3 ? (
+                <div className="text-xs text-slate-600 py-1">
+                  <p className="font-medium">Månad pågår</p>
+                  <p className="text-slate-500 mt-1">{Math.round((workedHoursMonth / expectedHoursMonth) * 100)}% klart</p>
                 </div>
-                <div className="flex justify-between">
-                  <p className="text-xs text-slate-500">Förväntat</p>
-                  <p className="text-sm font-bold text-slate-600">{expectedHoursMonth}h</p>
+              ) : (
+                <div className="space-y-1">
+                  <div className="flex justify-between items-baseline">
+                    <p className="text-xs text-slate-500">Arbetat</p>
+                    <p className="text-xs font-semibold text-slate-800">{workedHoursMonth.toFixed(1)}h</p>
+                  </div>
+                  <div className="flex justify-between items-baseline">
+                    <p className="text-xs text-slate-500">Förväntat</p>
+                    <p className="text-xs text-slate-600">{expectedHoursMonth}h</p>
+                  </div>
+                  <div className="h-px bg-slate-100 my-1.5"></div>
+                  <div className="flex justify-between items-baseline">
+                    <p className="text-xs text-slate-500">Status</p>
+                    <p className={`text-xs font-semibold ${differenceMonth >= 0 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                      {differenceMonth >= 0 ? `+${differenceMonth.toFixed(1)}h` : `${differenceMonth.toFixed(1)}h`}
+                    </p>
+                  </div>
                 </div>
-                <div className="h-px bg-slate-200 my-2"></div>
-                <div className="flex justify-between">
-                  <p className="text-xs text-slate-500">Differens</p>
-                  <p className={`text-sm font-bold ${differenceMonth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {differenceMonth >= 0 ? '+' : ''}{differenceMonth.toFixed(1)}h
-                  </p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
