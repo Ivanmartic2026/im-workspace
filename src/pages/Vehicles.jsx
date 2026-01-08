@@ -18,6 +18,7 @@ import { createPageUrl } from '../utils';
 export default function Vehicles() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [employee, setEmployee] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('alla');
   const [activeModal, setActiveModal] = useState(null);
@@ -25,7 +26,24 @@ export default function Vehicles() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    const fetchUserAndEmployee = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+        
+        if (userData?.email) {
+          const employees = await base44.entities.Employee.filter({ user_email: userData.email });
+          if (employees.length > 0) {
+            setEmployee(employees[0]);
+          }
+        }
+      } catch (error) {
+        setUser(null);
+        setEmployee(null);
+      }
+    };
+    
+    fetchUserAndEmployee();
   }, []);
 
   const { data: vehicles = [], isLoading } = useQuery({
@@ -77,7 +95,13 @@ export default function Vehicles() {
     
     const matchesCategory = categoryFilter === 'alla' || vehicle.category === categoryFilter;
     
-    return matchesSearch && matchesCategory;
+    // Check access: admins see all, regular users only see assigned vehicles
+    const hasAccess = user?.role === 'admin' || 
+      !employee?.assigned_vehicles || 
+      vehicle.assigned_employees?.includes(user?.email) ||
+      employee?.assigned_vehicles?.includes(vehicle.id);
+    
+    return matchesSearch && matchesCategory && hasAccess;
   });
 
   const handleQuickAction = (actionId) => {
