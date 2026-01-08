@@ -67,7 +67,22 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 safe-area-pb z-50">
-        <div className="w-full overflow-x-auto">
+        <style>{`
+          .nav-scroll::-webkit-scrollbar {
+            height: 4px;
+          }
+          .nav-scroll::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .nav-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+          }
+          .nav-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+        `}</style>
+        <div className="w-full overflow-x-auto nav-scroll">
           <div className="flex items-center justify-start md:justify-around py-2 px-1 min-w-min md:min-w-0 md:max-w-2xl md:mx-auto gap-1">
             {items.map(({ name, label, icon: Icon }) => {
               const isActive = currentPageName === name;
