@@ -1,4 +1,45 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createHash } from 'node:crypto';
+
+const GPS_URL = "https://api.gps51.com";
+const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
+const GPS_PASSWORD = Deno.env.get("GALAGPS_PASSWORD");
+
+async function getGPSToken() {
+  const md5Password = createHash('md5').update(GPS_PASSWORD).digest('hex');
+
+  const response = await fetch(`${GPS_URL}/webapi?action=login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: "USER",
+      from: "WEB",
+      username: GPS_USERNAME,
+      password: md5Password,
+      browser: "Base44"
+    })
+  });
+
+  const data = await response.json();
+  
+  if (data.status !== 0) {
+    throw new Error(`GPS login failed: ${data.cause || 'Unknown error'}`);
+  }
+
+  return data.token;
+}
+
+async function callGPSAPI(action, params = {}) {
+  const token = await getGPSToken();
+  
+  const response = await fetch(`${GPS_URL}/webapi?action=${action}&token=${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+
+  return await response.json();
+}
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
@@ -10,21 +51,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Hämta alla GPS-enheter från GPS-systemet direkt
-    const gpsTrackingUrl = `${Deno.env.get('BASE44_APP_URL')}/api/functions/gpsTracking`;
-    const gpsResponse = await fetch(gpsTrackingUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': req.headers.get('Authorization')
-      },
-      body: JSON.stringify({
-        action: 'getDeviceList',
-        params: {}
-      })
-    });
-
-    const gpsData = await gpsResponse.json();
+    // Hämta alla GPS-enheter direkt
+    const gpsData = await callGPSAPI('querymonitorlist', { username: GPS_USERNAME });
 
     if (gpsData.status !== 0) {
       throw new Error('Failed to fetch GPS devices: ' + gpsData.cause);
