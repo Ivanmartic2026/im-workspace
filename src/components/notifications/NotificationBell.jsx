@@ -156,7 +156,7 @@ export default function NotificationBell({ user }) {
       return notifs.sort((a, b) => new Date(b.date) - new Date(a.date));
     },
     enabled: !!user,
-    refetchInterval: 60000, // Uppdatera varje minut
+    refetchInterval: 5000, // Uppdatera varje 5 sekunder
   });
 
   const unreadCount = notifications.filter(n => !n.data?.is_read).length;
