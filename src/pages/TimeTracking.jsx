@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ClockInOutCard from "@/components/time/ClockInOutCard.jsx";
 import WeeklyTimeView from "@/components/time/WeeklyTimeView.jsx";
+import TimeHistoryCalendar from "@/components/time/TimeHistoryCalendar.jsx";
 import LeaveRequestForm from "@/components/time/LeaveRequestForm.jsx";
 import PersonalBalance from "@/components/time/PersonalBalance.jsx";
 import TimeAdjustmentRequest from "@/components/time/TimeAdjustmentRequest.jsx";
@@ -202,9 +203,10 @@ export default function TimeTracking() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10">
-          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-5 gap-1 mb-8">
+          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-6 gap-1 mb-8">
             <TabsTrigger value="stämpla" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Stämpla</TabsTrigger>
             <TabsTrigger value="vecka" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Vecka</TabsTrigger>
+            <TabsTrigger value="kalender" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Kalender</TabsTrigger>
             <TabsTrigger value="ledighet" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Ledighet</TabsTrigger>
             <TabsTrigger value="saldo" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Saldo</TabsTrigger>
             <TabsTrigger value="justera" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Mera</TabsTrigger>
@@ -226,6 +228,10 @@ export default function TimeTracking() {
               timeEntries={timeEntries}
               employee={employee}
             />
+          </TabsContent>
+
+          <TabsContent value="kalender">
+            <TimeHistoryCalendar entries={timeEntries} />
           </TabsContent>
 
           <TabsContent value="ledighet">
