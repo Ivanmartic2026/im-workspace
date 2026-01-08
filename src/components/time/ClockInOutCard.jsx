@@ -84,21 +84,22 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockIn = async () => {
-    if (!userEmail) {
-      alert('Kunde inte identifiera användare. Vänligen ladda om sidan.');
-      return;
+    setLoading(true);
+
+    // Vänta på att userEmail blir tillgänglig
+    let email = userEmail;
+    let attempts = 0;
+    while (!email && attempts < 10) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      email = userEmail;
+      attempts++;
     }
 
-    // Vänta om data hinner läsas in på PWA
-    if (!userEmail) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (!userEmail) {
-        alert('Kunde inte identifiera användare.');
-        return;
-      }
+    if (!email) {
+      alert('Kunde inte identifiera användare. Vänligen ladda om sidan.');
+      setLoading(false);
+      return;
     }
-    
-    setLoading(true);
     
     try {
       let location;
@@ -112,7 +113,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       const today = format(new Date(), 'yyyy-MM-dd');
       
       const entryData = {
-        employee_email: userEmail,
+        employee_email: email,
         date: today,
         clock_in_time: new Date().toISOString(),
         status: 'active',
