@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Clock, Circle, Loader2, Eye } from "lucide-react";
+import { Search, MapPin, Clock, Circle, Loader2, Eye, Route } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -20,6 +20,11 @@ export default function AllVehicles() {
   const { data: vehicles = [], isLoading: vehiclesLoading } = useQuery({
     queryKey: ['vehicles'],
     queryFn: () => base44.entities.Vehicle.list(),
+  });
+
+  const { data: journalEntries = [] } = useQuery({
+    queryKey: ['journalEntries'],
+    queryFn: () => base44.entities.DrivingJournalEntry.list(),
   });
 
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
@@ -57,6 +62,10 @@ export default function AllVehicles() {
     if (minutesSince < 5) return 'Aktiv';
     if (minutesSince < 30) return 'Nyligen aktiv';
     return 'Inaktiv';
+  };
+
+  const getVehicleTripsCount = (vehicle) => {
+    return journalEntries.filter(e => e.vehicle_id === vehicle.id).length;
   };
 
   const filteredVehicles = vehicles.filter(vehicle => {
@@ -167,6 +176,7 @@ export default function AllVehicles() {
                     <tr>
                       <th className="text-left p-4 text-xs font-semibold text-slate-600">Reg.nr</th>
                       <th className="text-left p-4 text-xs font-semibold text-slate-600">Fordonstyp</th>
+                      <th className="text-left p-4 text-xs font-semibold text-slate-600">Resor</th>
                       <th className="text-left p-4 text-xs font-semibold text-slate-600">Senast sedd</th>
                       <th className="text-left p-4 text-xs font-semibold text-slate-600">Status</th>
                       <th className="text-right p-4 text-xs font-semibold text-slate-600">Åtgärd</th>
@@ -176,6 +186,7 @@ export default function AllVehicles() {
                     {filteredVehicles.map((vehicle) => {
                       const position = getVehiclePosition(vehicle);
                       const status = getVehicleStatus(vehicle);
+                      const tripsCount = getVehicleTripsCount(vehicle);
                       
                       return (
                         <tr key={vehicle.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
@@ -187,6 +198,13 @@ export default function AllVehicles() {
                           </td>
                           <td className="p-4">
                             <p className="text-sm text-slate-700 capitalize">{vehicle.vehicle_type || 'Ej angiven'}</p>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-1.5">
+                              <Route className="h-3.5 w-3.5 text-slate-400" />
+                              <span className="text-sm font-medium text-slate-700">{tripsCount}</span>
+                              <span className="text-xs text-slate-500">resor</span>
+                            </div>
                           </td>
                           <td className="p-4">
                             {position ? (
