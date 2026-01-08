@@ -95,12 +95,12 @@ export default function TimeTracking() {
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-5 mb-6">
-            <TabsTrigger value="stämpla">Stämpla</TabsTrigger>
-            <TabsTrigger value="vecka">Vecka</TabsTrigger>
-            <TabsTrigger value="ledighet">Ledighet</TabsTrigger>
-            <TabsTrigger value="saldo">Saldo</TabsTrigger>
-            <TabsTrigger value="justera">Justera</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-3 lg:grid-cols-5 mb-6">
+            <TabsTrigger value="stämpla" className="text-xs lg:text-sm">Stämpla</TabsTrigger>
+            <TabsTrigger value="vecka" className="text-xs lg:text-sm">Vecka</TabsTrigger>
+            <TabsTrigger value="ledighet" className="text-xs lg:text-sm hidden lg:inline-flex">Ledighet</TabsTrigger>
+            <TabsTrigger value="saldo" className="text-xs lg:text-sm hidden lg:inline-flex">Saldo</TabsTrigger>
+            <TabsTrigger value="justera" className="text-xs lg:text-sm">Mera</TabsTrigger>
           </TabsList>
 
           <TabsContent value="stämpla">
@@ -137,6 +137,32 @@ export default function TimeTracking() {
           </TabsContent>
 
           <TabsContent value="justera">
+            <div className="lg:hidden space-y-4">
+              <LeaveRequestForm 
+                userEmail={user?.email}
+                userName={user?.full_name}
+                employee={employee}
+              />
+              <PersonalBalance 
+                employee={employee}
+                timeEntries={timeEntries}
+              />
+              <TimeAdjustmentRequest 
+                userEmail={user?.email}
+                userName={user?.full_name}
+                timeEntries={timeEntries}
+              />
+            </div>
+            <div className="hidden lg:block">
+              <TimeAdjustmentRequest 
+                userEmail={user?.email}
+                userName={user?.full_name}
+                timeEntries={timeEntries}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="justera" className="hidden">
             <TimeAdjustmentRequest 
               userEmail={user?.email}
               userName={user?.full_name}

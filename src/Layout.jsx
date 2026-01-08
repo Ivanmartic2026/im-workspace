@@ -38,10 +38,24 @@ export default function Layout({ children, currentPageName }) {
           --color-primary: 15 23 42;
           --color-accent: 99 102 241;
         }
+        html, body {
+          width: 100%;
+          height: 100%;
+          -webkit-user-select: none;
+          user-select: none;
+          -webkit-user-scalable: no;
+          -webkit-touch-callout: none;
+        }
+        @supports(padding: max(0px)) {
+          body {
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
+          }
+        }
       `}</style>
 
       {/* Notification Bell - Fixed Top Right */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-3 right-3 z-40">
         <NotificationBell user={user} />
       </div>
       
