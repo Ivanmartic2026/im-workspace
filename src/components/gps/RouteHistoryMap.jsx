@@ -164,17 +164,35 @@ export default function RouteHistoryMap({ vehicles }) {
                     <div className="space-y-2 mb-4">
                       {trips.slice(0, 10).map((trip, idx) => (
                         <div key={idx} className="p-3 bg-white rounded-lg border border-slate-200">
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-semibold text-slate-900">
-                              {format(new Date(trip.starttime), 'dd MMM, HH:mm', { locale: sv })}
+                              {format(new Date(trip.starttime), 'dd MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
                             </span>
                             <span className="text-sm font-bold text-slate-900">
                               {((trip.tripdistance || 0) / 1000).toFixed(1)} km
                             </span>
                           </div>
-                          <p className="text-sm text-slate-600">
-                            📍 {trip.startaddress || `${trip.startlat?.toFixed(4)}, ${trip.startlon?.toFixed(4)}`}
-                          </p>
+                          {trip.startaddress && (
+                            <div className="mb-1">
+                              <p className="text-xs text-slate-500 mb-0.5">Start:</p>
+                              <p className="text-sm text-slate-700">
+                                📍 {trip.startaddress}
+                              </p>
+                            </div>
+                          )}
+                          {trip.endaddress && trip.startaddress !== trip.endaddress && (
+                            <div>
+                              <p className="text-xs text-slate-500 mb-0.5">Slut:</p>
+                              <p className="text-sm text-slate-700">
+                                🏁 {trip.endaddress}
+                              </p>
+                            </div>
+                          )}
+                          {!trip.startaddress && !trip.endaddress && (
+                            <p className="text-xs text-slate-500">
+                              Koordinater: {trip.startlat?.toFixed(4)}, {trip.startlon?.toFixed(4)}
+                            </p>
+                          )}
                         </div>
                       ))}
                       {trips.length > 10 && (
