@@ -1,4 +1,5 @@
 import AddVehicle from './pages/AddVehicle';
+import Admin from './pages/Admin';
 import AdminTimeSystem from './pages/AdminTimeSystem';
 import AllVehicles from './pages/AllVehicles';
 import Documents from './pages/Documents';
@@ -22,12 +23,13 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import Admin from './pages/Admin';
+import GeofenceSettings from './pages/GeofenceSettings';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AddVehicle": AddVehicle,
+    "Admin": Admin,
     "AdminTimeSystem": AdminTimeSystem,
     "AllVehicles": AllVehicles,
     "Documents": Documents,
@@ -51,7 +53,7 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "Admin": Admin,
+    "GeofenceSettings": GeofenceSettings,
 }
 
 export const pagesConfig = {
