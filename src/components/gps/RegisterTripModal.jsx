@@ -46,15 +46,18 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
   const getMergedTripData = () => {
     if (selectedTrips.length === 0) return null;
 
-    const selected = selectedTrips.map(i => trips[i]).sort((a, b) => 
-      new Date(a.starttime) - new Date(b.starttime)
-    );
+    const selected = selectedTrips
+      .map(i => trips[i])
+      .filter(trip => trip && trip.starttime && trip.endtime)
+      .sort((a, b) => new Date(a.starttime) - new Date(b.starttime));
+
+    if (selected.length === 0) return null;
 
     const firstTrip = selected[0];
     const lastTrip = selected[selected.length - 1];
 
-    const totalDistance = selected.reduce((sum, trip) => sum + trip.tripdistance, 0);
-    const totalTime = selected.reduce((sum, trip) => sum + trip.triptime, 0);
+    const totalDistance = selected.reduce((sum, trip) => sum + (trip?.tripdistance || 0), 0);
+    const totalTime = selected.reduce((sum, trip) => sum + (trip?.triptime || 0), 0);
 
     return {
       start_time: new Date(firstTrip.starttime).toISOString(),
@@ -157,11 +160,11 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
                           {format(new Date(trip.starttime), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
                         </p>
                         <p className="text-sm font-bold text-slate-900">
-                          {(trip.tripdistance / 1000).toFixed(1)} km
+                          {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
                         </p>
                       </div>
                       <p className="text-xs text-slate-500">
-                        {Math.round(trip.triptime / (1000 * 60))} min • Snitt: {Math.round(trip.averagespeed * 3.6)} km/h
+                        {Math.round((trip?.triptime || 0) / (1000 * 60))} min • Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h
                       </p>
                     </div>
                   </div>
