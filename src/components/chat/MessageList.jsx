@@ -52,7 +52,7 @@ export default function MessageList({ messages, currentUserEmail }) {
                   <p className="text-sm break-words">{msg.content}</p>
                 </div>
                 <p className={`text-xs mt-1 ${isOwn ? 'text-right' : ''} text-slate-400`}>
-                  {format(new Date(msg.created_date), 'HH:mm', { locale: sv })}
+                  {format(new Date(msg.created_date + 'Z'), 'HH:mm', { locale: sv })}
                 </p>
               </div>
             </motion.div>

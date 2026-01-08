@@ -129,7 +129,7 @@ export default function NotificationsList({ notifications, onClose }) {
                       {notification.description}
                     </p>
                     <p className="text-xs text-slate-400">
-                      {format(new Date(notification.date), "d MMM 'kl' HH:mm", { locale: sv })}
+                      {format(new Date(notification.date + 'Z'), "d MMM 'kl' HH:mm", { locale: sv })}
                     </p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-slate-400 flex-shrink-0" />
