@@ -13,6 +13,8 @@ import { createPageUrl } from '../utils';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import RouteHistoryMap from '@/components/gps/RouteHistoryMap';
+import VehicleStatusBadge from '@/components/gps/VehicleStatusBadge';
+import GeofenceAlerts from '@/components/gps/GeofenceAlerts';
 import 'leaflet/dist/leaflet.css';
 
 // Fix default marker icons
@@ -71,8 +73,8 @@ export default function GPS() {
       });
       return response.data;
     },
-    enabled: allDevices.length > 0,
-    refetchInterval: 120000, // 2 minuter istället för 30 sekunder
+    enabled: allDevices.length > 0 && activeTab === 'live',
+    refetchInterval: 30000, // Realtidsuppdateringar var 30:e sekund
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -173,6 +175,14 @@ export default function GPS() {
   const positions = positionsData?.records || [];
   const centerPos = positions[0] ? [positions[0].callat, positions[0].callon] : [59.3293, 18.0686];
 
+  // Beräkna status för fordon baserat på hastighet
+  const getVehicleStatus = (speed) => {
+    const speedKmh = speed * 3.6;
+    if (speedKmh > 5) return 'kör';
+    if (speedKmh > 0) return 'långsamt';
+    return 'parkerad';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
       <div className="max-w-2xl mx-auto px-4 py-6">
@@ -221,6 +231,9 @@ export default function GPS() {
             <RouteHistoryMap vehicles={vehicles} />
           ) : (
             <>
+          {/* Geofence Alerts */}
+          <GeofenceAlerts positions={positions} vehicles={vehiclesWithGPS} />
+
           {/* Map */}
           <Card className="border-0 shadow-sm overflow-hidden mb-6">
             <div className="h-[500px]">
@@ -245,11 +258,13 @@ export default function GPS() {
                     const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === pos.deviceid);
                     const device = allDevices.find(d => d.deviceid === pos.deviceid);
                     const displayName = vehicle?.registration_number || device?.devicename || pos.deviceid;
+                    const status = getVehicleStatus(pos.speed);
                     
                     return (
                       <Marker key={pos.deviceid} position={[pos.callat, pos.callon]}>
                         <Tooltip permanent direction="top" offset={[0, -20]}>
-                          <div className="font-semibold text-xs">
+                          <div className="font-semibold text-xs flex items-center gap-1">
+                            <VehicleStatusBadge status={status} />
                             {displayName}
                           </div>
                         </Tooltip>
@@ -275,6 +290,7 @@ export default function GPS() {
                               <p className="text-sm text-slate-600 flex items-center gap-1">
                                 <Gauge className="h-3 w-3" />
                                 <span className="font-medium">{Math.round(pos.speed * 3.6)} km/h</span>
+                                <VehicleStatusBadge status={status} />
                               </p>
                               <p className="text-xs text-slate-500 flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
@@ -340,6 +356,9 @@ export default function GPS() {
             <div className="space-y-3">
               {tripsData?.map((deviceTrips) => {
                 const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === deviceTrips.deviceId);
+                const currentPos = positions.find(p => p.deviceid === deviceTrips.deviceId);
+                const status = currentPos ? getVehicleStatus(currentPos.speed) : 'okänd';
+
                 if (!deviceTrips?.data?.totaltrips?.length) return null;
 
                 const totalDistance = (deviceTrips.data.totaldistance || 0) / 1000;
@@ -352,15 +371,18 @@ export default function GPS() {
                 return (
                   <Card key={deviceTrips.deviceId} className="border-0 shadow-sm hover:shadow-md transition-shadow">
                     <CardContent className="p-5">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="font-semibold text-slate-900">{displayName}</h3>
-                          <p className="text-xs text-slate-500">{displaySubtext}</p>
-                        </div>
-                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                          {tripCount} {tripCount === 1 ? 'resa' : 'resor'}
-                        </Badge>
-                      </div>
+                       <div className="flex items-start justify-between mb-3">
+                         <div>
+                           <div className="flex items-center gap-2">
+                             <h3 className="font-semibold text-slate-900">{displayName}</h3>
+                             {currentPos && <VehicleStatusBadge status={status} />}
+                           </div>
+                           <p className="text-xs text-slate-500">{displaySubtext}</p>
+                         </div>
+                         <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                           {tripCount} {tripCount === 1 ? 'resa' : 'resor'}
+                         </Badge>
+                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center gap-2">
                           <Navigation className="h-4 w-4 text-slate-400" />
