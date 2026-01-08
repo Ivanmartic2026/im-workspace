@@ -42,7 +42,10 @@ export default function VehicleTracking() {
       return response.data;
     },
     enabled: !!vehicle?.gps_device_id,
-    refetchInterval: 30000, // Uppdatera var 30:e sekund
+    refetchInterval: 120000, // 2 minuter istället för 30 sekunder
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),
+    staleTime: 60000,
   });
 
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
