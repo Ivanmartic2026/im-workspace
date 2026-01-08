@@ -14,12 +14,12 @@ if ('serviceWorker' in navigator && 'PushManager' in window) {
 
 const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
+  { name: 'TimeTracking', label: 'Tid', icon: Clock },
   { name: 'Vehicles', label: 'Fordon', icon: Car },
   { name: 'GPS', label: 'GPS', icon: Navigation },
   { name: 'DrivingJournal', label: 'Körjournal', icon: FileText },
   { name: 'Manuals', label: 'Manualer', icon: BookOpen },
   { name: 'Chat', label: 'Chat', icon: MessageCircle },
-  { name: 'TimeTracking', label: 'Tid', icon: Clock },
   { name: 'Profile', label: 'Profil', icon: User },
 ];
 
