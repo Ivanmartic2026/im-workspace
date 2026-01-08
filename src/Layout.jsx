@@ -4,6 +4,7 @@ import { createPageUrl } from './utils';
 import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import NotificationBell from './components/notifications/NotificationBell';
 
 const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
@@ -38,6 +39,11 @@ export default function Layout({ children, currentPageName }) {
           --color-accent: 99 102 241;
         }
       `}</style>
+
+      {/* Notification Bell - Fixed Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <NotificationBell user={user} />
+      </div>
       
       {/* Main Content */}
       <main className="pb-20">

@@ -23,6 +23,24 @@ export default function NotificationBell({ user }) {
 
       const notifs = [];
 
+      // Hämta systemnotifikationer
+      const systemNotifications = await base44.entities.Notification.filter(
+        { recipient_email: user.email, is_read: false }, 
+        '-created_date', 
+        50
+      );
+      systemNotifications.forEach(notif => {
+        notifs.push({
+          id: `notification-${notif.id}`,
+          type: notif.type === 'system' ? 'system' : notif.type,
+          title: notif.title,
+          description: notif.message,
+          date: notif.created_date,
+          urgent: notif.priority === 'urgent' || notif.priority === 'high',
+          data: notif
+        });
+      });
+
       // Nya viktiga nyheter (senaste 7 dagarna)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -76,6 +94,44 @@ export default function NotificationBell({ user }) {
           urgent: true,
           data: issue
         });
+      });
+
+      // Fordon som behöver besiktning inom 30 dagar
+      const vehicles = await base44.entities.Vehicle.list();
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      
+      vehicles.forEach(vehicle => {
+        if (vehicle.next_inspection_date) {
+          const inspectionDate = new Date(vehicle.next_inspection_date);
+          if (inspectionDate > now && inspectionDate < thirtyDaysFromNow) {
+            notifs.push({
+              id: `inspection-${vehicle.id}`,
+              type: 'vehicle',
+              title: 'Besiktning närmar sig',
+              description: `${vehicle.registration_number} behöver besiktas`,
+              date: now.toISOString(),
+              urgent: false,
+              data: vehicle
+            });
+          }
+        }
+        
+        // Service inom 30 dagar
+        if (vehicle.next_service_date) {
+          const serviceDate = new Date(vehicle.next_service_date);
+          if (serviceDate > now && serviceDate < thirtyDaysFromNow) {
+            notifs.push({
+              id: `service-${vehicle.id}`,
+              type: 'vehicle',
+              title: 'Service närmar sig',
+              description: `${vehicle.registration_number} behöver service`,
+              date: now.toISOString(),
+              urgent: false,
+              data: vehicle
+            });
+          }
+        }
       });
 
       // Sortera efter datum
