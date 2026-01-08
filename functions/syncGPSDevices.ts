@@ -26,12 +26,12 @@ Deno.serve(async (req) => {
 
     const gpsData = await gpsResponse.json();
 
-    if (gpsResponse.data.status !== 0) {
-      throw new Error('Failed to fetch GPS devices: ' + gpsResponse.data.cause);
+    if (gpsData.status !== 0) {
+      throw new Error('Failed to fetch GPS devices: ' + gpsData.cause);
     }
 
     const allDevices = [];
-    for (const group of gpsResponse.data.groups) {
+    for (const group of gpsData.groups) {
       if (group.devices && Array.isArray(group.devices)) {
         allDevices.push(...group.devices);
       }
