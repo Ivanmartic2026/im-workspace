@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
+const SERVICES = ['support_service', 'install', 'rental', 'interntid'];
+
 export default function EmployeeModal({ open, onClose, employee }) {
   const [formData, setFormData] = useState({
     user_email: '',
@@ -19,6 +21,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
     start_date: '',
     location: '',
     bio: '',
+    assigned_services: [],
   });
 
   const { data: users = [] } = useQuery({
@@ -38,6 +41,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         start_date: employee.start_date || '',
         location: employee.location || '',
         bio: employee.bio || '',
+        assigned_services: employee.assigned_services || [],
       });
     } else {
       setFormData({
@@ -49,6 +53,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         start_date: '',
         location: '',
         bio: '',
+        assigned_services: [],
       });
     }
   }, [employee, open]);
@@ -174,6 +179,40 @@ export default function EmployeeModal({ open, onClose, employee }) {
               placeholder="En kort beskrivning..."
               className="min-h-[80px]"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tilldelade tjänster</Label>
+            <div className="space-y-2">
+              {SERVICES.map(service => (
+                <label key={service} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.assigned_services.includes(service)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData(prev => ({
+                          ...prev,
+                          assigned_services: [...prev.assigned_services, service]
+                        }));
+                      } else {
+                        setFormData(prev => ({
+                          ...prev,
+                          assigned_services: prev.assigned_services.filter(s => s !== service)
+                        }));
+                      }
+                    }}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className="text-sm text-slate-700">
+                    {service === 'support_service' && 'Support & Service'}
+                    {service === 'install' && 'Installation'}
+                    {service === 'rental' && 'Uthyrning'}
+                    {service === 'interntid' && 'Interntid'}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
