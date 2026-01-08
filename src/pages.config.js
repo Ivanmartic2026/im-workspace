@@ -11,6 +11,8 @@ import Home from './pages/Home';
 import JournalPolicySettings from './pages/JournalPolicySettings';
 import Leave from './pages/Leave';
 import ManagerDashboard from './pages/ManagerDashboard';
+import ManualDetail from './pages/ManualDetail';
+import Manuals from './pages/Manuals';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
 import Schedule from './pages/Schedule';
@@ -20,8 +22,6 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import Manuals from './pages/Manuals';
-import ManualDetail from './pages/ManualDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -39,6 +39,8 @@ export const PAGES = {
     "JournalPolicySettings": JournalPolicySettings,
     "Leave": Leave,
     "ManagerDashboard": ManagerDashboard,
+    "ManualDetail": ManualDetail,
+    "Manuals": Manuals,
     "Profile": Profile,
     "Reports": Reports,
     "Schedule": Schedule,
@@ -48,8 +50,6 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "Manuals": Manuals,
-    "ManualDetail": ManualDetail,
 }
 
 export const pagesConfig = {
