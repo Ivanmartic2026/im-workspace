@@ -92,32 +92,38 @@ export default function Admin() {
           animate={{ opacity: 1, y: 0 }}
         >
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Systemadministration</h1>
-            <p className="text-slate-600">Översikt och inställningar för hela systemet</p>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-slate-900 mb-1">Systemadministration</h1>
+            <p className="text-slate-500 text-sm">Hantera och övervaka systemet</p>
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-5 gap-1 mb-6">
-              <TabsTrigger value="overview" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-5 gap-2 mb-8">
+              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <BarChart3 className="h-4 w-4 mr-2" />
                 Översikt
               </TabsTrigger>
-              <TabsTrigger value="vehicles" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+              <TabsTrigger value="time" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Clock className="h-4 w-4 mr-2" />
+                Tidsystem
+              </TabsTrigger>
+              <TabsTrigger value="vehicles" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Car className="h-4 w-4 mr-2" />
                 Fordon
               </TabsTrigger>
-              <TabsTrigger value="time" className="rounded-xl data-[state=active]:shadow-sm text-xs">
-                Tid
-              </TabsTrigger>
-              <TabsTrigger value="journal" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+              <TabsTrigger value="journal" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <FileText className="h-4 w-4 mr-2" />
                 Körjournal
               </TabsTrigger>
-              <TabsTrigger value="settings" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+              <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Settings className="h-4 w-4 mr-2" />
                 Inställningar
               </TabsTrigger>
             </TabsList>
 
             {/* Vehicles Tab */}
             <TabsContent value="vehicles" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Fordonshantering</h2>
               <VehicleManagement />
               <StaffLocationMap />
             </TabsContent>
@@ -125,144 +131,184 @@ export default function Admin() {
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
               {/* System Status Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                        <Users className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <Badge variant="outline" className="bg-white/50">
-                        {employees.length} aktiva
-                      </Badge>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-1">Personal</h3>
-                    <p className="text-sm text-slate-600">Hantera anställda och behörigheter</p>
-                  </CardContent>
-                </Card>
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Database className="h-5 w-5 text-slate-600" />
+                  Systemöversikt
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Link to={createPageUrl('Employees')}>
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
+                            {employees.length}
+                          </Badge>
+                        </div>
+                        <h3 className="text-base font-semibold text-slate-900 mb-0.5">Personal</h3>
+                        <p className="text-xs text-slate-600">Aktiva medarbetare</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
 
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="h-12 w-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                        <Car className="h-6 w-6 text-emerald-600" />
-                      </div>
-                      <Badge variant="outline" className="bg-white/50">
-                        {activeVehicles}/{vehicles.length} aktiva
-                      </Badge>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-1">Fordon</h3>
-                    <p className="text-sm text-slate-600">Fordonspark och GPS-spårning</p>
-                  </CardContent>
-                </Card>
+                  <Link to={createPageUrl('Vehicles')}>
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                            <Car className="h-5 w-5 text-emerald-600" />
+                          </div>
+                          <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
+                            {activeVehicles}/{vehicles.length}
+                          </Badge>
+                        </div>
+                        <h3 className="text-base font-semibold text-slate-900 mb-0.5">Fordon</h3>
+                        <p className="text-xs text-slate-600">Aktiva fordon</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
 
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                        <AlertCircle className="h-6 w-6 text-amber-600" />
+                  <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50">
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                          <AlertCircle className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
+                          {pendingApprovals + pendingJournalEntries}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="bg-white/50">
-                        {pendingApprovals + pendingJournalEntries}
-                      </Badge>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-1">Väntande</h3>
-                    <p className="text-sm text-slate-600">Godkännanden som kräver åtgärd</p>
-                  </CardContent>
-                </Card>
+                      <h3 className="text-base font-semibold text-slate-900 mb-0.5">Väntande</h3>
+                      <p className="text-xs text-slate-600">Kräver godkännande</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
               {/* Quick Actions */}
-              <Card className="border-0 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wrench className="h-5 w-5" />
-                    Snabbåtgärder
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-slate-600" />
+                  Snabbåtgärder
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                   <Link to={createPageUrl('AdminTimeSystem')}>
-                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col items-center gap-2">
-                      <Clock className="h-5 w-5" />
-                      <span className="text-xs">Tidsystem</span>
-                    </Button>
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                      <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <Clock className="h-5 w-5 text-slate-700" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-900">Tidsystem</span>
+                      </CardContent>
+                    </Card>
                   </Link>
                   <Link to={createPageUrl('Employees')}>
-                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      <span className="text-xs">Personal</span>
-                    </Button>
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                      <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-slate-700" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-900">Personal</span>
+                      </CardContent>
+                    </Card>
                   </Link>
                   <Link to={createPageUrl('OnboardingTemplates')}>
-                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col items-center gap-2">
-                      <BookOpen className="h-5 w-5" />
-                      <span className="text-xs">Onboarding</span>
-                    </Button>
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                      <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-slate-700" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-900">Onboarding</span>
+                      </CardContent>
+                    </Card>
                   </Link>
                   <Link to={createPageUrl('Vehicles')}>
-                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col items-center gap-2">
-                      <Car className="h-5 w-5" />
-                      <span className="text-xs">Fordon</span>
-                    </Button>
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                      <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <Car className="h-5 w-5 text-slate-700" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-900">Fordon</span>
+                      </CardContent>
+                    </Card>
                   </Link>
                   <Link to={createPageUrl('DrivingJournal')}>
-                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      <span className="text-xs">Körjournal</span>
-                    </Button>
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                      <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <FileText className="h-5 w-5 text-slate-700" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-900">Körjournal</span>
+                      </CardContent>
+                    </Card>
                   </Link>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* System Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="border-0 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Senaste aktivitet</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-slate-600" />
+                      Aktivitet
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-slate-400" />
-                        <span className="text-sm text-slate-600">Tidrapporter</span>
+                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center">
+                          <Clock className="h-4 w-4 text-slate-600" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-700">Tidrapporter</span>
                       </div>
-                      <span className="text-sm font-semibold text-slate-900">{timeEntries.length}</span>
+                      <span className="text-sm font-bold text-slate-900">{timeEntries.length}</span>
                     </div>
-                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-slate-400" />
-                        <span className="text-sm text-slate-600">Körrappporter</span>
+                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center">
+                          <FileText className="h-4 w-4 text-slate-600" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-700">Körrapporter</span>
                       </div>
-                      <span className="text-sm font-semibold text-slate-900">{journalEntries.length}</span>
+                      <span className="text-sm font-bold text-slate-900">{journalEntries.length}</span>
                     </div>
-                    <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <BookOpen className="h-4 w-4 text-slate-400" />
-                        <span className="text-sm text-slate-600">Manualer</span>
+                        <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center">
+                          <BookOpen className="h-4 w-4 text-slate-600" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-700">Manualer</span>
                       </div>
-                      <span className="text-sm font-semibold text-slate-900">{manuals.length}</span>
+                      <span className="text-sm font-bold text-slate-900">{manuals.length}</span>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card className="border-0 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">Systeminformation</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-slate-600" />
+                      System Status
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                      <span className="text-sm text-slate-600">GPS-integration</span>
-                      <Badge className="bg-emerald-100 text-emerald-700">
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-emerald-50 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700">GPS-integration</span>
+                      <Badge className="bg-emerald-100 text-emerald-700 border-0">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Aktiv
                       </Badge>
                     </div>
-                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                      <span className="text-sm text-slate-600">Databasversion</span>
-                      <span className="text-sm font-semibold text-slate-900">Latest</span>
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700">Database</span>
+                      <span className="text-sm font-semibold text-slate-900">v.Latest</span>
                     </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-slate-600">Senaste backup</span>
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-purple-50 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700">Backup</span>
                       <span className="text-sm font-semibold text-slate-900">Automatisk</span>
                     </div>
                   </CardContent>
@@ -272,12 +318,13 @@ export default function Admin() {
 
             {/* Time Management Tab */}
             <TabsContent value="time" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Tidsystemhantering</h2>
               <Tabs defaultValue="policies">
-                <TabsList className="w-full bg-white shadow-sm">
-                  <TabsTrigger value="policies">Arbetspolicies</TabsTrigger>
-                  <TabsTrigger value="reports">Systemrapporter</TabsTrigger>
-                  <TabsTrigger value="employees">Personalhantering</TabsTrigger>
-                  <TabsTrigger value="payroll">Lönexport</TabsTrigger>
+                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1">
+                  <TabsTrigger value="policies" className="rounded-md">Arbetspolicies</TabsTrigger>
+                  <TabsTrigger value="reports" className="rounded-md">Rapporter</TabsTrigger>
+                  <TabsTrigger value="employees" className="rounded-md">Personal</TabsTrigger>
+                  <TabsTrigger value="payroll" className="rounded-md">Lönexport</TabsTrigger>
                 </TabsList>
                 <TabsContent value="policies">
                   <WorkPolicyConfig />
@@ -296,11 +343,12 @@ export default function Admin() {
 
             {/* Journal Management Tab */}
             <TabsContent value="journal" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Körjournalhantering</h2>
               <Tabs defaultValue="ai">
-                <TabsList className="w-full bg-white shadow-sm">
-                  <TabsTrigger value="ai">AI-rapporter</TabsTrigger>
-                  <TabsTrigger value="project">Projekttid</TabsTrigger>
-                  <TabsTrigger value="geofencing">Geofencing</TabsTrigger>
+                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1">
+                  <TabsTrigger value="ai" className="rounded-md">AI-rapporter</TabsTrigger>
+                  <TabsTrigger value="project" className="rounded-md">Projekttid</TabsTrigger>
+                  <TabsTrigger value="geofencing" className="rounded-md">Geofencing</TabsTrigger>
                 </TabsList>
                 <TabsContent value="ai">
                   <AIJournalReports />
@@ -337,11 +385,12 @@ export default function Admin() {
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Systeminställningar</h2>
               <Tabs defaultValue="notifications">
-                <TabsList className="w-full bg-white shadow-sm">
-                  <TabsTrigger value="notifications">Notiser</TabsTrigger>
-                  <TabsTrigger value="bulk">Massnotiser</TabsTrigger>
-                  <TabsTrigger value="push">Push-test</TabsTrigger>
+                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1">
+                  <TabsTrigger value="notifications" className="rounded-md">Notisinställningar</TabsTrigger>
+                  <TabsTrigger value="bulk" className="rounded-md">Massnotiser</TabsTrigger>
+                  <TabsTrigger value="push" className="rounded-md">Push-test</TabsTrigger>
                 </TabsList>
                 <TabsContent value="notifications">
                   <NotificationSettings />
