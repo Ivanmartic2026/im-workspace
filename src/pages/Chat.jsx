@@ -338,82 +338,110 @@ export default function Chat() {
 
       {/* New Conversation Modal */}
       <Dialog open={showNewConvModal} onOpenChange={setShowNewConvModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Ny konversation</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
             {/* Chat Type Selector */}
-            <div className="flex gap-2">
-              <Button
-                variant={chatType === 'direct' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => { setChatType('direct'); setConversationTitle(''); }}
-                className="flex-1"
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
+              <button
+                onClick={() => { setChatType('direct'); setConversationTitle(''); setSelectedParticipants([]); }}
+                className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
+                  chatType === 'direct' 
+                    ? 'bg-white text-slate-900 shadow-sm' 
+                    : 'text-slate-600'
+                }`}
               >
-                Privat
-              </Button>
-              <Button
-                variant={chatType === 'group' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setChatType('group')}
-                className="flex-1"
+                Privat chat
+              </button>
+              <button
+                onClick={() => { setChatType('group'); setSelectedParticipants([]); }}
+                className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
+                  chatType === 'group' 
+                    ? 'bg-white text-slate-900 shadow-sm' 
+                    : 'text-slate-600'
+                }`}
               >
-                Grupp
-              </Button>
+                Gruppchatt
+              </button>
             </div>
 
             {/* Conversation Title - Only for Groups */}
             {chatType === 'group' && (
               <Input
-                placeholder="Gruppnamn (t.ex. 'Projekt Alpha')"
+                placeholder="Gruppnamn (valfritt)"
                 value={conversationTitle}
                 onChange={(e) => setConversationTitle(e.target.value)}
-                className="rounded-lg"
+                className="rounded-xl h-11"
               />
             )}
 
             {/* User Selection */}
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {chatType === 'direct' && (
-                <p className="text-xs text-slate-500 px-3 pt-2">Välj en person för privat chat</p>
-              )}
-              {chatType === 'group' && (
-                <p className="text-xs text-slate-500 px-3 pt-2">Välj gruppmedlemmar (minst 2)</p>
-              )}
-              {otherUsers.map(u => (
-                <label 
-                  key={u.email} 
-                  className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer ${chatType === 'direct' && selectedParticipants.includes(u.email) ? 'bg-blue-50' : ''}`}
-                >
-                  <Checkbox
-                    checked={selectedParticipants.includes(u.email)}
-                    onCheckedChange={(checked) => {
+            <div className="flex-1 overflow-y-auto space-y-1 -mx-2 px-2">
+              <p className="text-xs font-medium text-slate-500 mb-3 px-1">
+                {chatType === 'direct' ? 'Välj person' : `Valda: ${selectedParticipants.length}`}
+              </p>
+              {otherUsers.map(u => {
+                const isSelected = selectedParticipants.includes(u.email);
+                return (
+                  <button
+                    key={u.email}
+                    onClick={() => {
                       if (chatType === 'direct') {
-                        // For direct chats, only allow one selection
-                        setSelectedParticipants(checked ? [u.email] : []);
+                        setSelectedParticipants(isSelected ? [] : [u.email]);
                       } else {
-                        // For group chats, allow multiple selections
-                        if (checked) {
-                          setSelectedParticipants([...selectedParticipants, u.email]);
-                        } else {
+                        if (isSelected) {
                           setSelectedParticipants(selectedParticipants.filter(e => e !== u.email));
+                        } else {
+                          setSelectedParticipants([...selectedParticipants, u.email]);
                         }
                       }
                     }}
-                  />
-                  <span className="text-sm font-medium">{u.full_name}</span>
-                </label>
-              ))}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                      isSelected 
+                        ? 'bg-blue-50 ring-2 ring-blue-500 ring-inset' 
+                        : 'bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm ${
+                      isSelected 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {u.full_name?.charAt(0) || u.email?.charAt(0)}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium text-slate-900 text-sm">{u.full_name}</p>
+                      <p className="text-xs text-slate-500">{u.email}</p>
+                    </div>
+                    {isSelected && (
+                      <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" stroke="currentColor">
+                          <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <Button
               onClick={() => createConversationMutation.mutate()}
               disabled={selectedParticipants.length === 0 || (chatType === 'group' && selectedParticipants.length < 2) || createConversationMutation.isPending}
-              className="w-full"
+              className="w-full h-12 rounded-xl font-medium text-base"
+              size="lg"
             >
-              {createConversationMutation.isPending ? 'Skapar...' : `Skapa ${chatType === 'direct' ? 'privat chat' : 'grupp'}`}
+              {createConversationMutation.isPending ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Skapar...
+                </>
+              ) : (
+                `Skapa ${chatType === 'direct' ? 'privat chat' : 'gruppchatt'}`
+              )}
             </Button>
           </div>
         </DialogContent>
