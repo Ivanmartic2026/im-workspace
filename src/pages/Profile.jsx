@@ -13,6 +13,7 @@ import { Camera, Save, Loader2, Mail, Phone, MapPin, Building2, Briefcase, LogOu
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import PushNotificationSetup from '@/components/notifications/PushNotificationSetup';
 
 const departments = ["Ledning", "HR", "Sälj", "Marknad", "IT", "Ekonomi", "Produktion", "Kundtjänst", "Övrigt"];
 
@@ -322,6 +323,9 @@ export default function Profile() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Push Notifications */}
+            <PushNotificationSetup user={user} />
 
             {/* Logout */}
             <Card className="border-0 shadow-sm">
