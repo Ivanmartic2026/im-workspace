@@ -6,14 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Bell, CheckCircle2, AlertCircle, Loader2, Smartphone } from "lucide-react";
 import { motion } from "framer-motion";
 
-const VAPID_PUBLIC_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY || 'BEo4ZwIJXD-viFr8w_h8yK-nXfpjG7XdLbwNLEqKS0g0SqxJN8F6D3U5Vc5y1u4cJ9Gu4K2QpL9N8rT7v5Y8';
-
 export default function PushNotificationSetup({ user }) {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [error, setError] = useState(null);
+  const [vapidPublicKey, setVapidPublicKey] = useState(null);
 
   useEffect(() => {
     // Check browser support
@@ -24,10 +23,23 @@ export default function PushNotificationSetup({ user }) {
     
     setIsSupported(supported);
 
-    if (supported) {
+    if (supported && user) {
+      loadVapidKey();
       checkSubscription();
     }
   }, [user]);
+
+  const loadVapidKey = async () => {
+    try {
+      const response = await base44.functions.invoke('getVapidPublicKey');
+      if (response.data?.publicKey) {
+        setVapidPublicKey(response.data.publicKey);
+      }
+    } catch (err) {
+      console.error('Error loading VAPID key:', err);
+      setError('Kunde inte ladda push-notifikationskonfiguration');
+    }
+  };
 
   const checkSubscription = async () => {
     try {
@@ -100,31 +112,32 @@ export default function PushNotificationSetup({ user }) {
   };
 
   const handleSubscribe = async () => {
+    if (!vapidPublicKey) {
+      setError('VAPID-nyckel inte tillgänglig ännu. Vänta ett ögonblick och försök igen.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // Register service worker
-      if ('serviceWorker' in navigator) {
-        await navigator.serviceWorker.register('/service-worker.js', {
-          scope: '/'
-        });
-      }
-
       // Request notification permission
       if (Notification.permission === 'default') {
-        await Notification.requestPermission();
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          throw new Error('Push-notifikationsbehörighet inte beviljad');
+        }
       }
 
       if (Notification.permission !== 'granted') {
-        throw new Error('Push-notifikationsbehörighet inte beviljad');
+        throw new Error('Push-notifikationsbehörighet krävs för att fortsätta');
       }
 
       // Subscribe to push
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
 
       // Store in database
@@ -224,7 +237,7 @@ export default function PushNotificationSetup({ user }) {
             <Smartphone className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-slate-700">
               {isSubscribed 
-                ? 'Prenumeration aktiv - Du kommer att få notifikationer push-notifikationer på alla dina enheter'
+                ? 'Prenumeration aktiv - Du kommer att få push-notifikationer på din enhet'
                 : 'Aktivera för att få omedelbar notification när något viktigt händer'}
             </div>
           </div>
@@ -233,13 +246,18 @@ export default function PushNotificationSetup({ user }) {
             {!isSubscribed ? (
               <Button
                 onClick={handleSubscribe}
-                disabled={isLoading}
+                disabled={isLoading || !vapidPublicKey}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Aktiverar...
+                  </>
+                ) : !vapidPublicKey ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Laddar...
                   </>
                 ) : (
                   <>
