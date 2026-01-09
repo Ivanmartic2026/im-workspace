@@ -24,6 +24,7 @@ import PushNotificationTest from '@/components/admin/PushNotificationTest';
 import VehicleManagement from '@/components/admin/VehicleManagement';
 import StaffLocationMap from '@/components/admin/StaffLocationMap';
 import BulkNotifications from '@/components/admin/BulkNotifications';
+import AutomationSettings from '@/components/admin/AutomationSettings';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -98,7 +99,7 @@ export default function Admin() {
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-5 gap-2 mb-8">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
               <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Översikt
@@ -114,6 +115,10 @@ export default function Admin() {
               <TabsTrigger value="journal" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <FileText className="h-4 w-4 mr-2" />
                 Körjournal
+              </TabsTrigger>
+              <TabsTrigger value="automation" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Wrench className="h-4 w-4 mr-2" />
+                Automation
               </TabsTrigger>
               <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <Settings className="h-4 w-4 mr-2" />
@@ -381,6 +386,11 @@ export default function Admin() {
                   </Card>
                 </TabsContent>
               </Tabs>
+            </TabsContent>
+
+            {/* Automation Tab */}
+            <TabsContent value="automation" className="space-y-4">
+              <AutomationSettings />
             </TabsContent>
 
             {/* Settings Tab */}
