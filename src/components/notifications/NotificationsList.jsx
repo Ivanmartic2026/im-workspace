@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bell, Calendar, AlertTriangle, ChevronRight, Trash2, Check, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 
