@@ -6,12 +6,6 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import NotificationBell from './components/notifications/NotificationBell';
 
-// Register Service Worker for Web Push
-if ('serviceWorker' in navigator && 'PushManager' in window) {
-  navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-    .catch(err => console.log('Service Worker registration failed:', err));
-}
-
 const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
   { name: 'TimeTracking', label: 'Tid', icon: Clock },
