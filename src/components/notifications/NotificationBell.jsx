@@ -225,20 +225,17 @@ export default function NotificationBell({ user }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative rounded-full hover:bg-slate-100"
+        <button 
+          className="relative rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors p-3 -m-1 touch-manipulation"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-          <Bell className="h-5 w-5 text-slate-700" />
+          <Bell className="h-6 w-6 text-slate-700" />
           {unreadCount > 0 && (
-            <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-rose-500 text-white text-xs"
-            >
+            <span className="absolute top-0 right-0 h-5 w-5 flex items-center justify-center rounded-full bg-rose-500 text-white text-xs font-semibold shadow-sm">
               {unreadCount > 9 ? '9+' : unreadCount}
-            </Badge>
+            </span>
           )}
-        </Button>
+        </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md">
         <SheetHeader>
