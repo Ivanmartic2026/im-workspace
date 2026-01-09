@@ -189,6 +189,17 @@ export default function NotificationBell({ user }) {
   const handleMarkAsRead = (notificationId) => {
     if (notificationId.startsWith('notification-')) {
       markAsReadMutation.mutate(notificationId);
+      // Update badge count
+      setTimeout(() => {
+        const newUnreadCount = notifications.filter(n => !n.data?.is_read && n.id !== notificationId).length;
+        if ('setAppBadge' in navigator) {
+          if (newUnreadCount > 0) {
+            navigator.setAppBadge(newUnreadCount);
+          } else {
+            navigator.clearAppBadge();
+          }
+        }
+      }, 100);
     }
   };
 
@@ -199,6 +210,17 @@ export default function NotificationBell({ user }) {
       refetch();
     }
   }, [open, refetch]);
+
+  // Update app badge with unread count
+  useEffect(() => {
+    if ('setAppBadge' in navigator) {
+      if (unreadCount > 0) {
+        navigator.setAppBadge(unreadCount);
+      } else {
+        navigator.clearAppBadge();
+      }
+    }
+  }, [unreadCount]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

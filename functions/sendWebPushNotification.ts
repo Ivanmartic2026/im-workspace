@@ -44,6 +44,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Get unread count for badge
+    const unreadNotifications = await base44.asServiceRole.entities.Notification.filter({
+      recipient_email: recipient_email,
+      is_read: false
+    });
+    const unreadCount = unreadNotifications.length + 1;
+
     // Prepare push notification payload
     const payload = JSON.stringify({
       title,
@@ -55,6 +62,7 @@ Deno.serve(async (req) => {
       action_url,
       type,
       priority,
+      unreadCount,
       timestamp: new Date().toISOString()
     });
 
