@@ -104,60 +104,12 @@ export default function Chat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
-      const message = await base44.entities.Message.create({
+      // Use backend function to handle message + notifications
+      const response = await base44.functions.invoke('sendChatMessage', {
         conversation_id: selectedConversationId,
-        sender_email: user.email,
-        sender_name: user.full_name,
-        content,
-        is_read: false,
-        read_by: [user.email]
+        content
       });
-
-      // Update conversation
-      await base44.entities.Conversation.update(selectedConversationId, {
-        last_message: content,
-        last_message_at: new Date().toISOString(),
-        last_message_by: user.email
-      });
-
-      // Get conversation to find participants
-      const convs = await base44.entities.Conversation.filter({ id: selectedConversationId }, null, 1);
-      if (convs.length > 0) {
-        const participants = convs[0].participants || [];
-        for (const participantEmail of participants) {
-          if (participantEmail !== user.email) {
-            // Create notification
-            const notification = await base44.entities.Notification.create({
-              recipient_email: participantEmail,
-              type: 'chat',
-              title: 'Nytt chattmeddelande',
-              message: `${user.full_name}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
-              priority: 'normal',
-              is_read: false,
-              related_entity_id: message.id,
-              related_entity_type: 'Message',
-              sent_via: ['app', 'push']
-            });
-            
-            // Send push notification immediately
-            try {
-              await base44.functions.invoke('sendWebPushNotification', {
-                recipient_email: participantEmail,
-                title: 'Nytt chattmeddelande',
-                message: `${user.full_name}: ${content.substring(0, 80)}${content.length > 80 ? '...' : ''}`,
-                type: 'chat',
-                priority: 'normal',
-                action_url: `/chat?conversation=${selectedConversationId}`,
-                notificationId: notification.id
-              });
-            } catch (error) {
-              console.error('Failed to send push notification:', error);
-            }
-          }
-        }
-      }
-
-      return message;
+      return response.data.message;
     },
     onSuccess: () => {
       refetchConversations();
