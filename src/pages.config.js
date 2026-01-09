@@ -28,6 +28,7 @@ import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
 import OnboardingTemplates from './pages/OnboardingTemplates';
 import MyOnboarding from './pages/MyOnboarding';
+import NotificationSettings from './pages/NotificationSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "Vehicles": Vehicles,
     "OnboardingTemplates": OnboardingTemplates,
     "MyOnboarding": MyOnboarding,
+    "NotificationSettings": NotificationSettings,
 }
 
 export const pagesConfig = {
