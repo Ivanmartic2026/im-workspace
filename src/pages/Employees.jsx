@@ -4,8 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Plus, Users, Mail, UserPlus, Pencil, Trash2, Shield } from "lucide-react";
+import { Search, Plus, Users, Mail, UserPlus, Pencil, Trash2, Shield, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import EmployeeModal from "@/components/employees/EmployeeModal";
 import InviteModal from "@/components/employees/InviteModal";
 
@@ -126,49 +128,58 @@ export default function Employees() {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ delay: idx * 0.05 }}
                     >
-                      <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                        <CardContent className="p-5">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3 flex-1">
-                              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0">
-                                <span className="text-lg font-semibold text-slate-600">
-                                  {user?.full_name?.charAt(0) || employee.user_email?.charAt(0)}
-                                </span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-slate-900 truncate">
-                                  {user?.full_name || employee.user_email}
-                                </h3>
-                                <p className="text-sm text-slate-500 truncate">{employee.job_title || 'Ingen titel'}</p>
-                                <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                                  <span>{employee.department || 'Ingen avdelning'}</span>
-                                  {employee.phone && <span>•</span>}
-                                  {employee.phone && <span>{employee.phone}</span>}
+                      <Link to={`${createPageUrl('EmployeeDetails')}?id=${employee.id}`}>
+                        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start gap-3 flex-1">
+                                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-lg font-semibold text-slate-600">
+                                    {user?.full_name?.charAt(0) || employee.user_email?.charAt(0)}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-semibold text-slate-900 truncate">
+                                    {user?.full_name || employee.user_email}
+                                  </h3>
+                                  <p className="text-sm text-slate-500 truncate">{employee.job_title || 'Ingen titel'}</p>
+                                  <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                                    <span>{employee.department || 'Ingen avdelning'}</span>
+                                    {employee.phone && <span>•</span>}
+                                    {employee.phone && <span>{employee.phone}</span>}
+                                  </div>
                                 </div>
                               </div>
+                              <div className="flex gap-1 flex-shrink-0">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleEditEmployee(employee);
+                                  }}
+                                  className="h-8 w-8"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDeleteEmployee(employee);
+                                  }}
+                                  disabled={deleteEmployeeMutation.isPending}
+                                  className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                <ChevronRight className="h-8 w-8 text-slate-400 p-2" />
+                              </div>
                             </div>
-                            <div className="flex gap-1 flex-shrink-0">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEditEmployee(employee)}
-                                className="h-8 w-8"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteEmployee(employee)}
-                                disabled={deleteEmployeeMutation.isPending}
-                                className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      </Link>
                     </motion.div>
                   );
                 })
