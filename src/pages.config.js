@@ -7,6 +7,7 @@ import Documents from './pages/Documents';
 import DrivingJournal from './pages/DrivingJournal';
 import DrivingJournalReports from './pages/DrivingJournalReports';
 import EditVehicle from './pages/EditVehicle';
+import EmployeeDetails from './pages/EmployeeDetails';
 import Employees from './pages/Employees';
 import GPS from './pages/GPS';
 import GeofenceSettings from './pages/GeofenceSettings';
@@ -25,7 +26,8 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import EmployeeDetails from './pages/EmployeeDetails';
+import OnboardingTemplates from './pages/OnboardingTemplates';
+import MyOnboarding from './pages/MyOnboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -39,6 +41,7 @@ export const PAGES = {
     "DrivingJournal": DrivingJournal,
     "DrivingJournalReports": DrivingJournalReports,
     "EditVehicle": EditVehicle,
+    "EmployeeDetails": EmployeeDetails,
     "Employees": Employees,
     "GPS": GPS,
     "GeofenceSettings": GeofenceSettings,
@@ -57,7 +60,8 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "EmployeeDetails": EmployeeDetails,
+    "OnboardingTemplates": OnboardingTemplates,
+    "MyOnboarding": MyOnboarding,
 }
 
 export const pagesConfig = {

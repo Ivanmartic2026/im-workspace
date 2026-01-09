@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ChevronLeft, FileText, Users, Calendar, Upload, 
-  Download, Trash2, Plus, Phone, Mail, AlertCircle 
+  Download, Trash2, Plus, Phone, Mail, AlertCircle, 
+  Key, Eye, EyeOff, Copy, Clipboard
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -18,6 +19,8 @@ import { createPageUrl } from '@/utils';
 import UploadFileModal from '@/components/employees/UploadFileModal';
 import EmergencyContactModal from '@/components/employees/EmergencyContactModal';
 import ImportantDateModal from '@/components/employees/ImportantDateModal';
+import AssignTemplateModal from '@/components/onboarding/AssignTemplateModal';
+import CredentialsModal from '@/components/onboarding/CredentialsModal';
 
 export default function EmployeeDetails() {
   const [user, setUser] = useState(null);
@@ -26,6 +29,9 @@ export default function EmployeeDetails() {
   const [showFileModal, setShowFileModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+  const [showPassword, setShowPassword] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -167,11 +173,12 @@ export default function EmployeeDetails() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="info">Info</TabsTrigger>
             <TabsTrigger value="files">Filer</TabsTrigger>
             <TabsTrigger value="contacts">Kontakter</TabsTrigger>
             <TabsTrigger value="dates">Datum</TabsTrigger>
+            {isAdmin && <TabsTrigger value="onboarding">Onboarding</TabsTrigger>}
           </TabsList>
 
           {/* Info Tab */}
@@ -360,6 +367,133 @@ export default function EmployeeDetails() {
             )}
           </TabsContent>
 
+          {/* Onboarding Tab */}
+          {isAdmin && (
+            <TabsContent value="onboarding" className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={() => setShowTemplateModal(true)} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tilldela mall
+                </Button>
+                <Button onClick={() => setShowCredentialsModal(true)} variant="outline" className="w-full">
+                  <Key className="h-4 w-4 mr-2" />
+                  Lägg till inlogg
+                </Button>
+              </div>
+
+              {/* Onboarding Status */}
+              {employee.assigned_onboarding_template_id && (
+                <Card className="border-0 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Onboarding-status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge variant="secondary">
+                      {employee.onboarding_status === 'not_started' && 'Ej startad'}
+                      {employee.onboarding_status === 'in_progress' && 'Pågående'}
+                      {employee.onboarding_status === 'completed' && 'Slutförd'}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Credentials */}
+              {employee.credentials && employee.credentials.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-slate-900">Inloggningsuppgifter</h3>
+                  {employee.credentials.map((cred, index) => (
+                    <Card key={index} className="border-0 shadow-sm">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium text-slate-900">{cred.system_name}</p>
+                            <div className="space-y-2 mt-3 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-slate-500 w-24">Användarnamn:</span>
+                                <span className="font-mono text-slate-700">{cred.username}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(cred.username);
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-slate-500 w-24">Lösenord:</span>
+                                <span className="font-mono text-slate-700">
+                                  {showPassword[index] ? cred.password : '••••••••'}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => setShowPassword(prev => ({ ...prev, [index]: !prev[index] }))}
+                                >
+                                  {showPassword[index] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(cred.password);
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              {cred.url && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-slate-500 w-24">URL:</span>
+                                  <a href={cred.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                                    {cred.url}
+                                  </a>
+                                </div>
+                              )}
+                              {cred.notes && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-slate-500 w-24">Notering:</span>
+                                  <p className="text-slate-600 flex-1">{cred.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (window.confirm('Ta bort denna inloggning?')) {
+                                const updatedCredentials = employee.credentials.filter((_, i) => i !== index);
+                                base44.entities.Employee.update(employee.id, { credentials: updatedCredentials })
+                                  .then(() => queryClient.invalidateQueries({ queryKey: ['employee', employeeId] }));
+                              }
+                            }}
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {(!employee.credentials || employee.credentials.length === 0) && !employee.assigned_onboarding_template_id && (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-8 text-center">
+                    <Key className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">Ingen onboarding-information tillgänglig ännu</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          )}
+
           {/* Important Dates Tab */}
           <TabsContent value="dates" className="space-y-4">
             {isAdmin && (
@@ -448,6 +582,24 @@ export default function EmployeeDetails() {
         open={showDateModal}
         onClose={() => {
           setShowDateModal(false);
+          queryClient.invalidateQueries({ queryKey: ['employee', employeeId] });
+        }}
+        employee={employee}
+      />
+
+      <AssignTemplateModal
+        open={showTemplateModal}
+        onClose={() => {
+          setShowTemplateModal(false);
+          queryClient.invalidateQueries({ queryKey: ['employee', employeeId] });
+        }}
+        employee={employee}
+      />
+
+      <CredentialsModal
+        open={showCredentialsModal}
+        onClose={() => {
+          setShowCredentialsModal(false);
           queryClient.invalidateQueries({ queryKey: ['employee', employeeId] });
         }}
         employee={employee}
