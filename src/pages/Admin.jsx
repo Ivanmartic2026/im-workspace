@@ -193,6 +193,12 @@ export default function Admin() {
                       <span className="text-xs">Personal</span>
                     </Button>
                   </Link>
+                  <Link to={createPageUrl('OnboardingTemplates')}>
+                    <Button variant="outline" className="w-full h-auto py-4 flex flex-col items-center gap-2">
+                      <BookOpen className="h-5 w-5" />
+                      <span className="text-xs">Onboarding</span>
+                    </Button>
+                  </Link>
                   <Link to={createPageUrl('Vehicles')}>
                     <Button variant="outline" className="w-full h-auto py-4 flex flex-col items-center gap-2">
                       <Car className="h-5 w-5" />
