@@ -40,12 +40,17 @@ self.addEventListener('push', (event) => {
     requireInteraction: notificationData.priority === 'high' || notificationData.priority === 'urgent',
     data: {
       url: notificationData.action_url || '/',
-      notificationId: notificationData.notificationId
+      notificationId: notificationData.notificationId,
+      unreadCount: notificationData.unreadCount || 1
     }
   };
 
   event.waitUntil(
-    self.registration.showNotification(notificationData.title, options)
+    Promise.all([
+      self.registration.showNotification(notificationData.title, options),
+      // Update badge with unread count
+      navigator.setAppBadge ? navigator.setAppBadge(notificationData.unreadCount || 1) : Promise.resolve()
+    ])
   );
 });
 
@@ -57,6 +62,11 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Clear badge when notification is clicked
+      if (navigator.clearAppBadge) {
+        navigator.clearAppBadge();
+      }
+      
       for (const client of clientList) {
         if (client.url.includes(urlToOpen) && 'focus' in client) {
           return client.focus();
