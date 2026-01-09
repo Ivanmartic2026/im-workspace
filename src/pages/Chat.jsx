@@ -104,19 +104,6 @@ export default function Chat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
-      // Optimistically add message to UI
-      const tempMessage = {
-        id: `temp-${Date.now()}`,
-        conversation_id: selectedConversationId,
-        sender_email: user.email,
-        sender_name: user.full_name,
-        content,
-        created_date: new Date().toISOString(),
-        is_read: false
-      };
-      
-      setMessages(prev => [...prev, tempMessage]);
-
       const message = await base44.entities.Message.create({
         conversation_id: selectedConversationId,
         sender_email: user.email,
@@ -175,6 +162,14 @@ export default function Chat() {
     onSuccess: () => {
       refetchConversations();
       setMessageContent('');
+      // Force immediate reload of messages
+      if (selectedConversationId) {
+        base44.entities.Message.filter(
+          { conversation_id: selectedConversationId },
+          'created_date',
+          100
+        ).then(msgs => setMessages(msgs));
+      }
     },
   });
 
@@ -215,7 +210,11 @@ export default function Chat() {
         >
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
-            <Button onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} size="icon" variant="outline" className="rounded-full">
+            <Button 
+              onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} 
+              size="icon" 
+              className="rounded-full bg-slate-900 hover:bg-slate-800 text-white h-11 w-11 shadow-lg"
+            >
               <Plus className="h-5 w-5" />
             </Button>
           </div>
@@ -353,9 +352,13 @@ export default function Chat() {
         ) : (
           <>
             <div className="sticky top-0 bg-white/95 backdrop-blur border-b p-4 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between pr-14">
                 <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
-                <Button onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} size="icon" variant="outline" className="rounded-full">
+                <Button 
+                  onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} 
+                  size="icon" 
+                  className="rounded-full bg-slate-900 hover:bg-slate-800 text-white h-11 w-11 shadow-lg"
+                >
                   <Plus className="h-5 w-5" />
                 </Button>
               </div>
