@@ -54,13 +54,30 @@ export default function Chat() {
     }
 
     setMessagesLoading(true);
-    const unsubscribe = base44.agents.subscribeToConversation(selectedConversationId, (data) => {
-      setMessages(data.messages.reverse());
-      setMessagesLoading(false);
-    });
+    
+    // Fetch messages directly from Message entity
+    const loadMessages = async () => {
+      try {
+        const msgs = await base44.entities.Message.filter(
+          { conversation_id: selectedConversationId },
+          'created_date',
+          100
+        );
+        setMessages(msgs);
+        setMessagesLoading(false);
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        setMessagesLoading(false);
+      }
+    };
+
+    loadMessages();
+    
+    // Refresh messages every 3 seconds
+    const interval = setInterval(loadMessages, 3000);
 
     return () => {
-      unsubscribe();
+      clearInterval(interval);
       setMessagesLoading(false);
     };
   }, [selectedConversationId]);
@@ -87,6 +104,19 @@ export default function Chat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
+      // Optimistically add message to UI
+      const tempMessage = {
+        id: `temp-${Date.now()}`,
+        conversation_id: selectedConversationId,
+        sender_email: user.email,
+        sender_name: user.full_name,
+        content,
+        created_date: new Date().toISOString(),
+        is_read: false
+      };
+      
+      setMessages(prev => [...prev, tempMessage]);
+
       const message = await base44.entities.Message.create({
         conversation_id: selectedConversationId,
         sender_email: user.email,
