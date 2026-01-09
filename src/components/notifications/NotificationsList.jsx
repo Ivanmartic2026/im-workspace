@@ -1,14 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Calendar, AlertTriangle, ChevronRight, Trash2, Check } from 'lucide-react';
+import { Bell, Calendar, AlertTriangle, ChevronRight, Trash2, Check, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
-
-import { MessageCircle } from 'lucide-react';
 
 const typeConfig = {
   news: {
@@ -93,10 +91,13 @@ export default function NotificationsList({ notifications, onClose, onDelete, on
   }
 
   return (
-    <div className="mt-6 space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+    <div className="mt-6 space-y-2 overflow-y-auto max-h-[calc(100vh-120px)]">
       {notifications.map((notification, idx) => {
         const config = typeConfig[notification.type];
         const Icon = config.icon;
+        const x = useMotionValue(0);
+        const deleteOpacity = useTransform(x, [-100, 0], [1, 0]);
+        const readOpacity = useTransform(x, [0, 100], [0, 1]);
 
         return (
           <motion.div
@@ -104,64 +105,78 @@ export default function NotificationsList({ notifications, onClose, onDelete, on
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: idx * 0.05 }}
+            className="relative"
           >
-            <Card 
-              className={`border-l-4 ${config.borderColor} cursor-pointer hover:shadow-md transition-shadow`}
-              onClick={() => handleClick(notification)}
+            {/* Delete action (swipe left) */}
+            <motion.div 
+              className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 bg-red-500 rounded-xl"
+              style={{ opacity: deleteOpacity }}
             >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${config.bgColor} flex-shrink-0`}>
-                    <Icon className={`h-5 w-5 ${config.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
+              <Trash2 className="h-5 w-5 text-white" />
+            </motion.div>
+
+            {/* Read action (swipe right) */}
+            {!notification.data?.is_read && (
+              <motion.div 
+                className="absolute inset-y-0 left-0 flex items-center justify-start pl-4 bg-green-500 rounded-xl"
+                style={{ opacity: readOpacity }}
+              >
+                <Check className="h-5 w-5 text-white" />
+              </motion.div>
+            )}
+
+            <motion.div
+              drag="x"
+              dragConstraints={{ left: -100, right: notification.data?.is_read ? 0 : 100 }}
+              dragElastic={0.2}
+              style={{ x }}
+              onDragEnd={(e, info) => {
+                if (info.offset.x < -80) {
+                  onDelete?.(notification.id);
+                } else if (info.offset.x > 80 && !notification.data?.is_read) {
+                  onMarkAsRead?.(notification.id);
+                }
+              }}
+            >
+              <Card 
+                className={`border-l-4 ${config.borderColor} cursor-pointer hover:shadow-md transition-shadow`}
+                onClick={() => handleClick(notification)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg ${config.bgColor} flex-shrink-0`}>
+                      <Icon className={`h-5 w-5 ${config.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
                         <h4 className="font-semibold text-slate-900 text-sm">
                           {notification.title}
                         </h4>
-                        <div className="flex items-center gap-1">
-                          {notification.urgent && (
-                            <Badge variant="destructive" className="text-xs">
-                              AKUT
-                            </Badge>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onDelete?.(notification.id);
-                            }}
-                            className="p-1 hover:bg-slate-200 rounded transition-colors"
-                            title="Ta bort"
-                          >
-                            <Trash2 className="h-4 w-4 text-slate-400 hover:text-slate-600" />
-                          </button>
-                        </div>
+                        {notification.urgent && (
+                          <Badge variant="destructive" className="text-xs">
+                            AKUT
+                          </Badge>
+                        )}
                       </div>
-                    <p className="text-sm text-slate-600 line-clamp-2 mb-2">
-                      {notification.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-slate-400">
-                       {format(new Date(notification.date + 'Z'), "d MMM 'kl' HH:mm", { locale: sv })}
-                     </p>
-                      {!notification.data?.is_read && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onMarkAsRead?.(notification.id);
-                          }}
-                          className="ml-2 p-1 hover:bg-slate-200 rounded transition-colors"
-                          title="Markera som läst"
-                        >
-                          <Check className="h-4 w-4 text-indigo-600" />
-                        </button>
-                      )}
+                      <p className="text-sm text-slate-600 line-clamp-2 mb-2">
+                        {notification.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-slate-400">
+                          {format(new Date(notification.date + 'Z'), "d MMM 'kl' HH:mm", { locale: sv })}
+                        </p>
+                        {!notification.data?.is_read && (
+                          <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">
+                            NY
+                          </Badge>
+                        )}
+                      </div>
                     </div>
+                    <ChevronRight className="h-5 w-5 text-slate-400 flex-shrink-0" />
                   </div>
-                  <ChevronRight className="h-5 w-5 text-slate-400 flex-shrink-0" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           </motion.div>
         );
       })}
