@@ -5,6 +5,7 @@ import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import NotificationBell from './components/notifications/NotificationBell';
+import ServiceWorkerManager from './components/notifications/ServiceWorkerManager';
 
 const navItems = [
   { name: 'Home', label: 'Hem', icon: Home },
@@ -78,6 +79,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <ServiceWorkerManager />
       <style>{`
         :root {
           --color-primary: 15 23 42;
