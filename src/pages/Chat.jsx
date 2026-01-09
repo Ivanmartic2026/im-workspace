@@ -41,7 +41,7 @@ export default function Chat() {
       return all.filter(conv => conv.participants.includes(user.email) && !conv.is_archived);
     },
     enabled: !!user?.email,
-    refetchInterval: 10000,
+    refetchInterval: 3000, // Uppdatera konversationslistan oftare
   });
 
   const [messages, setMessages] = useState([]);
@@ -73,8 +73,8 @@ export default function Chat() {
 
     loadMessages();
     
-    // Refresh messages every 3 seconds
-    const interval = setInterval(loadMessages, 3000);
+    // Refresh messages every 2 seconds for real-time updates
+    const interval = setInterval(loadMessages, 2000);
 
     return () => {
       clearInterval(interval);
@@ -139,7 +139,8 @@ export default function Chat() {
         const participants = convs[0].participants || [];
         for (const participantEmail of participants) {
           if (participantEmail !== user.email) {
-            await base44.entities.Notification.create({
+            // Create notification
+            const notification = await base44.entities.Notification.create({
               recipient_email: participantEmail,
               type: 'chat',
               title: 'Nytt chattmeddelande',
@@ -150,6 +151,21 @@ export default function Chat() {
               related_entity_type: 'Message',
               sent_via: ['app', 'push']
             });
+            
+            // Send push notification immediately
+            try {
+              await base44.functions.invoke('sendWebPushNotification', {
+                recipient_email: participantEmail,
+                title: 'Nytt chattmeddelande',
+                message: `${user.full_name}: ${content.substring(0, 80)}${content.length > 80 ? '...' : ''}`,
+                type: 'chat',
+                priority: 'normal',
+                action_url: `/chat?conversation=${selectedConversationId}`,
+                notificationId: notification.id
+              });
+            } catch (error) {
+              console.error('Failed to send push notification:', error);
+            }
           }
         }
       }
