@@ -23,6 +23,7 @@ import NotificationSettings from '@/components/admin/NotificationSettings';
 import PushNotificationTest from '@/components/admin/PushNotificationTest';
 import VehicleManagement from '@/components/admin/VehicleManagement';
 import StaffLocationMap from '@/components/admin/StaffLocationMap';
+import BulkNotifications from '@/components/admin/BulkNotifications';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -333,10 +334,14 @@ export default function Admin() {
               <Tabs defaultValue="notifications">
                 <TabsList className="w-full bg-white shadow-sm">
                   <TabsTrigger value="notifications">Notiser</TabsTrigger>
+                  <TabsTrigger value="bulk">Massnotiser</TabsTrigger>
                   <TabsTrigger value="push">Push-test</TabsTrigger>
                 </TabsList>
                 <TabsContent value="notifications">
                   <NotificationSettings />
+                </TabsContent>
+                <TabsContent value="bulk">
+                  <BulkNotifications />
                 </TabsContent>
                 <TabsContent value="push">
                   <PushNotificationTest />
