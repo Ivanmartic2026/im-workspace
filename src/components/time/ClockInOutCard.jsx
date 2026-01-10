@@ -230,6 +230,14 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
         }
         
         await base44.entities.TimeEntry.update(activeEntry.id, updateData);
+        
+        // Check project budget after completing time entry
+        try {
+          await base44.functions.invoke('checkProjectBudget', { time_entry_id: activeEntry.id });
+        } catch (budgetError) {
+          console.error('Error checking project budget:', budgetError);
+        }
+        
         await onUpdate();
       } catch (error) {
         console.error('Error clocking out:', error);
