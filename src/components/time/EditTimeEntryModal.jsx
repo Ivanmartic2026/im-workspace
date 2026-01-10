@@ -20,11 +20,13 @@ export default function EditTimeEntryModal({ open, onClose, entry, onSuccess }) 
     edit_reason: ''
   });
 
-  const { data: projects = [] } = useQuery({
+  const { data: allProjects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list(),
     initialData: []
   });
+
+  const projects = allProjects.filter(p => p.status === 'pågående' || p.status === 'planerat');
 
   useEffect(() => {
     if (entry) {
