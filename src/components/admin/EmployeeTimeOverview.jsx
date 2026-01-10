@@ -49,12 +49,26 @@ export default function EmployeeTimeOverview() {
     initialData: []
   });
 
+  // Hämta ALLA time entries för vald period
+  const { data: allTimeEntries = [] } = useQuery({
+    queryKey: ['all-time-entries', startDate, endDate],
+    queryFn: async () => {
+      const entries = await base44.entities.TimeEntry.list();
+      return entries.filter(e => {
+        const entryDate = new Date(e.date);
+        return entryDate >= new Date(startDate) && entryDate <= new Date(endDate);
+      });
+    },
+    initialData: []
+  });
+
+  // Hämta time entries för vald anställd
   const { data: timeEntries = [] } = useQuery({
-    queryKey: ['time-entries', selectedEmployee?.user_email, startDate, endDate],
+    queryKey: ['time-entries', selectedEmployee?.email, startDate, endDate],
     queryFn: async () => {
       if (!selectedEmployee) return [];
       const entries = await base44.entities.TimeEntry.filter({
-        employee_email: selectedEmployee.user_email
+        employee_email: selectedEmployee.email
       });
       return entries.filter(e => {
         const entryDate = new Date(e.date);
@@ -71,17 +85,43 @@ export default function EmployeeTimeOverview() {
     initialData: []
   });
 
-  const enrichedEmployees = employees.map(emp => {
-    const user = users.find(u => u.email === emp.user_email);
-    return { ...emp, user };
-  }).filter(emp => emp.user);
-
-  const filteredEmployees = enrichedEmployees.filter(emp => {
+  // Visa alla användare direkt
+  const filteredUsers = users.filter(user => {
     const searchLower = searchQuery.toLowerCase();
-    return emp.user.full_name?.toLowerCase().includes(searchLower) ||
-           emp.user.email?.toLowerCase().includes(searchLower) ||
-           emp.department?.toLowerCase().includes(searchLower);
+    const employee = employees.find(e => e.user_email === user.email);
+    return user.full_name?.toLowerCase().includes(searchLower) ||
+           user.email?.toLowerCase().includes(searchLower) ||
+           employee?.department?.toLowerCase().includes(searchLower);
   });
+
+  // Beräkna sammanlagd statistik för ALLA användare
+  const calculateOverallStats = () => {
+    if (!allTimeEntries.length) return { 
+      totalHours: 0, 
+      totalEmployees: 0, 
+      totalDays: 0,
+      employeeHours: {}
+    };
+
+    const totalHours = allTimeEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+    const uniqueEmployees = new Set(allTimeEntries.map(e => e.employee_email));
+    const uniqueDays = new Set(allTimeEntries.map(e => e.date));
+    
+    const employeeHours = {};
+    allTimeEntries.forEach(entry => {
+      if (!employeeHours[entry.employee_email]) {
+        employeeHours[entry.employee_email] = 0;
+      }
+      employeeHours[entry.employee_email] += entry.total_hours || 0;
+    });
+
+    return { 
+      totalHours, 
+      totalEmployees: uniqueEmployees.size,
+      totalDays: uniqueDays.size,
+      employeeHours
+    };
+  };
 
   const calculateStats = () => {
     if (!timeEntries.length) return { totalHours: 0, projects: {} };
@@ -106,6 +146,7 @@ export default function EmployeeTimeOverview() {
     return { totalHours, projects: projectMap };
   };
 
+  const overallStats = calculateOverallStats();
   const stats = selectedEmployee ? calculateStats() : null;
 
   return (
@@ -118,7 +159,7 @@ export default function EmployeeTimeOverview() {
               Anställdöversikt
             </CardTitle>
             <Badge variant="outline" className="text-sm">
-              {filteredEmployees.length} anställda
+              {filteredUsers.length} användare
             </Badge>
           </div>
         </CardHeader>
@@ -149,6 +190,51 @@ export default function EmployeeTimeOverview() {
               Denna månad
             </Button>
           </div>
+
+          {/* Sammanfattning för alla användare */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{overallStats.totalHours.toFixed(1)}h</p>
+                    <p className="text-xs text-slate-600">Total arbetstid</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{overallStats.totalEmployees}</p>
+                    <p className="text-xs text-slate-600">Aktiva användare</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{overallStats.totalDays}</p>
+                    <p className="text-xs text-slate-600">Arbetsdagar</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -161,41 +247,54 @@ export default function EmployeeTimeOverview() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredEmployees.map(emp => (
-              <Card
-                key={emp.id}
-                className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setSelectedEmployee(emp)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-slate-900">{emp.user.full_name}</h3>
-                      <p className="text-sm text-slate-500">{emp.user.email}</p>
+            {filteredUsers.map(user => {
+              const employee = employees.find(e => e.user_email === user.email);
+              const userHours = overallStats.employeeHours[user.email] || 0;
+              
+              return (
+                <Card
+                  key={user.id}
+                  className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelectedEmployee(user)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-slate-900">{user.full_name}</h3>
+                        <p className="text-sm text-slate-500">{user.email}</p>
+                      </div>
+                      <Badge className={user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}>
+                        {user.role === 'admin' ? 'Admin' : 'User'}
+                      </Badge>
                     </div>
-                    <Badge className={emp.user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}>
-                      {emp.user.role === 'admin' ? 'Admin' : 'User'}
-                    </Badge>
-                  </div>
-                  {emp.department && (
-                    <p className="text-xs text-slate-600 mt-2">
-                      📂 {emp.department}
-                    </p>
-                  )}
-                  {emp.job_title && (
-                    <p className="text-xs text-slate-600">
-                      💼 {emp.job_title}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    {employee?.department && (
+                      <p className="text-xs text-slate-600 mt-2">
+                        📂 {employee.department}
+                      </p>
+                    )}
+                    {employee?.job_title && (
+                      <p className="text-xs text-slate-600">
+                        💼 {employee.job_title}
+                      </p>
+                    )}
+                    {userHours > 0 && (
+                      <div className="mt-2 pt-2 border-t border-slate-200">
+                        <p className="text-xs text-slate-500">
+                          <Clock className="inline h-3 w-3 mr-1" />
+                          {userHours.toFixed(1)}h denna period
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
-          {filteredEmployees.length === 0 && (
+          {filteredUsers.length === 0 && (
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">Inga anställda hittades</p>
+              <p className="text-slate-600">Inga användare hittades</p>
             </div>
           )}
         </CardContent>
@@ -206,7 +305,7 @@ export default function EmployeeTimeOverview() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              {selectedEmployee?.user.full_name} - Tidrapporter
+              {selectedEmployee?.full_name} - Tidrapporter
             </DialogTitle>
           </DialogHeader>
 
