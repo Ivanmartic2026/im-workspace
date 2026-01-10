@@ -384,7 +384,10 @@ export default function Chat() {
               <p className="text-xs font-medium text-slate-500 mb-3 px-1">
                 {chatType === 'direct' ? 'Välj person' : `Valda: ${selectedParticipants.length}`}
               </p>
-              {otherUsers.map(u => {
+              {otherUsers.length === 0 ? (
+                <p className="text-sm text-slate-500 text-center py-8">Inga användare hittades</p>
+              ) : (
+                otherUsers.map(u => {
                 const isSelected = selectedParticipants.includes(u.email);
                 return (
                   <button
@@ -424,9 +427,10 @@ export default function Chat() {
                         </svg>
                       </div>
                     )}
-                  </button>
-                );
-              })}
+                    </button>
+                    );
+                    })
+                    )}
             </div>
 
             <Button
