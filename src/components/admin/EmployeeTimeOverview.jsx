@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Users, Clock, Search, Calendar, TrendingUp, Briefcase } from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 
 export default function EmployeeTimeOverview() {
@@ -16,6 +16,26 @@ export default function EmployeeTimeOverview() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [quickFilter, setQuickFilter] = useState('month');
+
+  const applyQuickFilter = (filter) => {
+    setQuickFilter(filter);
+    const now = new Date();
+    switch(filter) {
+      case 'today':
+        setStartDate(format(startOfDay(now), 'yyyy-MM-dd'));
+        setEndDate(format(endOfDay(now), 'yyyy-MM-dd'));
+        break;
+      case 'week':
+        setStartDate(format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd'));
+        setEndDate(format(endOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd'));
+        break;
+      case 'month':
+        setStartDate(format(startOfMonth(now), 'yyyy-MM-dd'));
+        setEndDate(format(endOfMonth(now), 'yyyy-MM-dd'));
+        break;
+    }
+  };
 
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
@@ -103,6 +123,33 @@ export default function EmployeeTimeOverview() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant={quickFilter === 'today' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('today')}
+              className={quickFilter === 'today' ? 'bg-slate-900' : ''}
+            >
+              Idag
+            </Button>
+            <Button
+              variant={quickFilter === 'week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('week')}
+              className={quickFilter === 'week' ? 'bg-slate-900' : ''}
+            >
+              1V
+            </Button>
+            <Button
+              variant={quickFilter === 'month' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('month')}
+              className={quickFilter === 'month' ? 'bg-slate-900' : ''}
+            >
+              Denna månad
+            </Button>
+          </div>
+          
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
