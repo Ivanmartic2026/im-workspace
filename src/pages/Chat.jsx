@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ConversationList from '@/components/chat/ConversationList';
 import MessageList from '@/components/chat/MessageList';
 import ContactList from '@/components/chat/ContactList';
-import { motion } from "framer-motion";
+import TypingIndicator from '@/components/chat/TypingIndicator';
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Chat() {
   const [user, setUser] = useState(null);
@@ -22,8 +23,10 @@ export default function Chat() {
   const [chatType, setChatType] = useState('direct'); // 'direct' or 'group'
   const [searchQuery, setSearchQuery] = useState('');
   const [messageSearchQuery, setMessageSearchQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => setUser(null));
@@ -42,7 +45,7 @@ export default function Chat() {
       return all.filter(conv => conv.participants.includes(user.email) && !conv.is_archived);
     },
     enabled: !!user?.email,
-    refetchInterval: 3000, // Uppdatera konversationslistan oftare
+    refetchInterval: 2000,
   });
 
   const [messages, setMessages] = useState([]);
@@ -73,15 +76,63 @@ export default function Chat() {
     };
 
     loadMessages();
-    
-    // Refresh messages every 2 seconds for real-time updates
-    const interval = setInterval(loadMessages, 2000);
+
+    // Refresh messages every 1.5 seconds for real-time feel
+    const interval = setInterval(loadMessages, 1500);
 
     return () => {
       clearInterval(interval);
       setMessagesLoading(false);
     };
-  }, [selectedConversationId]);
+    }, [selectedConversationId]);
+
+    // Mark messages as read when viewing
+    useEffect(() => {
+    if (!selectedConversationId || !messages.length || !user?.email) return;
+
+    const unreadMessages = messages.filter(msg => 
+    msg.sender_email !== user.email && 
+    (!msg.read_by || !msg.read_by.some(r => r.email === user.email))
+    );
+
+    if (unreadMessages.length > 0) {
+    base44.functions.invoke('markMessagesAsRead', {
+      message_ids: unreadMessages.map(m => m.id)
+    }).catch(err => console.error('Error marking as read:', err));
+    }
+    }, [messages, selectedConversationId, user?.email]);
+
+    // Handle typing indicator
+    const handleTypingChange = (value) => {
+    setMessageContent(value);
+
+    if (!selectedConversationId || !user?.email) return;
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+    clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Send typing status
+    if (value.trim() && !isTyping) {
+    setIsTyping(true);
+    base44.functions.invoke('updateTypingStatus', {
+      conversation_id: selectedConversationId,
+      is_typing: true
+    }).catch(err => console.error('Typing error:', err));
+    }
+
+    // Clear typing status after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+    if (isTyping) {
+      setIsTyping(false);
+      base44.functions.invoke('updateTypingStatus', {
+        conversation_id: selectedConversationId,
+        is_typing: false
+      }).catch(err => console.error('Typing error:', err));
+    }
+    }, 2000);
+    };
 
   const createConversationMutation = useMutation({
     mutationFn: async (participants) => {
@@ -145,6 +196,16 @@ export default function Chat() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!messageContent.trim()) return;
+    
+    // Clear typing status
+    if (isTyping) {
+      setIsTyping(false);
+      base44.functions.invoke('updateTypingStatus', {
+        conversation_id: selectedConversationId,
+        is_typing: false
+      }).catch(err => console.error('Typing error:', err));
+    }
+    
     await sendMessageMutation.mutate(messageContent);
   };
 
@@ -155,6 +216,12 @@ export default function Chat() {
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
   const otherUsers = allUsers.filter(u => u.email !== user?.email);
+
+  // Get typing users for selected conversation
+  const typingUsers = selectedConversation?.typing_users
+    ?.filter(tu => tu.email !== user?.email && 
+      (new Date() - new Date(tu.timestamp)) < 5000) // Only show if typed within last 5 seconds
+    ?.map(tu => tu.name) || [];
 
   // Filter conversations based on search
   const filteredConversations = conversations.filter(conv => {
@@ -239,6 +306,11 @@ export default function Chat() {
                   ) : (
                     <>
                       <MessageList messages={filteredMessages} currentUserEmail={user?.email} />
+                      <AnimatePresence>
+                        {typingUsers.length > 0 && (
+                          <TypingIndicator typingUsers={typingUsers} />
+                        )}
+                      </AnimatePresence>
                       <div ref={messagesEndRef} />
                     </>
                   )}
@@ -247,7 +319,7 @@ export default function Chat() {
                 <form onSubmit={handleSendMessage} className="border-t p-4 flex gap-2">
                   <Input
                     value={messageContent}
-                    onChange={(e) => setMessageContent(e.target.value)}
+                    onChange={(e) => handleTypingChange(e.target.value)}
                     placeholder="Skriv ett meddelande..."
                     className="flex-1 rounded-full h-11"
                   />
@@ -296,6 +368,11 @@ export default function Chat() {
               ) : (
                 <>
                   <MessageList messages={messages} currentUserEmail={user?.email} />
+                  <AnimatePresence>
+                    {typingUsers.length > 0 && (
+                      <TypingIndicator typingUsers={typingUsers} />
+                    )}
+                  </AnimatePresence>
                   <div ref={messagesEndRef} />
                 </>
               )}
@@ -304,7 +381,7 @@ export default function Chat() {
             <form onSubmit={handleSendMessage} className="border-t p-4 flex gap-2">
               <Input
                 value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
+                onChange={(e) => handleTypingChange(e.target.value)}
                 placeholder="Skriv ett meddelande..."
                 className="flex-1 rounded-full h-11"
               />
