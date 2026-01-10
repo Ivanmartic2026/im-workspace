@@ -147,18 +147,14 @@ export default function PushNotificationSetup({ user }) {
       }
 
       console.log('3. Väntar på service worker...');
-      
-      // Check if service worker is registered
-      if (!navigator.serviceWorker.controller) {
-        throw new Error('Service worker inte registrerad. Ladda om sidan och försök igen.');
-      }
-      
+
+      // Wait for service worker to be ready (give it more time to register)
       const swPromise = navigator.serviceWorker.ready;
       const swTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Service worker timeout - ladda om sidan och försök igen')), 15000)
+        setTimeout(() => reject(new Error('Service worker timeout - ladda om sidan och försök igen')), 20000)
       );
       const registration = await Promise.race([swPromise, swTimeout]);
-      console.log('4. Service worker redo');
+      console.log('4. Service worker redo:', registration);
 
       console.log('5. Skapar push-prenumeration...');
       const subPromise = registration.pushManager.subscribe({
