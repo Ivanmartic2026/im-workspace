@@ -121,9 +121,12 @@ export default function PushNotificationSetup({ user }) {
     setError(null);
 
     try {
+      console.log('1. Begär notifikationsbehörighet...');
+      
       // Request notification permission
       if (Notification.permission === 'default') {
         const permission = await Notification.requestPermission();
+        console.log('2. Behörighet:', permission);
         if (permission !== 'granted') {
           throw new Error('Push-notifikationsbehörighet inte beviljad');
         }
@@ -133,27 +136,33 @@ export default function PushNotificationSetup({ user }) {
         throw new Error('Push-notifikationsbehörighet krävs för att fortsätta');
       }
 
-      // Subscribe to push
+      console.log('3. Väntar på service worker...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('4. Service worker redo');
+
+      console.log('5. Skapar push-prenumeration...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
+      console.log('6. Prenumeration skapad:', subscription.endpoint);
 
       // Store in database
+      console.log('7. Sparar i databas...');
       await storePushSubscription(subscription);
+      console.log('8. Sparat i databas!');
+      
       setSubscription(subscription);
       setIsSubscribed(true);
       
       // Show success notification
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Push-notifikationer aktiverade! 🎉', {
-          body: 'Du kommer nu att få notifikationer även när appen är stängd.',
-          icon: '/icon-192.png'
-        });
-      }
+      console.log('9. Visar bekräftelse...');
+      new Notification('Push-notifikationer aktiverade! 🎉', {
+        body: 'Du kommer nu att få notifikationer även när appen är stängd.',
+        icon: '/icon-192.png'
+      });
     } catch (err) {
-      console.error('Subscription error:', err);
+      console.error('SUBSCRIPTION ERROR:', err);
       setError(err.message || 'Kunde inte aktivera push-notifikationer');
     } finally {
       setIsLoading(false);

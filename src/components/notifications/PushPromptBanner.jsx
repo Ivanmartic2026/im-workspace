@@ -83,33 +83,46 @@ export default function PushPromptBanner({ user }) {
   };
 
   const handleActivate = async () => {
-    if (!vapidPublicKey) return;
+    if (!vapidPublicKey) {
+      alert('Systemet är inte redo än. Vänta ett ögonblick och försök igen.');
+      return;
+    }
 
     setIsLoading(true);
 
     try {
+      console.log('1. Begär notifikationsbehörighet...');
+      
       // Request notification permission
       if (Notification.permission === 'default') {
         const permission = await Notification.requestPermission();
+        console.log('2. Behörighet:', permission);
         if (permission !== 'granted') {
           setIsLoading(false);
+          alert('Du måste tillåta notifikationer för att aktivera push.');
           return;
         }
       }
 
       if (Notification.permission !== 'granted') {
         setIsLoading(false);
+        alert('Notifikationsbehörighet krävs. Kontrollera webbläsarinställningar.');
         return;
       }
 
-      // Subscribe to push
+      console.log('3. Väntar på service worker...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('4. Service worker redo');
+
+      console.log('5. Skapar push-prenumeration...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
+      console.log('6. Prenumeration skapad:', subscription.endpoint);
 
       // Store in database
+      console.log('7. Sparar i databas...');
       const keys = subscription.getKey('auth');
       const p256dh = subscription.getKey('p256dh');
       
@@ -121,21 +134,23 @@ export default function PushPromptBanner({ user }) {
         browser: getBrowserName(),
         device_name: getDeviceName()
       });
+      console.log('8. Sparat i databas!');
 
       setIsSubscribed(true);
       setIsDismissed(true);
       localStorage.setItem('pushPromptDismissed', 'true');
       
       // Show success notification
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Push-notifikationer aktiverade! 🎉', {
-          body: 'Du kommer nu att få notifikationer även när appen är stängd.',
-          icon: '/icon-192.png'
-        });
-      }
+      console.log('9. Visar bekräftelse...');
+      new Notification('Push-notifikationer aktiverade! 🎉', {
+        body: 'Du kommer nu att få notifikationer även när appen är stängd.',
+        icon: '/icon-192.png'
+      });
+      
+      alert('✓ Push-notifikationer är nu aktiverade!');
     } catch (err) {
-      console.error('Subscription error:', err);
-      alert('Kunde inte aktivera push-notifikationer. Försök igen.');
+      console.error('SUBSCRIPTION ERROR:', err);
+      alert(`Fel: ${err.message || 'Kunde inte aktivera push-notifikationer'}`);
     } finally {
       setIsLoading(false);
     }
