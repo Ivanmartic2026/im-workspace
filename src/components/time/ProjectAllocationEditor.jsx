@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,7 +79,7 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel })
     setAllocations(updated);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (allocatedHours > totalHours) {
       alert(`Du har fördelat ${allocatedHours.toFixed(2)}h men bara ${totalHours.toFixed(2)}h är tillgängliga`);
       return;
@@ -91,7 +92,15 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel })
       return;
     }
 
-    onSave(validAllocations);
+    // Call onSave first to save the time entry
+    await onSave(validAllocations);
+    
+    // Check project budget after saving
+    try {
+      await base44.functions.invoke('checkProjectBudget', { time_entry_id: timeEntry.id });
+    } catch (budgetError) {
+      console.error('Error checking project budget:', budgetError);
+    }
   };
 
   return (
