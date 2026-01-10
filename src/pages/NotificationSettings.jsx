@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Bell, Mail, Smartphone, Save, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import PushNotificationSetup from "@/components/notifications/PushNotificationSetup";
 
 const notificationTypes = [
   { key: 'onboarding_tasks', label: 'Onboarding-uppgifter', description: 'Få notiser om nya uppgifter' },
@@ -79,6 +80,11 @@ export default function NotificationSettings() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="text-2xl font-bold text-slate-900 mb-6">Notisinställningar</h1>
+
+          {/* Push Notification Setup */}
+          <div className="mb-6">
+            <PushNotificationSetup user={user} />
+          </div>
 
           {/* Delivery Methods */}
           <Card className="border-0 shadow-sm mb-6">

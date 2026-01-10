@@ -9,6 +9,7 @@ import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
 import ClockInOutCard from "@/components/time/ClockInOutCard";
+import PushPromptBanner from "@/components/notifications/PushPromptBanner";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -165,6 +166,9 @@ export default function Home() {
               </Button>
             )}
           </div>
+
+          {/* Push Notification Prompt */}
+          <PushPromptBanner user={user} />
 
           {/* Clock In/Out Card */}
           <div className="mb-6">
