@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Clock, MapPin, Loader2, LogIn, LogOut, Coffee } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -491,7 +492,8 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
           </div>
           ) : (
           <div className="space-y-4">
-            {projects.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">Välj projekt</Label>
               <Select onValueChange={setSelectedProjectId} value={selectedProjectId || ""}>
                 <SelectTrigger className="w-full h-12 rounded-xl text-base">
                   <SelectValue placeholder="Välj projekt (valfritt)" />
@@ -504,7 +506,12 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                   ))}
                 </SelectContent>
               </Select>
-            )}
+              {selectedProjectId && (
+                <p className="text-xs text-emerald-600 flex items-center gap-1">
+                  ✓ Tid kommer registreras på valt projekt
+                </p>
+              )}
+            </div>
             <Button
               onClick={handleClockIn}
               disabled={loading}
