@@ -49,23 +49,17 @@ export default function EmployeeTimeOverview() {
     initialData: []
   });
 
-  const { data: allTimeEntries = [] } = useQuery({
-    queryKey: ['all-time-entries', startDate, endDate],
-    queryFn: async () => {
-      const entries = await base44.entities.TimeEntry.list();
-      return entries.filter(e => {
-        const entryDate = new Date(e.date);
-        return entryDate >= new Date(startDate) && entryDate <= new Date(endDate);
-      });
-    },
-    initialData: []
-  });
-
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['time-entries', selectedEmployee?.user_email, startDate, endDate],
     queryFn: async () => {
       if (!selectedEmployee) return [];
-      return allTimeEntries.filter(e => e.employee_email === selectedEmployee.user_email);
+      const entries = await base44.entities.TimeEntry.filter({
+        employee_email: selectedEmployee.user_email
+      });
+      return entries.filter(e => {
+        const entryDate = new Date(e.date);
+        return entryDate >= new Date(startDate) && entryDate <= new Date(endDate);
+      });
     },
     enabled: !!selectedEmployee,
     initialData: []
@@ -77,15 +71,10 @@ export default function EmployeeTimeOverview() {
     initialData: []
   });
 
-  const enrichedEmployees = users.map(user => {
-    const empData = employees.find(e => e.user_email === user.email);
-    return { 
-      user,
-      department: empData?.department,
-      job_title: empData?.job_title,
-      user_email: user.email
-    };
-  });
+  const enrichedEmployees = employees.map(emp => {
+    const user = users.find(u => u.email === emp.user_email);
+    return { ...emp, user };
+  }).filter(emp => emp.user);
 
   const filteredEmployees = enrichedEmployees.filter(emp => {
     const searchLower = searchQuery.toLowerCase();
@@ -119,145 +108,8 @@ export default function EmployeeTimeOverview() {
 
   const stats = selectedEmployee ? calculateStats() : null;
 
-  const calculateOverallStats = () => {
-    if (!allTimeEntries.length) return { totalHours: 0, employeeCount: 0, projects: {}, employeeHours: {} };
-
-    const totalHours = allTimeEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
-    const uniqueEmployees = new Set(allTimeEntries.map(e => e.employee_email));
-    const projectMap = {};
-    const employeeHours = {};
-
-    allTimeEntries.forEach(entry => {
-      if (!employeeHours[entry.employee_email]) {
-        employeeHours[entry.employee_email] = 0;
-      }
-      employeeHours[entry.employee_email] += entry.total_hours || 0;
-
-      if (entry.project_allocations) {
-        entry.project_allocations.forEach(alloc => {
-          const project = projects.find(p => p.id === alloc.project_id);
-          const projectName = project?.name || alloc.project_id;
-          if (!projectMap[projectName]) {
-            projectMap[projectName] = { hours: 0, count: 0 };
-          }
-          projectMap[projectName].hours += alloc.hours;
-          projectMap[projectName].count += 1;
-        });
-      }
-    });
-
-    return { 
-      totalHours, 
-      employeeCount: uniqueEmployees.size, 
-      projects: projectMap,
-      employeeHours 
-    };
-  };
-
-  const overallStats = calculateOverallStats();
-
   return (
     <div className="space-y-6">
-      {/* Quick Filters */}
-      <div className="flex gap-2">
-        <Button
-          variant={quickFilter === 'today' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => applyQuickFilter('today')}
-          className={quickFilter === 'today' ? 'bg-slate-900' : ''}
-        >
-          Idag
-        </Button>
-        <Button
-          variant={quickFilter === 'week' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => applyQuickFilter('week')}
-          className={quickFilter === 'week' ? 'bg-slate-900' : ''}
-        >
-          1V
-        </Button>
-        <Button
-          variant={quickFilter === 'month' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => applyQuickFilter('month')}
-          className={quickFilter === 'month' ? 'bg-slate-900' : ''}
-        >
-          Denna månad
-        </Button>
-      </div>
-
-      {/* Overall Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{overallStats.totalHours.toFixed(1)}h</p>
-                <p className="text-xs text-slate-600">Total arbetstid</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <Users className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{overallStats.employeeCount}</p>
-                <p className="text-xs text-slate-600">Aktiva anställda</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-pink-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Briefcase className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{Object.keys(overallStats.projects).length}</p>
-                <p className="text-xs text-slate-600">Aktiva projekt</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Project Breakdown for All */}
-      {Object.keys(overallStats.projects).length > 0 && (
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Projektfördelning (alla anställda)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {Object.entries(overallStats.projects)
-              .sort(([, a], [, b]) => b.hours - a.hours)
-              .map(([projectName, data]) => (
-                <div key={projectName} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900">{projectName}</p>
-                    <p className="text-xs text-slate-500">{data.count} registreringar</p>
-                  </div>
-                  <Badge variant="outline" className="text-sm font-semibold">
-                    {data.hours.toFixed(1)}h
-                  </Badge>
-                </div>
-              ))}
-          </CardContent>
-        </Card>
-      )}
-
       <Card className="border-0 shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -271,6 +123,32 @@ export default function EmployeeTimeOverview() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant={quickFilter === 'today' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('today')}
+              className={quickFilter === 'today' ? 'bg-slate-900' : ''}
+            >
+              Idag
+            </Button>
+            <Button
+              variant={quickFilter === 'week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('week')}
+              className={quickFilter === 'week' ? 'bg-slate-900' : ''}
+            >
+              1V
+            </Button>
+            <Button
+              variant={quickFilter === 'month' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('month')}
+              className={quickFilter === 'month' ? 'bg-slate-900' : ''}
+            >
+              Denna månad
+            </Button>
+          </div>
           
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -283,48 +161,35 @@ export default function EmployeeTimeOverview() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredEmployees.map(emp => {
-              const empHours = overallStats.employeeHours[emp.user.email] || 0;
-              return (
-                <Card
-                  key={emp.user.email}
-                  className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setSelectedEmployee(emp)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-slate-900">{emp.user.full_name}</h3>
-                        <p className="text-sm text-slate-500">{emp.user.email}</p>
-                      </div>
-                      <Badge className={emp.user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}>
-                        {emp.user.role === 'admin' ? 'Admin' : 'User'}
-                      </Badge>
+            {filteredEmployees.map(emp => (
+              <Card
+                key={emp.id}
+                className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedEmployee(emp)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-slate-900">{emp.user.full_name}</h3>
+                      <p className="text-sm text-slate-500">{emp.user.email}</p>
                     </div>
-                    {emp.department && (
-                      <p className="text-xs text-slate-600 mt-2">
-                        📂 {emp.department}
-                      </p>
-                    )}
-                    {emp.job_title && (
-                      <p className="text-xs text-slate-600">
-                        💼 {emp.job_title}
-                      </p>
-                    )}
-                    {empHours > 0 && (
-                      <div className="mt-3 pt-3 border-t border-slate-200">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-slate-600">Arbetad tid:</span>
-                          <Badge variant="outline" className="text-xs font-semibold">
-                            {empHours.toFixed(1)}h
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    <Badge className={emp.user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}>
+                      {emp.user.role === 'admin' ? 'Admin' : 'User'}
+                    </Badge>
+                  </div>
+                  {emp.department && (
+                    <p className="text-xs text-slate-600 mt-2">
+                      📂 {emp.department}
+                    </p>
+                  )}
+                  {emp.job_title && (
+                    <p className="text-xs text-slate-600">
+                      💼 {emp.job_title}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {filteredEmployees.length === 0 && (
