@@ -147,9 +147,15 @@ export default function PushNotificationSetup({ user }) {
       }
 
       console.log('3. Väntar på service worker...');
+      
+      // Check if service worker is registered
+      if (!navigator.serviceWorker.controller) {
+        throw new Error('Service worker inte registrerad. Ladda om sidan och försök igen.');
+      }
+      
       const swPromise = navigator.serviceWorker.ready;
       const swTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Service worker timeout')), 5000)
+        setTimeout(() => reject(new Error('Service worker timeout - ladda om sidan och försök igen')), 15000)
       );
       const registration = await Promise.race([swPromise, swTimeout]);
       console.log('4. Service worker redo');
