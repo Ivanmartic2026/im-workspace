@@ -125,8 +125,17 @@ export default function PushPromptBanner({ user }) {
       setIsSubscribed(true);
       setIsDismissed(true);
       localStorage.setItem('pushPromptDismissed', 'true');
+      
+      // Show success notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Push-notifikationer aktiverade! 🎉', {
+          body: 'Du kommer nu att få notifikationer även när appen är stängd.',
+          icon: '/icon-192.png'
+        });
+      }
     } catch (err) {
       console.error('Subscription error:', err);
+      alert('Kunde inte aktivera push-notifikationer. Försök igen.');
     } finally {
       setIsLoading(false);
     }

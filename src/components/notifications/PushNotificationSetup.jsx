@@ -144,6 +144,14 @@ export default function PushNotificationSetup({ user }) {
       await storePushSubscription(subscription);
       setSubscription(subscription);
       setIsSubscribed(true);
+      
+      // Show success notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Push-notifikationer aktiverade! 🎉', {
+          body: 'Du kommer nu att få notifikationer även när appen är stängd.',
+          icon: '/icon-192.png'
+        });
+      }
     } catch (err) {
       console.error('Subscription error:', err);
       setError(err.message || 'Kunde inte aktivera push-notifikationer');
