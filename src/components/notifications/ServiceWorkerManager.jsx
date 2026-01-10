@@ -1,99 +1,91 @@
 import { useEffect } from 'react';
 
-const serviceWorkerCode = `
+export default function ServiceWorkerManager() {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      // Create and register service worker inline
+      const registerSW = async () => {
+        try {
+          // Create service worker code as data URL instead of blob
+          const swCode = `
 // Service Worker for Push Notifications
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+  console.log('SW installing...');
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
+  console.log('SW activating...');
   event.waitUntil(clients.claim());
 });
 
 self.addEventListener('push', (event) => {
-  console.log('Push notification received:', event);
+  console.log('Push received:', event);
   
-  let notificationData = {
+  let data = {
     title: 'Ny notis',
     body: 'Du har en ny notifikation',
-    icon: '/logo.png',
-    badge: '/badge.png',
-    tag: 'notification'
+    icon: '/logo.png'
   };
 
   if (event.data) {
     try {
-      notificationData = event.data.json();
-    } catch (error) {
-      console.error('Error parsing push data:', error);
-      notificationData.body = event.data.text();
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
     }
   }
 
   const options = {
-    body: notificationData.body || notificationData.message,
-    icon: notificationData.icon || '/logo.png',
-    badge: notificationData.badge || '/badge.png',
-    tag: notificationData.tag || 'default',
-    requireInteraction: notificationData.priority === 'high' || notificationData.priority === 'urgent',
+    body: data.body || data.message,
+    icon: data.icon || '/logo.png',
+    badge: data.badge || '/badge.png',
+    tag: data.tag || 'default',
+    requireInteraction: data.priority === 'high' || data.priority === 'urgent',
     data: {
-      url: notificationData.action_url || '/',
-      notificationId: notificationData.notificationId,
-      unreadCount: notificationData.unreadCount || 1
+      url: data.action_url || '/',
+      notificationId: data.notificationId
     }
   };
 
   event.waitUntil(
-    Promise.all([
-      self.registration.showNotification(notificationData.title, options),
-      // Update badge with unread count
-      navigator.setAppBadge ? navigator.setAppBadge(notificationData.unreadCount || 1) : Promise.resolve()
-    ])
+    self.registration.showNotification(data.title, options)
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event);
   event.notification.close();
-
-  const urlToOpen = event.notification.data?.url || '/';
-
+  const url = event.notification.data?.url || '/';
+  
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Clear badge when notification is clicked
-      if (navigator.clearAppBadge) {
-        navigator.clearAppBadge();
-      }
-      
       for (const client of clientList) {
-        if (client.url.includes(urlToOpen) && 'focus' in client) {
+        if (client.url.includes(url) && 'focus' in client) {
           return client.focus();
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
+        return clients.openWindow(url);
       }
     })
   );
 });
 `;
 
-export default function ServiceWorkerManager() {
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      // Register immediately without delay
-      const blob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
-
-      navigator.serviceWorker.register(swUrl)
-        .then((registration) => {
-          console.log('✅ Service Worker registered successfully:', registration);
-        })
-        .catch((error) => {
+          // Use data URL instead of blob
+          const dataUrl = `data:application/javascript;base64,${btoa(swCode)}`;
+          
+          const registration = await navigator.serviceWorker.register(dataUrl, {
+            scope: '/'
+          });
+          
+          console.log('✅ Service Worker registered:', registration);
+        } catch (error) {
           console.error('❌ Service Worker registration failed:', error);
-        });
+        }
+      };
+
+      registerSW();
     }
   }, []);
 

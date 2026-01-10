@@ -148,8 +148,12 @@ export default function PushNotificationSetup({ user }) {
 
       console.log('3. Väntar på service worker...');
 
-      // Wait for service worker - no timeout, just wait
-      const registration = await navigator.serviceWorker.ready;
+      // Get existing registration or wait for ready
+      let registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        console.log('Waiting for service worker to be ready...');
+        registration = await navigator.serviceWorker.ready;
+      }
       console.log('4. Service worker redo:', registration);
 
       console.log('5. Skapar push-prenumeration...');
