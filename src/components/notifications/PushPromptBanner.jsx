@@ -118,12 +118,8 @@ export default function PushPromptBanner({ user }) {
 
       console.log('3. Väntar på service worker...');
 
-      // Wait for service worker to be ready (give it more time to register)
-      const swPromise = navigator.serviceWorker.ready;
-      const swTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Service worker timeout - ladda om sidan och försök igen')), 20000)
-      );
-      const registration = await Promise.race([swPromise, swTimeout]);
+      // Wait for service worker - no timeout, just wait
+      const registration = await navigator.serviceWorker.ready;
       console.log('4. Service worker redo:', registration);
 
       console.log('5. Skapar push-prenumeration...');
