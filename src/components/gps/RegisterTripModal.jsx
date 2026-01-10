@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Loader2, MapPin, Navigation, Clock, Merge, CheckCircle2, CheckSquare } from "lucide-react";
@@ -17,9 +18,15 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
   const [formData, setFormData] = useState({
     trip_type: 'tjänst',
     purpose: '',
-    project_code: '',
+    project_id: '',
     customer: '',
     notes: ''
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+    initialData: []
   });
 
   useEffect(() => {
@@ -28,7 +35,7 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
       setFormData({
         trip_type: 'tjänst',
         purpose: '',
-        project_code: '',
+        project_id: '',
         customer: '',
         notes: ''
       });
@@ -115,7 +122,7 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
         duration_minutes: mergedData.duration_minutes,
         trip_type: formData.trip_type,
         purpose: formData.purpose,
-        project_code: formData.project_code,
+        project_code: formData.project_id ? projects.find(p => p.id === formData.project_id)?.project_code : null,
         customer: formData.customer,
         notes: formData.notes,
         status: 'submitted'
@@ -264,12 +271,22 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label>Projektkod</Label>
-                      <Input
-                        value={formData.project_code}
-                        onChange={(e) => setFormData({...formData, project_code: e.target.value})}
-                        placeholder="P12345"
-                      />
+                      <Label>Projekt</Label>
+                      <Select
+                        value={formData.project_id}
+                        onValueChange={(value) => setFormData({...formData, project_id: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Välj projekt (valfritt)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects.filter(p => p.status === 'pågående').map(project => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.name} ({project.project_code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label>Kund</Label>
