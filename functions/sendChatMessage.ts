@@ -22,7 +22,12 @@ Deno.serve(async (req) => {
       sender_name: user.full_name,
       content,
       is_read: false,
-      read_by: [user.email]
+      read_by: [{
+        email: user.email,
+        name: user.full_name,
+        read_at: new Date().toISOString()
+      }],
+      delivered_at: new Date().toISOString()
     });
 
     // Update conversation

@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { Check, CheckCheck } from "lucide-react";
 
 export default function MessageList({ messages, currentUserEmail }) {
   const getInitials = (name) => {
@@ -53,10 +54,23 @@ export default function MessageList({ messages, currentUserEmail }) {
                 >
                   <p className="text-sm break-words leading-relaxed">{msg.content}</p>
                 </div>
-                <p className={`text-xs mt-1 px-1 ${isOwn ? 'text-right' : ''} text-slate-400`}>
-                  {format(new Date(msg.created_date), 'HH:mm', { locale: sv })}
-                  {isPending && ' • Skickar...'}
-                </p>
+                <div className={`flex items-center gap-1.5 mt-1 px-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                  <p className="text-xs text-slate-400">
+                    {format(new Date(msg.created_date), 'HH:mm', { locale: sv })}
+                    {isPending && ' • Skickar...'}
+                  </p>
+                  {isOwn && !isPending && (
+                    <>
+                      {msg.read_by && msg.read_by.length > 1 ? (
+                        <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
+                      ) : msg.delivered_at ? (
+                        <CheckCheck className="h-3.5 w-3.5 text-slate-400" />
+                      ) : (
+                        <Check className="h-3.5 w-3.5 text-slate-400" />
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </motion.div>
           );
