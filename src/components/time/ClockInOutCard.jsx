@@ -21,15 +21,14 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [showProjectAllocation, setShowProjectAllocation] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
 
-  const { data: allProjects = [] } = useQuery({
+  const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
+    queryFn: async () => {
+      const all = await base44.entities.Project.list();
+      return all.filter(p => p.status === 'pågående');
+    },
     initialData: []
   });
-
-  const projects = allProjects.filter(project => 
-    project.team_members && userEmail && project.team_members.includes(userEmail)
-  );
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
