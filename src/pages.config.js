@@ -30,6 +30,7 @@ import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
 import ProjectReports from './pages/ProjectReports';
+import Projects from './pages/Projects';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +67,7 @@ export const PAGES = {
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
     "ProjectReports": ProjectReports,
+    "Projects": Projects,
 }
 
 export const pagesConfig = {

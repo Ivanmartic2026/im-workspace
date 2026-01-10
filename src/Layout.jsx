@@ -20,7 +20,7 @@ const navItems = [
 
 const adminNavItems = [
   ...navItems,
-  { name: 'ProjectReports', label: 'Projekt', icon: BarChart3 },
+  { name: 'Projects', label: 'Projekt', icon: BarChart3 },
   { name: 'Admin', label: 'Admin', icon: BarChart3 }
 ];
 
