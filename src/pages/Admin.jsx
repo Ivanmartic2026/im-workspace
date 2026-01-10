@@ -18,6 +18,7 @@ import SystemReports from '@/components/admin/SystemReports';
 import AIJournalReports from '@/components/admin/AIJournalReports';
 import ProjectTimeReport from '@/components/admin/ProjectTimeReport';
 import EmployeeManagement from '@/components/admin/EmployeeManagement';
+import EmployeeTimeOverview from '@/components/admin/EmployeeTimeOverview';
 import PayrollExport from '@/components/admin/PayrollExport';
 import NotificationSettings from '@/components/admin/NotificationSettings';
 import PushNotificationTest from '@/components/admin/PushNotificationTest';
@@ -99,10 +100,14 @@ export default function Admin() {
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-7 gap-2 mb-8">
               <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Översikt
+              </TabsTrigger>
+              <TabsTrigger value="employees" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Users className="h-4 w-4 mr-2" />
+                Anställda
               </TabsTrigger>
               <TabsTrigger value="time" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <Clock className="h-4 w-4 mr-2" />
@@ -125,6 +130,12 @@ export default function Admin() {
                 Inställningar
               </TabsTrigger>
             </TabsList>
+
+            {/* Employees Tab */}
+            <TabsContent value="employees" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Anställdöversikt</h2>
+              <EmployeeTimeOverview />
+            </TabsContent>
 
             {/* Vehicles Tab */}
             <TabsContent value="vehicles" className="space-y-4">
