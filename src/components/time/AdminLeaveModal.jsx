@@ -105,8 +105,8 @@ export default function AdminLeaveModal({ open, onClose, onSuccess }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="semester">Semester</SelectItem>
-                <SelectItem value="flexuttag">Flexuttag</SelectItem>
                 <SelectItem value="vab">VAB</SelectItem>
+                <SelectItem value="flex">Flex</SelectItem>
                 <SelectItem value="sjuk">Sjukfrånvaro</SelectItem>
                 <SelectItem value="tjänstledigt">Tjänstledigt</SelectItem>
                 <SelectItem value="föräldraledigt">Föräldraledigt</SelectItem>

@@ -18,6 +18,7 @@ const leaveTypes = [
   { id: 'sjuk', label: 'Sjukfrånvaro', icon: '🤒' },
   { id: 'tjänstledigt', label: 'Tjänstledighet', icon: '📋' },
   { id: 'föräldraledigt', label: 'Föräldraledighet', icon: '👨‍👩‍👧' },
+  { id: 'flex', label: 'Flex', icon: '⏰' },
   { id: 'annat', label: 'Annat', icon: '📝' }
 ];
 
