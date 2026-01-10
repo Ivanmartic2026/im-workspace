@@ -8,13 +8,22 @@ import { base44 } from "@/api/base44Client";
 import { Loader2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { useQuery } from '@tanstack/react-query';
+import ProjectAllocationEditor from './ProjectAllocationEditor';
 
 export default function EditTimeEntryModal({ open, onClose, entry, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const [showProjectAllocation, setShowProjectAllocation] = useState(false);
   const [formData, setFormData] = useState({
     clock_in_time: '',
     clock_out_time: '',
     edit_reason: ''
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+    initialData: []
   });
 
   useEffect(() => {
@@ -58,18 +67,86 @@ export default function EditTimeEntryModal({ open, onClose, entry, onSuccess }) 
       };
 
       await base44.entities.TimeEntry.update(entry.id, updateData);
-      onSuccess();
-      onClose();
-      setFormData({ clock_in_time: '', clock_out_time: '', edit_reason: '' });
+      
+      // Show project allocation screen
+      setLoading(false);
+      setShowProjectAllocation(true);
     } catch (error) {
       console.error('Error updating time entry:', error);
       alert('Kunde inte uppdatera tidrapport: ' + error.message);
+      setLoading(false);
+    }
+  };
+
+  const handleSaveProjectAllocation = async (allocations) => {
+    setLoading(true);
+    
+    try {
+      const clockIn = new Date(formData.clock_in_time);
+      const clockOut = formData.clock_out_time ? new Date(formData.clock_out_time) : null;
+      const totalHours = clockOut ? (clockOut - clockIn) / (1000 * 60 * 60) : 0;
+      const totalBreakMinutes = entry.total_break_minutes || 0;
+      const netHours = totalHours - (totalBreakMinutes / 60);
+
+      await base44.entities.TimeEntry.update(entry.id, {
+        project_allocations: allocations,
+        total_hours: Number(netHours.toFixed(2))
+      });
+
+      // Check project budget
+      try {
+        await base44.functions.invoke('checkProjectBudget', { time_entry_id: entry.id });
+      } catch (budgetError) {
+        console.error('Error checking project budget:', budgetError);
+      }
+
+      onSuccess();
+      onClose();
+      setFormData({ clock_in_time: '', clock_out_time: '', edit_reason: '' });
+      setShowProjectAllocation(false);
+    } catch (error) {
+      console.error('Error saving project allocation:', error);
+      alert('Kunde inte spara projektfördelning: ' + error.message);
     }
     
     setLoading(false);
   };
 
   if (!entry) return null;
+
+  if (showProjectAllocation) {
+    const clockIn = new Date(formData.clock_in_time);
+    const clockOut = formData.clock_out_time ? new Date(formData.clock_out_time) : null;
+    const totalHours = clockOut ? (clockOut - clockIn) / (1000 * 60 * 60) : 0;
+    const totalBreakMinutes = entry.total_break_minutes || 0;
+    const netHours = totalHours - (totalBreakMinutes / 60);
+
+    const tempEntry = {
+      ...entry,
+      clock_in_time: formData.clock_in_time,
+      clock_out_time: formData.clock_out_time,
+      total_hours: Number(netHours.toFixed(2))
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Fördela arbetstid</DialogTitle>
+          </DialogHeader>
+          <ProjectAllocationEditor
+            timeEntry={tempEntry}
+            projects={projects}
+            onSave={handleSaveProjectAllocation}
+            onCancel={() => {
+              setShowProjectAllocation(false);
+              onClose();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
