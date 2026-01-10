@@ -91,7 +91,7 @@ export default function PushPromptBanner({ user }) {
     // Check if iOS and not in standalone mode (not installed as PWA)
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true;
+                         window.navigator.standalone === true;
     
     if (isIOS && !isStandalone) {
       alert('På iOS måste du först lägga till appen på hemskärmen:\n\n1. Tryck på delningsikonen\n2. Välj "Lägg till på hemskärmen"\n3. Öppna appen från hemskärmen\n4. Aktivera push-notiser därifrån');

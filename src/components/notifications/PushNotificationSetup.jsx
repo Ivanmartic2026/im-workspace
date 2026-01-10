@@ -120,7 +120,7 @@ export default function PushNotificationSetup({ user }) {
     // Check if iOS and not in standalone mode
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true;
+                         window.navigator.standalone === true;
     
     if (isIOS && !isStandalone) {
       setError('På iOS: Lägg till appen på hemskärmen först (Dela → Lägg till på hemskärmen)');
