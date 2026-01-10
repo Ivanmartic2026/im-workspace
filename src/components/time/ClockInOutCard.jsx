@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Clock, MapPin, Loader2, LogIn, LogOut, Coffee } from "lucide-react";
+import { Clock, MapPin, Loader2, LogIn, LogOut, Coffee, Plus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -21,8 +21,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [breakStart, setBreakStart] = useState(null);
   const [showProjectAllocation, setShowProjectAllocation] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [showNewProjectForm, setShowNewProjectForm] = useState(false);
+  const [newProjectData, setNewProjectData] = useState({ name: '', project_code: '' });
 
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [], refetch: refetchProjects } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       const all = await base44.entities.Project.list();
@@ -30,6 +32,33 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     },
     initialData: []
   });
+
+  const handleCreateProject = async () => {
+    if (!newProjectData.name || !newProjectData.project_code) {
+      alert('Fyll i både projektnamn och projektkod');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const user = await base44.auth.me();
+      const newProject = await base44.entities.Project.create({
+        name: newProjectData.name,
+        project_code: newProjectData.project_code,
+        status: 'pågående',
+        project_manager_email: user.email
+      });
+      
+      await refetchProjects();
+      setSelectedProjectId(newProject.id);
+      setShowNewProjectForm(false);
+      setNewProjectData({ name: '', project_code: '' });
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Kunde inte skapa projekt: ' + error.message);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -492,26 +521,84 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
           </div>
           ) : (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">Välj projekt</Label>
-              <Select onValueChange={setSelectedProjectId} value={selectedProjectId || ""}>
-                <SelectTrigger className="w-full h-12 rounded-xl text-base">
-                  <SelectValue placeholder="Välj projekt (valfritt)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map(project => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name} ({project.project_code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedProjectId && (
-                <p className="text-xs text-emerald-600 flex items-center gap-1">
-                  ✓ Tid kommer registreras på valt projekt
-                </p>
-              )}
-            </div>
+            {!showNewProjectForm ? (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Välj projekt</Label>
+                <Select onValueChange={setSelectedProjectId} value={selectedProjectId || ""}>
+                  <SelectTrigger className="w-full h-12 rounded-xl text-base">
+                    <SelectValue placeholder="Välj projekt (valfritt)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map(project => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name} ({project.project_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedProjectId && (
+                  <p className="text-xs text-emerald-600 flex items-center gap-1">
+                    ✓ Tid kommer registreras på valt projekt
+                  </p>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowNewProjectForm(true)}
+                  className="w-full h-10 rounded-xl text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Skapa nytt projekt
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-slate-700">Nytt projekt</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowNewProjectForm(false);
+                      setNewProjectData({ name: '', project_code: '' });
+                    }}
+                    className="h-8 text-xs"
+                  >
+                    Avbryt
+                  </Button>
+                </div>
+                <Input
+                  placeholder="Projektnamn"
+                  value={newProjectData.name}
+                  onChange={(e) => setNewProjectData(prev => ({ ...prev, name: e.target.value }))}
+                  className="h-11"
+                />
+                <Input
+                  placeholder="Projektkod (t.ex. PRJ001)"
+                  value={newProjectData.project_code}
+                  onChange={(e) => setNewProjectData(prev => ({ ...prev, project_code: e.target.value }))}
+                  className="h-11"
+                />
+                <Button
+                  onClick={handleCreateProject}
+                  disabled={loading || !newProjectData.name || !newProjectData.project_code}
+                  className="w-full h-11 rounded-xl"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Skapar...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Skapa och välj projekt
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
             <Button
               onClick={handleClockIn}
               disabled={loading}
