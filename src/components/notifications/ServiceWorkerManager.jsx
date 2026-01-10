@@ -83,17 +83,22 @@ self.addEventListener('notificationclick', (event) => {
 export default function ServiceWorkerManager() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      // Create blob URL from service worker code
-      const blob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        // Create blob URL from service worker code
+        const blob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
 
-      navigator.serviceWorker.register(swUrl)
-        .then((registration) => {
-          console.log('Service Worker registered:', registration);
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
+        navigator.serviceWorker.register(swUrl)
+          .then((registration) => {
+            console.log('✅ Service Worker registered successfully:', registration);
+          })
+          .catch((error) => {
+            console.error('❌ Service Worker registration failed:', error);
+          });
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, []);
 
