@@ -17,7 +17,7 @@ const categories = [
   { id: 'interntid', label: 'Interntid' }
 ];
 
-export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel }) {
+export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, projects = [] }) {
   const rawTotalHours = timeEntry.total_hours || 0;
   const lunchDeducted = rawTotalHours >= 8;
   const totalHours = lunchDeducted ? rawTotalHours - 1 : rawTotalHours;
@@ -38,6 +38,10 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel })
           category: 'support_service',
           notes: ''
         }]
+  );
+
+  const [useDropdown, setUseDropdown] = useState(
+    allocations.map(a => projects.some(p => p.id === a.project_id))
   );
 
   const allocatedHours = allocations.reduce((sum, a) => sum + (Number(a.hours) || 0), 0);
@@ -170,13 +174,44 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel })
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs">RM ID</Label>
-                  <Input
-                    value={allocation.project_id}
-                    onChange={(e) => handleUpdateAllocation(index, 'project_id', e.target.value)}
-                    placeholder="T.ex. im101"
-                    className="h-10"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <Label className="text-xs">Projekt</Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newUseDropdown = [...useDropdown];
+                        newUseDropdown[index] = !newUseDropdown[index];
+                        setUseDropdown(newUseDropdown);
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-700"
+                    >
+                      {useDropdown[index] ? 'Skriv själv' : 'Välj från lista'}
+                    </button>
+                  </div>
+                  {useDropdown[index] && projects.length > 0 ? (
+                    <Select
+                      value={allocation.project_id}
+                      onValueChange={(value) => handleUpdateAllocation(index, 'project_id', value)}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Välj projekt" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.map(project => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name} ({project.project_code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={allocation.project_id}
+                      onChange={(e) => handleUpdateAllocation(index, 'project_id', e.target.value)}
+                      placeholder="T.ex. im101"
+                      className="h-10"
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-1">

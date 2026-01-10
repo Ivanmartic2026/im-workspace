@@ -249,16 +249,45 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     }
 
     // Annars visa projektfördelning
-    await base44.entities.Notification.create({
-      recipient_email: activeEntry.employee_email,
-      type: 'time_correction_needed',
-      title: 'Fördela arbetstid',
-      message: 'Du har stämplat ut. Vänligen fördela din arbetstid på projekt.',
-      priority: 'high',
-      sent_via: ['app']
-    });
+    // Först uppdatera med clock_out_time så tiden stannar
+    setLoading(true);
+    try {
+      let location;
+      try {
+        location = await getLocation();
+      } catch (locError) {
+        console.warn('Could not get location, continuing without:', locError);
+        location = null;
+      }
 
-    setShowProjectAllocation(true);
+      const updateData = {
+        clock_out_time: new Date().toISOString()
+      };
+
+      if (location) {
+        updateData.clock_out_location = location;
+      }
+
+      await base44.entities.TimeEntry.update(activeEntry.id, updateData);
+      await onUpdate();
+
+      await base44.entities.Notification.create({
+        recipient_email: activeEntry.employee_email,
+        type: 'time_correction_needed',
+        title: 'Fördela arbetstid',
+        message: 'Du har stämplat ut. Vänligen fördela din arbetstid på projekt.',
+        priority: 'high',
+        sent_via: ['app']
+      });
+
+      setShowProjectAllocation(true);
+    } catch (error) {
+      console.error('Error clocking out:', error);
+      alert('Kunde inte stämpla ut: ' + (error.message || 'Okänt fel'));
+    } finally {
+      setLoading(false);
+    }
+    return;
   };
 
   const handleSaveProjectAllocation = async (allocations) => {
@@ -276,7 +305,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       }
       
       const clockInTime = new Date(activeEntry.clock_in_time);
-      const clockOutTime = new Date();
+      const clockOutTime = activeEntry.clock_out_time ? new Date(activeEntry.clock_out_time) : new Date();
       const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
 
       const totalBreakMinutes = activeEntry.total_break_minutes || 0;
@@ -351,7 +380,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
 
   if (showProjectAllocation && activeEntry) {
     const clockInTime = new Date(activeEntry.clock_in_time);
-    const clockOutTime = new Date();
+    const clockOutTime = activeEntry.clock_out_time ? new Date(activeEntry.clock_out_time) : new Date();
     const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
     const totalBreakMinutes = activeEntry.total_break_minutes || 0;
     const netHours = totalHours - (totalBreakMinutes / 60);
@@ -365,6 +394,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     return (
       <ProjectAllocationEditor
         timeEntry={tempEntry}
+        projects={projects}
         onSave={handleSaveProjectAllocation}
         onCancel={() => setShowProjectAllocation(false)}
       />
