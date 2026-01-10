@@ -117,46 +117,62 @@ export default function PushNotificationSetup({ user }) {
       return;
     }
 
+    // Check if iOS and not in standalone mode
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.navigator as any).standalone === true;
+    
+    if (isIOS && !isStandalone) {
+      setError('På iOS: Lägg till appen på hemskärmen först (Dela → Lägg till på hemskärmen)');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
       console.log('1. Begär notifikationsbehörighet...');
       
-      // Request notification permission
-      if (Notification.permission === 'default') {
-        const permission = await Notification.requestPermission();
-        console.log('2. Behörighet:', permission);
-        if (permission !== 'granted') {
-          throw new Error('Push-notifikationsbehörighet inte beviljad');
-        }
-      }
-
-      if (Notification.permission !== 'granted') {
-        throw new Error('Push-notifikationsbehörighet krävs för att fortsätta');
+      // Request notification permission with timeout
+      const permissionPromise = Notification.requestPermission();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout - tog för lång tid')), 10000)
+      );
+      
+      const permission = await Promise.race([permissionPromise, timeoutPromise]);
+      console.log('2. Behörighet:', permission);
+      
+      if (permission !== 'granted') {
+        throw new Error('Push-notifikationsbehörighet inte beviljad');
       }
 
       console.log('3. Väntar på service worker...');
-      const registration = await navigator.serviceWorker.ready;
+      const swPromise = navigator.serviceWorker.ready;
+      const swTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Service worker timeout')), 5000)
+      );
+      const registration = await Promise.race([swPromise, swTimeout]);
       console.log('4. Service worker redo');
 
       console.log('5. Skapar push-prenumeration...');
-      const subscription = await registration.pushManager.subscribe({
+      const subPromise = registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
-      console.log('6. Prenumeration skapad:', subscription.endpoint);
+      const subTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Push subscription timeout')), 10000)
+      );
+      const subscription = await Promise.race([subPromise, subTimeout]);
+      console.log('6. Prenumeration skapad');
 
       // Store in database
       console.log('7. Sparar i databas...');
       await storePushSubscription(subscription);
-      console.log('8. Sparat i databas!');
+      console.log('8. Sparat!');
       
       setSubscription(subscription);
       setIsSubscribed(true);
       
-      // Show success notification
-      console.log('9. Visar bekräftelse...');
       new Notification('Push-notifikationer aktiverade! 🎉', {
         body: 'Du kommer nu att få notifikationer även när appen är stängd.',
         icon: '/icon-192.png'

@@ -88,38 +88,52 @@ export default function PushPromptBanner({ user }) {
       return;
     }
 
+    // Check if iOS and not in standalone mode (not installed as PWA)
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.navigator as any).standalone === true;
+    
+    if (isIOS && !isStandalone) {
+      alert('På iOS måste du först lägga till appen på hemskärmen:\n\n1. Tryck på delningsikonen\n2. Välj "Lägg till på hemskärmen"\n3. Öppna appen från hemskärmen\n4. Aktivera push-notiser därifrån');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       console.log('1. Begär notifikationsbehörighet...');
       
-      // Request notification permission
-      if (Notification.permission === 'default') {
-        const permission = await Notification.requestPermission();
-        console.log('2. Behörighet:', permission);
-        if (permission !== 'granted') {
-          setIsLoading(false);
-          alert('Du måste tillåta notifikationer för att aktivera push.');
-          return;
-        }
-      }
-
-      if (Notification.permission !== 'granted') {
-        setIsLoading(false);
-        alert('Notifikationsbehörighet krävs. Kontrollera webbläsarinställningar.');
-        return;
+      // Request notification permission with timeout
+      const permissionPromise = Notification.requestPermission();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout - tog för lång tid')), 10000)
+      );
+      
+      const permission = await Promise.race([permissionPromise, timeoutPromise]);
+      console.log('2. Behörighet:', permission);
+      
+      if (permission !== 'granted') {
+        throw new Error('Du måste tillåta notifikationer');
       }
 
       console.log('3. Väntar på service worker...');
-      const registration = await navigator.serviceWorker.ready;
+      const swPromise = navigator.serviceWorker.ready;
+      const swTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Service worker timeout')), 5000)
+      );
+      const registration = await Promise.race([swPromise, swTimeout]);
       console.log('4. Service worker redo');
 
       console.log('5. Skapar push-prenumeration...');
-      const subscription = await registration.pushManager.subscribe({
+      const subPromise = registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
-      console.log('6. Prenumeration skapad:', subscription.endpoint);
+      const subTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Push subscription timeout')), 10000)
+      );
+      const subscription = await Promise.race([subPromise, subTimeout]);
+      console.log('6. Prenumeration skapad');
 
       // Store in database
       console.log('7. Sparar i databas...');
@@ -134,23 +148,21 @@ export default function PushPromptBanner({ user }) {
         browser: getBrowserName(),
         device_name: getDeviceName()
       });
-      console.log('8. Sparat i databas!');
+      console.log('8. Sparat!');
 
       setIsSubscribed(true);
       setIsDismissed(true);
       localStorage.setItem('pushPromptDismissed', 'true');
       
-      // Show success notification
-      console.log('9. Visar bekräftelse...');
       new Notification('Push-notifikationer aktiverade! 🎉', {
         body: 'Du kommer nu att få notifikationer även när appen är stängd.',
         icon: '/icon-192.png'
       });
       
-      alert('✓ Push-notifikationer är nu aktiverade!');
+      alert('✓ Push-notifikationer aktiverade!');
     } catch (err) {
-      console.error('SUBSCRIPTION ERROR:', err);
-      alert(`Fel: ${err.message || 'Kunde inte aktivera push-notifikationer'}`);
+      console.error('ERROR:', err);
+      alert(`Fel: ${err.message || 'Kunde inte aktivera'}`);
     } finally {
       setIsLoading(false);
     }
