@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import ConversationList from '@/components/chat/ConversationList';
 import MessageList from '@/components/chat/MessageList';
+import ContactList from '@/components/chat/ContactList';
 import { motion } from "framer-motion";
 
 export default function Chat() {
@@ -83,12 +84,12 @@ export default function Chat() {
   }, [selectedConversationId]);
 
   const createConversationMutation = useMutation({
-    mutationFn: async () => {
-      const participants = [...new Set([user.email, ...selectedParticipants])];
+    mutationFn: async (participants) => {
+      const allParticipants = [...new Set([user.email, ...participants])];
       const conversation = await base44.entities.Conversation.create({
-        title: conversationTitle || participants.map(p => allUsers.find(u => u.email === p)?.full_name || p).join(', '),
-        type: selectedParticipants.length === 1 ? 'direct' : 'group',
-        participants,
+        title: conversationTitle || allParticipants.map(p => allUsers.find(u => u.email === p)?.full_name || p).join(', '),
+        type: participants.length === 1 ? 'direct' : 'group',
+        participants: allParticipants,
         is_archived: false
       });
       return conversation;
@@ -101,6 +102,22 @@ export default function Chat() {
       setSelectedParticipants([]);
     },
   });
+
+  const handleSelectContact = (selectedUser) => {
+    // Check if conversation already exists
+    const existingConv = conversations.find(conv => 
+      conv.type === 'direct' && 
+      conv.participants.includes(selectedUser.email) &&
+      conv.participants.length === 2
+    );
+
+    if (existingConv) {
+      setSelectedConversationId(existingConv.id);
+      setShowNewConvModal(false);
+    } else {
+      createConversationMutation.mutate([selectedUser.email]);
+    }
+  };
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
@@ -339,115 +356,119 @@ export default function Chat() {
 
       {/* New Conversation Modal */}
       <Dialog open={showNewConvModal} onOpenChange={setShowNewConvModal}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md max-h-[80vh] flex flex-col p-0">
+          <DialogHeader className="p-6 pb-4">
             <DialogTitle>Ny konversation</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-hidden flex flex-col">
             {/* Chat Type Selector */}
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
-              <button
-                onClick={() => { setChatType('direct'); setConversationTitle(''); setSelectedParticipants([]); }}
-                className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
-                  chatType === 'direct' 
-                    ? 'bg-white text-slate-900 shadow-sm' 
-                    : 'text-slate-600'
-                }`}
-              >
-                Privat chat
-              </button>
-              <button
-                onClick={() => { setChatType('group'); setSelectedParticipants([]); }}
-                className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
-                  chatType === 'group' 
-                    ? 'bg-white text-slate-900 shadow-sm' 
-                    : 'text-slate-600'
-                }`}
-              >
-                Gruppchatt
-              </button>
+            <div className="px-6 pb-4">
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
+                <button
+                  onClick={() => { setChatType('direct'); setConversationTitle(''); setSelectedParticipants([]); }}
+                  className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
+                    chatType === 'direct' 
+                      ? 'bg-white text-slate-900 shadow-sm' 
+                      : 'text-slate-600'
+                  }`}
+                >
+                  Privat chat
+                </button>
+                <button
+                  onClick={() => { setChatType('group'); setSelectedParticipants([]); }}
+                  className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
+                    chatType === 'group' 
+                      ? 'bg-white text-slate-900 shadow-sm' 
+                      : 'text-slate-600'
+                  }`}
+                >
+                  Gruppchatt
+                </button>
+              </div>
             </div>
 
-            {/* Conversation Title - Only for Groups */}
-            {chatType === 'group' && (
-              <Input
-                placeholder="Gruppnamn (valfritt)"
-                value={conversationTitle}
-                onChange={(e) => setConversationTitle(e.target.value)}
-                className="rounded-xl h-11"
-              />
-            )}
+            {chatType === 'direct' ? (
+              <div className="flex-1 overflow-hidden">
+                <ContactList 
+                  users={allUsers}
+                  currentUserEmail={user?.email}
+                  onSelectUser={handleSelectContact}
+                />
+              </div>
+            ) : (
+              <div className="flex-1 overflow-hidden flex flex-col px-6">
+                <Input
+                  placeholder="Gruppnamn (valfritt)"
+                  value={conversationTitle}
+                  onChange={(e) => setConversationTitle(e.target.value)}
+                  className="rounded-xl h-11 mb-4"
+                />
 
-            {/* User Selection */}
-            <div className="flex-1 overflow-y-auto space-y-1 -mx-2 px-2">
-              <p className="text-xs font-medium text-slate-500 mb-3 px-1">
-                {chatType === 'direct' ? 'Välj person' : `Valda: ${selectedParticipants.length}`}
-              </p>
-              {otherUsers.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-8">Inga användare hittades</p>
-              ) : (
-                otherUsers.map(u => {
-                const isSelected = selectedParticipants.includes(u.email);
-                return (
-                  <button
-                    key={u.email}
-                    onClick={() => {
-                      if (chatType === 'direct') {
-                        setSelectedParticipants(isSelected ? [] : [u.email]);
-                      } else {
-                        if (isSelected) {
-                          setSelectedParticipants(selectedParticipants.filter(e => e !== u.email));
-                        } else {
-                          setSelectedParticipants([...selectedParticipants, u.email]);
-                        }
-                      }
-                    }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
-                      isSelected 
-                        ? 'bg-blue-50 ring-2 ring-blue-500 ring-inset' 
-                        : 'bg-white hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm ${
-                      isSelected 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {u.full_name?.charAt(0) || u.email?.charAt(0)}
-                    </div>
-                    <div className="flex-1 text-left">
-                      <p className="font-medium text-slate-900 text-sm">{u.full_name}</p>
-                      <p className="text-xs text-slate-500">{u.email}</p>
-                    </div>
-                    {isSelected && (
-                      <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" stroke="currentColor">
-                          <path d="M5 13l4 4L19 7"></path>
-                        </svg>
-                      </div>
-                    )}
-                    </button>
+                <div className="flex-1 overflow-y-auto space-y-1">
+                  <p className="text-xs font-medium text-slate-500 mb-3">
+                    Valda: {selectedParticipants.length}
+                  </p>
+                  {otherUsers.map(u => {
+                    const isSelected = selectedParticipants.includes(u.email);
+                    return (
+                      <button
+                        key={u.email}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedParticipants(selectedParticipants.filter(e => e !== u.email));
+                          } else {
+                            setSelectedParticipants([...selectedParticipants, u.email]);
+                          }
+                        }}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                          isSelected 
+                            ? 'bg-blue-50 ring-2 ring-blue-500 ring-inset' 
+                            : 'bg-white hover:bg-slate-50 border border-slate-100'
+                        }`}
+                      >
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm ${
+                          isSelected 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {u.full_name?.charAt(0) || u.email?.charAt(0)}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="font-medium text-slate-900 text-sm">{u.full_name}</p>
+                          <p className="text-xs text-slate-500">{u.email}</p>
+                        </div>
+                        {isSelected && (
+                          <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" stroke="currentColor">
+                              <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                          </div>
+                        )}
+                      </button>
                     );
-                    })
-                    )}
-            </div>
+                  })}
+                </div>
 
-            <Button
-              onClick={() => createConversationMutation.mutate()}
-              disabled={selectedParticipants.length === 0 || (chatType === 'group' && selectedParticipants.length < 2) || createConversationMutation.isPending}
-              className="w-full h-12 rounded-xl font-medium text-base"
-              size="lg"
-            >
-              {createConversationMutation.isPending ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Skapar...
-                </>
-              ) : (
-                `Skapa ${chatType === 'direct' ? 'privat chat' : 'gruppchatt'}`
-              )}
-            </Button>
+                <div className="pt-4 pb-6">
+                  <Button
+                    onClick={() => createConversationMutation.mutate(selectedParticipants)}
+                    disabled={selectedParticipants.length < 2 || createConversationMutation.isPending}
+                    className="w-full h-12 rounded-xl font-medium text-base"
+                    size="lg"
+                  >
+                    {createConversationMutation.isPending ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Skapar...
+                      </>
+                    ) : (
+                      'Skapa gruppchatt'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
