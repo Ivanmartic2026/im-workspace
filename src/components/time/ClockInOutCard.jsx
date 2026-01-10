@@ -194,7 +194,53 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       return;
     }
 
-    // Skapa notifikation om att fördela projekt
+    // Om projekt redan är valt vid instämpling, stämpla ut direkt
+    if (activeEntry.project_allocations && activeEntry.project_allocations.length > 0) {
+      setLoading(true);
+      try {
+        let location;
+        try {
+          location = await getLocation();
+        } catch (locError) {
+          console.warn('Could not get location, continuing without:', locError);
+          location = null;
+        }
+        
+        const clockInTime = new Date(activeEntry.clock_in_time);
+        const clockOutTime = new Date();
+        const totalHours = (clockOutTime - clockInTime) / (1000 * 60 * 60);
+        const totalBreakMinutes = activeEntry.total_break_minutes || 0;
+        const netHours = totalHours - (totalBreakMinutes / 60);
+
+        // Uppdatera befintlig project_allocation med faktisk arbetstid
+        const updatedAllocations = activeEntry.project_allocations.map(alloc => ({
+          ...alloc,
+          hours: Number(netHours.toFixed(2))
+        }));
+
+        const updateData = {
+          clock_out_time: clockOutTime.toISOString(),
+          total_hours: Number(netHours.toFixed(2)),
+          status: 'completed',
+          project_allocations: updatedAllocations
+        };
+        
+        if (location) {
+          updateData.clock_out_location = location;
+        }
+        
+        await base44.entities.TimeEntry.update(activeEntry.id, updateData);
+        await onUpdate();
+      } catch (error) {
+        console.error('Error clocking out:', error);
+        alert('Kunde inte stämpla ut: ' + (error.message || 'Okänt fel'));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Annars visa projektfördelning
     await base44.entities.Notification.create({
       recipient_email: activeEntry.employee_email,
       type: 'time_correction_needed',
