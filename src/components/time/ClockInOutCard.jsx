@@ -19,12 +19,17 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [onBreak, setOnBreak] = useState(false);
   const [breakStart, setBreakStart] = useState(null);
   const [showProjectAllocation, setShowProjectAllocation] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
 
-  const { data: projects = [] } = useQuery({
+  const { data: allProjects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list(),
     initialData: []
   });
+
+  const projects = allProjects.filter(project => 
+    project.team_members && userEmail && project.team_members.includes(userEmail)
+  );
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -123,9 +128,18 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       if (location) {
         entryData.clock_in_location = location;
       }
+
+      if (selectedProjectId) {
+        entryData.project_allocations = [{
+          project_id: selectedProjectId,
+          hours: 0,
+          category: 'interntid'
+        }];
+      }
       
       await base44.entities.TimeEntry.create(entryData);
       
+      setSelectedProjectId(null);
       onUpdate();
     } catch (error) {
       console.error('Error clocking in:', error);
@@ -328,9 +342,9 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-sm font-medium text-emerald-900">Instämplad</p>
-                  {activeEntry.project_id && (
+                  {activeEntry.project_allocations && activeEntry.project_allocations.length > 0 && (
                     <span className="px-2 py-0.5 rounded-full text-xs bg-indigo-500 text-white">
-                      {activeEntry.project_id}
+                      {projects.find(p => p.id === activeEntry.project_allocations[0]?.project_id)?.name || 'Projekt'}
                     </span>
                   )}
                 </div>
@@ -393,23 +407,39 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
             </Button>
           </div>
           ) : (
-          <Button
-            onClick={handleClockIn}
-            disabled={loading}
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Stämplar in...
-              </>
-            ) : (
-              <>
-                <LogIn className="w-5 h-5 mr-2" />
-                Stämpla in
-              </>
+          <div className="space-y-4">
+            {projects.length > 0 && (
+              <Select onValueChange={setSelectedProjectId} value={selectedProjectId || ""}>
+                <SelectTrigger className="w-full h-12 rounded-xl text-base">
+                  <SelectValue placeholder="Välj projekt (valfritt)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map(project => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name} ({project.project_code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
-          </Button>
+            <Button
+              onClick={handleClockIn}
+              disabled={loading}
+              className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Stämplar in...
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5 mr-2" />
+                  Stämpla in
+                </>
+              )}
+            </Button>
+          </div>
         )}
 
         <p className="text-xs text-slate-500 text-center mt-3">
