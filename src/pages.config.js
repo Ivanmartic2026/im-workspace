@@ -21,6 +21,8 @@ import MyOnboarding from './pages/MyOnboarding';
 import NotificationSettings from './pages/NotificationSettings';
 import OnboardingTemplates from './pages/OnboardingTemplates';
 import Profile from './pages/Profile';
+import ProjectReports from './pages/ProjectReports';
+import Projects from './pages/Projects';
 import Reports from './pages/Reports';
 import Schedule from './pages/Schedule';
 import Team from './pages/Team';
@@ -29,8 +31,6 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import ProjectReports from './pages/ProjectReports';
-import Projects from './pages/Projects';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +58,8 @@ export const PAGES = {
     "NotificationSettings": NotificationSettings,
     "OnboardingTemplates": OnboardingTemplates,
     "Profile": Profile,
+    "ProjectReports": ProjectReports,
+    "Projects": Projects,
     "Reports": Reports,
     "Schedule": Schedule,
     "Team": Team,
@@ -66,8 +68,6 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "ProjectReports": ProjectReports,
-    "Projects": Projects,
 }
 
 export const pagesConfig = {

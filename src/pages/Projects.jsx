@@ -8,15 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, Filter } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import ProjectDetailView from '../components/projects/ProjectDetailView';
 
 export default function Projects() {
   const [user, setUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -38,11 +42,29 @@ export default function Projects() {
     base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
-  const { data: projects = [], isLoading } = useQuery({
+  const { data: allProjects = [], isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date'),
     initialData: []
   });
+
+  // Filtrering och sortering
+  const projects = allProjects
+    .filter(p => filterStatus === 'all' || p.status === filterStatus)
+    .sort((a, b) => {
+      switch(sortBy) {
+        case 'name':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'deadline':
+          if (!a.end_date) return 1;
+          if (!b.end_date) return -1;
+          return new Date(a.end_date) - new Date(b.end_date);
+        case 'manager':
+          return (a.project_manager_email || '').localeCompare(b.project_manager_email || '');
+        default:
+          return 0;
+      }
+    });
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
@@ -159,7 +181,7 @@ export default function Projects() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Projekthantering</h1>
-              <p className="text-slate-600 mt-1">Skapa och hantera projekt</p>
+              <p className="text-slate-600 mt-1">Skapa och hantera projekt med uppgifter</p>
             </div>
             <Button
               onClick={() => {
@@ -171,6 +193,36 @@ export default function Projects() {
               <Plus className="h-4 w-4 mr-2" />
               Nytt projekt
             </Button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-slate-500" />
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla status</SelectItem>
+                  <SelectItem value="planerat">Planerat</SelectItem>
+                  <SelectItem value="pågående">Pågående</SelectItem>
+                  <SelectItem value="avslutat">Avslutat</SelectItem>
+                  <SelectItem value="pausat">Pausat</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Sortera efter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Namn</SelectItem>
+                <SelectItem value="deadline">Deadline</SelectItem>
+                <SelectItem value="manager">Projektledare</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </motion.div>
 
@@ -235,6 +287,14 @@ export default function Projects() {
                         </div>
                       </div>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedProject(project)}
+                          className="h-8 w-8"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -457,6 +517,18 @@ export default function Projects() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Project Detail View Modal */}
+      <Dialog open={!!selectedProject} onOpenChange={() => setSelectedProject(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          {selectedProject && (
+            <ProjectDetailView 
+              project={selectedProject} 
+              onClose={() => setSelectedProject(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
