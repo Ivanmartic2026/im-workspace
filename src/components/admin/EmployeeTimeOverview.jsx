@@ -211,6 +211,34 @@ export default function EmployeeTimeOverview() {
           </DialogHeader>
 
           <div className="space-y-6">
+            {/* Quick Filters */}
+            <div className="flex gap-2">
+              <Button
+                variant={quickFilter === 'today' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('today')}
+                className={quickFilter === 'today' ? 'bg-slate-900' : ''}
+              >
+                Idag
+              </Button>
+              <Button
+                variant={quickFilter === 'week' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('week')}
+                className={quickFilter === 'week' ? 'bg-slate-900' : ''}
+              >
+                1V
+              </Button>
+              <Button
+                variant={quickFilter === 'month' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('month')}
+                className={quickFilter === 'month' ? 'bg-slate-900' : ''}
+              >
+                Denna månad
+              </Button>
+            </div>
+
             {/* Date Range Selector */}
             <Card className="border-0 shadow-sm bg-slate-50">
               <CardContent className="p-4">
@@ -220,7 +248,10 @@ export default function EmployeeTimeOverview() {
                     <Input
                       type="date"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        setQuickFilter(null);
+                      }}
                       className="h-10"
                     />
                   </div>
@@ -229,7 +260,10 @@ export default function EmployeeTimeOverview() {
                     <Input
                       type="date"
                       value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      onChange={(e) => {
+                        setEndDate(e.target.value);
+                        setQuickFilter(null);
+                      }}
                       className="h-10"
                     />
                   </div>
