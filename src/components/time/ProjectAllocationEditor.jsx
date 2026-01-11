@@ -89,21 +89,36 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
       return;
     }
 
-    const validAllocations = allocations.filter(a => a.project_id.trim() && a.hours > 0);
+    const validAllocations = allocations.filter(a => {
+      const projectId = a.project_id?.trim();
+      return projectId && projectId.length > 0 && a.hours > 0;
+    });
     
     if (validAllocations.length === 0) {
       alert('Lägg till minst ett projekt med timmar');
       return;
     }
 
-    // Call onSave first to save the time entry
-    await onSave(validAllocations);
-    
-    // Check project budget after saving
+    if (Math.abs(allocatedHours - totalHours) > 0.01) {
+      const confirmMsg = `Du har fördelat ${allocatedHours.toFixed(2)}h av ${totalHours.toFixed(2)}h. Vill du fortsätta?`;
+      if (!confirm(confirmMsg)) {
+        return;
+      }
+    }
+
     try {
-      await base44.functions.invoke('checkProjectBudget', { time_entry_id: timeEntry.id });
-    } catch (budgetError) {
-      console.error('Error checking project budget:', budgetError);
+      // Call onSave first to save the time entry
+      await onSave(validAllocations);
+      
+      // Check project budget after saving
+      try {
+        await base44.functions.invoke('checkProjectBudget', { time_entry_id: timeEntry.id });
+      } catch (budgetError) {
+        console.error('Error checking project budget:', budgetError);
+      }
+    } catch (error) {
+      console.error('Error saving project allocation:', error);
+      alert('Kunde inte spara: ' + error.message);
     }
   };
 
@@ -290,7 +305,7 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
           </Button>
           <Button
             onClick={handleSave}
-            disabled={allocatedHours > totalHours || allocatedHours === 0}
+            disabled={allocatedHours > totalHours}
             className="flex-1 h-12 rounded-2xl bg-slate-900 hover:bg-slate-800"
           >
             <Save className="w-4 h-4 mr-2" />
