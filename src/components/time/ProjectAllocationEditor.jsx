@@ -41,7 +41,7 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
   );
 
   const [useDropdown, setUseDropdown] = useState(
-    allocations.map(a => projects.some(p => p.id === a.project_id))
+    allocations.map(() => true)
   );
 
   const allocatedHours = allocations.reduce((sum, a) => sum + (Number(a.hours) || 0), 0);
@@ -203,22 +203,30 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
                       {useDropdown[index] ? 'Skriv själv' : 'Välj från lista'}
                     </button>
                   </div>
-                  {useDropdown[index] && projects.length > 0 ? (
-                    <Select
-                      value={allocation.project_id}
-                      onValueChange={(value) => handleUpdateAllocation(index, 'project_id', value)}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Välj projekt" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects.map(project => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.name} ({project.project_code})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {useDropdown[index] ? (
+                    <div className="space-y-1">
+                      {projects && projects.length > 0 ? (
+                        <Select
+                          value={allocation.project_id}
+                          onValueChange={(value) => handleUpdateAllocation(index, 'project_id', value)}
+                        >
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Välj projekt" />
+                          </SelectTrigger>
+                          <SelectContent className="z-50">
+                            {projects.map(project => (
+                              <SelectItem key={project.id} value={project.id}>
+                                {project.name} ({project.project_code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="text-xs text-slate-500 p-2 bg-slate-50 rounded border border-slate-200">
+                          Inga projekt tillgängliga. Vänligen skriv projektkod manuellt.
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <Input
                       value={allocation.project_id}
