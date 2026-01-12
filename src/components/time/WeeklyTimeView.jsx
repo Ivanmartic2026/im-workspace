@@ -181,24 +181,20 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
                           </div>
                           
                           {entry.project_allocations?.length > 0 ? (
-                            <div className="space-y-1 mb-2">
-                              {entry.project_allocations.map((alloc, idx) => (
-                                <div key={idx} className="flex items-center gap-2 text-xs">
-                                  <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-medium">
-                                    {alloc.project_id}
-                                  </span>
-                                  <span className="text-slate-600">{alloc.hours}h</span>
-                                  {alloc.notes && (
-                                    <span className="text-slate-400 truncate">· {alloc.notes}</span>
-                                  )}
-                                </div>
-                              ))}
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {entry.project_allocations.map((alloc, idx) => {
+                                const project = projects.find(p => p.id === alloc.project_id);
+                                return (
+                                  <div key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+                                    <span>{project?.name || alloc.project_id}</span>
+                                    <span className="text-indigo-600 font-bold">{alloc.hours}h</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : entry.project_id && (
-                            <div className="flex items-center gap-2 text-xs mb-2">
-                              <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-medium">
-                                {entry.project_id}
-                              </span>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold mb-2">
+                              <span>{entry.project_id}</span>
                             </div>
                           )}
                           
