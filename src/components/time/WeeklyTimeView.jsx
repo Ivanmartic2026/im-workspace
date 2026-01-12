@@ -7,7 +7,7 @@ import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 import ProjectAllocationEditor from "./ProjectAllocationEditor";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 const statusConfig = {
   completed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Godkänd' },
@@ -22,6 +22,11 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [editingEntry, setEditingEntry] = useState(null);
   const queryClient = useQueryClient();
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+  });
 
   const updateEntryMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TimeEntry.update(id, data),
@@ -102,6 +107,7 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
       {editingEntry && (
         <ProjectAllocationEditor
           timeEntry={editingEntry}
+          projects={projects}
           onSave={handleSaveAllocation}
           onCancel={() => setEditingEntry(null)}
         />
