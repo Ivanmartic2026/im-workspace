@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Bell, X, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Bell, Loader2 } from "lucide-react";
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -27,10 +26,15 @@ export default function PushPromptBanner({ user }) {
   const [isDismissed, setIsDismissed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [vapidPublicKey, setVapidPublicKey] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const dismissed = localStorage.getItem('pushPromptDismissed');
     setIsDismissed(dismissed === 'true');
+
+    // Check if mobile device
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    setIsMobile(isMobileDevice);
 
     const supported = 
       'serviceWorker' in navigator && 
@@ -175,73 +179,61 @@ export default function PushPromptBanner({ user }) {
     localStorage.setItem('pushPromptDismissed', 'true');
   };
 
-  // Don't show if not supported, already subscribed, or dismissed
-  if (!isSupported || isSubscribed || isDismissed || !user) {
+  // Don't show if not supported, already subscribed, dismissed, not mobile, or no user
+  if (!isSupported || isSubscribed || isDismissed || !user || !isMobile) {
     return null;
   }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className="mb-6"
-      >
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white overflow-hidden relative">
-          <button
-            onClick={handleDismiss}
-            className="absolute top-3 right-3 p-1 rounded-full hover:bg-white/20 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Bell className="h-6 w-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">Aktivera notifikationer</h3>
-                <p className="text-blue-50 text-sm mb-4">
-                  Missa aldrig viktiga meddelanden! Aktivera push-notifikationer för att få uppdateringar direkt på din enhet.
-                </p>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleActivate}
-                    disabled={isLoading || !vapidPublicKey}
-                    className="bg-white text-blue-600 hover:bg-blue-50 shadow-md"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Aktiverar...
-                      </>
-                    ) : !vapidPublicKey ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Laddar...
-                      </>
-                    ) : (
-                      <>
-                        <Bell className="h-4 w-4 mr-2" />
-                        Aktivera nu
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    onClick={handleDismiss}
-                    variant="ghost"
-                    className="text-white hover:bg-white/20"
-                  >
-                    Senare
-                  </Button>
-                </div>
-              </div>
+    <Dialog open={!isDismissed} onOpenChange={handleDismiss}>
+      <DialogContent className="sm:max-w-sm rounded-2xl border-0 shadow-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+        <DialogHeader>
+          <div className="flex flex-col items-center text-center gap-4">
+            <div className="h-16 w-16 rounded-2xl bg-white/20 flex items-center justify-center">
+              <Bell className="h-8 w-8" />
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </AnimatePresence>
+            <DialogTitle className="text-2xl font-bold text-white">Aktivera notifikationer</DialogTitle>
+          </div>
+        </DialogHeader>
+        
+        <div className="space-y-4 text-center">
+          <p className="text-blue-50 text-sm">
+            Missa aldrig viktiga meddelanden! Aktivera push-notifikationer för att få uppdateringar direkt på din enhet.
+          </p>
+          
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={handleActivate}
+              disabled={isLoading || !vapidPublicKey}
+              className="flex-1 bg-white text-blue-600 hover:bg-blue-50 font-semibold"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Aktiverar...
+                </>
+              ) : !vapidPublicKey ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Laddar...
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4 mr-2" />
+                  Aktivera nu
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleDismiss}
+              variant="outline"
+              className="flex-1 text-white border-white/30 hover:bg-white/10 font-semibold"
+            >
+              Senare
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
