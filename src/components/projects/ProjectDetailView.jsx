@@ -8,13 +8,16 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Users, Clock, TrendingUp, CheckCircle2, AlertCircle, 
-  Calendar, DollarSign, BarChart3, Plus, User
+  Calendar, DollarSign, BarChart3, Plus, User, Navigation
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import TaskList from './TaskList';
 import ProjectTimeline from './ProjectTimeline';
 import AddTaskModal from './AddTaskModal';
+import ActiveClockIns from './ActiveClockIns';
+import ProjectDrivingJournal from './ProjectDrivingJournal';
+import ProjectExpenses from './ProjectExpenses';
 
 export default function ProjectDetailView({ project, onClose }) {
   const [showAddTask, setShowAddTask] = useState(false);
@@ -212,8 +215,12 @@ export default function ProjectDetailView({ project, onClose }) {
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="tasks" className="space-y-4">
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="w-full bg-white shadow-sm rounded-lg p-1">
+          <TabsTrigger value="overview" className="rounded-md flex-1">
+            <Clock className="h-4 w-4 mr-2" />
+            Översikt
+          </TabsTrigger>
           <TabsTrigger value="tasks" className="rounded-md flex-1">
             <CheckCircle2 className="h-4 w-4 mr-2" />
             Uppgifter
@@ -227,6 +234,14 @@ export default function ProjectDetailView({ project, onClose }) {
             Team
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <ActiveClockIns projectId={project.id} />
+            <ProjectExpenses project={project} timeEntries={timeEntries} />
+          </div>
+          <ProjectDrivingJournal projectId={project.id} />
+        </TabsContent>
 
         <TabsContent value="tasks">
           <div className="space-y-3">
