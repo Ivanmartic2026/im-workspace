@@ -109,6 +109,8 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
       const mergedData = getMergedTripData();
       const user = await base44.auth.me();
 
+      const selectedProject = projects.find(p => p.id === formData.project_id);
+
       const journalEntry = {
         vehicle_id: vehicleId,
         registration_number: vehicleReg,
@@ -122,7 +124,8 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
         duration_minutes: mergedData.duration_minutes,
         trip_type: formData.trip_type,
         purpose: formData.purpose,
-        project_code: formData.project_id ? projects.find(p => p.id === formData.project_id)?.project_code : null,
+        project_code: selectedProject?.project_code || null,
+        project_id: formData.project_id || null,
         customer: formData.customer,
         notes: formData.notes,
         status: 'submitted'

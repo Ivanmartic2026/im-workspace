@@ -12,7 +12,7 @@ export default function ProjectDrivingJournal({ projectId }) {
     queryKey: ['project-journal', projectId],
     queryFn: async () => {
       const allEntries = await base44.entities.DrivingJournalEntry.list();
-      return allEntries.filter(entry => entry.project_code === projectId || entry.gps_trip_id);
+      return allEntries.filter(entry => entry.project_id === projectId);
     },
     refetchInterval: 60000,
     initialData: []
