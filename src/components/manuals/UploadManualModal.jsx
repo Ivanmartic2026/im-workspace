@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { Upload, Loader2, FileText, X } from "lucide-react";
 
 const categoryOptions = [
@@ -39,8 +40,25 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
     requires_acknowledgment: false,
     is_public: true,
     tags: [],
-    expiry_date: ''
+    expiry_date: '',
+    parent_manual_id: null
   });
+
+  // Hämta alla manualer för att visa tillgängliga grupper
+  const { data: allManuals = [] } = useQuery({
+    queryKey: ['manuals'],
+    queryFn: () => base44.entities.Manual.list('-created_date', 200),
+    enabled: open
+  });
+
+  // Filtrera endast parent manuals (grupper utan parent_manual_id)
+  const parentManuals = allManuals.filter(m => !m.parent_manual_id);
+
+  // Filtrera tillgängliga grupper baserat på vald kategori och underkategori
+  const availableGroups = parentManuals.filter(m => 
+    m.category === formData.category && 
+    (!formData.subcategory || m.subcategory === formData.subcategory || !m.subcategory)
+  );
 
   useEffect(() => {
     if (editManual) {
@@ -55,7 +73,8 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
         requires_acknowledgment: editManual.requires_acknowledgment || false,
         is_public: editManual.is_public ?? true,
         tags: editManual.tags || [],
-        expiry_date: editManual.expiry_date || ''
+        expiry_date: editManual.expiry_date || '',
+        parent_manual_id: editManual.parent_manual_id || null
       });
     } else {
       setFormData({
@@ -69,7 +88,8 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
         requires_acknowledgment: false,
         is_public: true,
         tags: [],
-        expiry_date: ''
+        expiry_date: '',
+        parent_manual_id: null
       });
       setFile(null);
     }
@@ -259,6 +279,29 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
               />
             </div>
           </div>
+
+          {/* Parent Manual / Group */}
+          {availableGroups.length > 0 && (
+            <div>
+              <Label>Lägg till i grupp (valfri)</Label>
+              <Select 
+                value={formData.parent_manual_id || ''} 
+                onValueChange={(value) => setFormData({ ...formData, parent_manual_id: value || null })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj en grupp..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Ingen grupp</SelectItem>
+                  {availableGroups.map(group => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Priority & Expiry */}
           <div className="grid grid-cols-2 gap-3">
