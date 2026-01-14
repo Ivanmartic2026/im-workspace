@@ -120,13 +120,17 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
   };
 
   const handleSubmit = async () => {
-    if (!editManual && !file) {
-      alert('Välj en fil att ladda upp');
+    if (!formData.title) {
+      alert('Fyll i titel');
       return;
     }
 
-    if (!formData.title) {
-      alert('Fyll i titel');
+    // Om man skapar en grupp (utan parent_manual_id och utan fil)
+    const isGroup = !editManual && !file && !formData.parent_manual_id;
+    
+    // Om man inte skapar en grupp, måste man ha en fil
+    if (!isGroup && !editManual && !file) {
+      alert('Välj en fil att ladda upp eller skapa en grupp');
       return;
     }
 
@@ -149,8 +153,8 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
       
       const manualData = {
         ...formData,
-        file_url,
-        file_type,
+        ...(file_url && { file_url }),
+        ...(file_type && { file_type }),
         uploaded_by: user.email
       };
 
@@ -174,13 +178,56 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editManual ? 'Redigera manual' : 'Ladda upp ny manual'}
+            {editManual ? 'Redigera manual' : formData.parent_manual_id ? 'Lägg till innehål' : 'Skapa grupp eller ladda upp manual'}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Info Text */}
+          {!editManual && !formData.parent_manual_id && (
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-sm text-blue-900">
+              <p className="font-medium mb-1">💡 Två sätt att använda:</p>
+              <ul className="text-xs space-y-1 ml-4 list-disc">
+                <li>Skapa en <strong>grupp</strong>: Fyll i titel och beskrivning, hoppa över fil</li>
+                <li>Lägg till <strong>innehål</strong>: Välj en grupp nedan och ladda upp en fil</li>
+              </ul>
+            </div>
+          )}
+
           {/* File Upload */}
-          {!editManual && (
+          {!editManual && !formData.parent_manual_id && (
+            <div>
+              <Label>Fil (valfri för grupper)</Label>
+              <div className="mt-2">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                  {file ? (
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-slate-600" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{file.name}</p>
+                        <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(2)} KB</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-8 w-8 text-slate-400 mb-2" />
+                      <p className="text-sm text-slate-600">Klicka för att välja fil</p>
+                      <p className="text-xs text-slate-400 mt-1">PDF, Word, Excel, PowerPoint, JPG, PNG, MP4</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    accept=".pdf,.docx,.xlsx,.pptx,.jpg,.jpeg,.png,.mp4,.webm"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* File Upload for content */}
+          {!editManual && formData.parent_manual_id && (
             <div>
               <Label>Fil *</Label>
               <div className="mt-2">
