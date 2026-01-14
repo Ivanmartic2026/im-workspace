@@ -70,6 +70,20 @@ async function callGPSAPI(action, params = {}) {
   }
 }
 
+async function reverseGeocode(latitude, longitude) {
+  if (!latitude || !longitude) {
+    return null;
+  }
+  try {
+    const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+    const nominatimData = await nominatimResponse.json();
+    return nominatimData.display_name || `${latitude}, ${longitude}`;
+  } catch (e) {
+    console.warn(`Could not reverse geocode ${latitude}, ${longitude}: ${e.message}`);
+    return `${latitude}, ${longitude}`;
+  }
+}
+
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
   
@@ -117,6 +131,28 @@ Deno.serve(async (req) => {
           endtime: params.endtime,
           timezone: 1
         });
+
+        // Berika med adresser
+        if (result && result.totaltrips) {
+          for (const trip of result.totaltrips) {
+            if (trip.beginlat && trip.beginlon) {
+              const address = await reverseGeocode(trip.beginlat, trip.beginlon);
+              trip.beginlocation = { 
+                latitude: trip.beginlat, 
+                longitude: trip.beginlon, 
+                address: address 
+              };
+            }
+            if (trip.endlat && trip.endlon) {
+              const address = await reverseGeocode(trip.endlat, trip.endlon);
+              trip.endlocation = { 
+                latitude: trip.endlat, 
+                longitude: trip.endlon, 
+                address: address 
+              };
+            }
+          }
+        }
         break;
 
       case 'getMileageReport':
