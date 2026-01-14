@@ -34,6 +34,8 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
     title: '',
     description: '',
     category: 'allmänt',
+    subcategory: '',
+    sequence_order: null,
     version: '1.0',
     priority: 'normal',
     requires_acknowledgment: false,
@@ -48,6 +50,8 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
         title: editManual.title || '',
         description: editManual.description || '',
         category: editManual.category || 'allmänt',
+        subcategory: editManual.subcategory || '',
+        sequence_order: editManual.sequence_order || null,
         version: editManual.version || '1.0',
         priority: editManual.priority || 'normal',
         requires_acknowledgment: editManual.requires_acknowledgment || false,
@@ -60,6 +64,8 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
         title: '',
         description: '',
         category: 'allmänt',
+        subcategory: '',
+        sequence_order: null,
         version: '1.0',
         priority: 'normal',
         requires_acknowledgment: false,
@@ -118,7 +124,7 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
         file_url = uploadResponse.file_url;
         
         const extension = file.name.split('.').pop().toLowerCase();
-        file_type = ['pdf', 'docx', 'xlsx', 'pptx'].includes(extension) ? extension : 'annat';
+        file_type = ['pdf', 'docx', 'xlsx', 'pptx', 'jpg', 'jpeg', 'png', 'mp4', 'webm'].includes(extension) ? extension : 'annat';
       }
 
       const user = await base44.auth.me();
@@ -173,14 +179,14 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
                     <div className="flex flex-col items-center">
                       <Upload className="h-8 w-8 text-slate-400 mb-2" />
                       <p className="text-sm text-slate-600">Klicka för att välja fil</p>
-                      <p className="text-xs text-slate-400 mt-1">PDF, DOCX, XLSX, PPTX</p>
+                      <p className="text-xs text-slate-400 mt-1">PDF, Word, Excel, PowerPoint, JPG, PNG, MP4</p>
                     </div>
                   )}
                   <input
                     type="file"
                     className="hidden"
                     onChange={handleFileChange}
-                    accept=".pdf,.docx,.xlsx,.pptx"
+                    accept=".pdf,.docx,.xlsx,.pptx,.jpg,.jpeg,.png,.mp4,.webm"
                   />
                 </label>
               </div>
@@ -230,6 +236,28 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
                 value={formData.version}
                 onChange={(e) => setFormData({ ...formData, version: e.target.value })}
                 placeholder="1.0"
+              />
+            </div>
+          </div>
+
+          {/* Subcategory & Sequence */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Underkategori (valfri)</Label>
+              <Input
+                value={formData.subcategory}
+                onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                placeholder="t.ex. Grundläggande"
+              />
+            </div>
+
+            <div>
+              <Label>Ordningsföljd (valfri)</Label>
+              <Input
+                type="number"
+                value={formData.sequence_order || ''}
+                onChange={(e) => setFormData({ ...formData, sequence_order: e.target.value ? parseInt(e.target.value) : null })}
+                placeholder="t.ex. 1, 2, 3"
               />
             </div>
           </div>
