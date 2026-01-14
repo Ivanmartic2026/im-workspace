@@ -75,13 +75,31 @@ async function reverseGeocode(latitude, longitude) {
     return null;
   }
   try {
-    const nominatimResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+    const nominatimResponse = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'Base44-GPS-App/1.0'
+        }
+      }
+    );
+    
+    if (!nominatimResponse.ok) {
+      console.warn(`Nominatim returned ${nominatimResponse.status} for ${latitude}, ${longitude}`);
+      return `${latitude}, ${longitude}`;
+    }
+    
     const nominatimData = await nominatimResponse.json();
     return nominatimData.display_name || `${latitude}, ${longitude}`;
   } catch (e) {
     console.warn(`Could not reverse geocode ${latitude}, ${longitude}: ${e.message}`);
     return `${latitude}, ${longitude}`;
   }
+}
+
+// Helper to add delay between geocoding requests (Nominatim rate limit)
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 Deno.serve(async (req) => {
@@ -133,8 +151,17 @@ Deno.serve(async (req) => {
         });
 
         // Berika med adresser
-        if (result && result.totaltrips) {
-          for (const trip of result.totaltrips) {
+        if (result && result.totaltrips && result.totaltrips.length > 0) {
+          console.log(`Enriching ${result.totaltrips.length} trips with addresses...`);
+
+          for (let i = 0; i < result.totaltrips.length; i++) {
+            const trip = result.totaltrips[i];
+
+            // Add delay between requests to respect rate limits (max 1 req/sec)
+            if (i > 0) {
+              await delay(1100);
+            }
+
             if (trip.beginlat && trip.beginlon) {
               const address = await reverseGeocode(trip.beginlat, trip.beginlon);
               trip.beginlocation = { 
@@ -142,7 +169,12 @@ Deno.serve(async (req) => {
                 longitude: trip.beginlon, 
                 address: address 
               };
+              console.log(`Begin address for trip ${i}: ${address}`);
             }
+
+            // Small delay between begin and end location
+            await delay(1100);
+
             if (trip.endlat && trip.endlon) {
               const address = await reverseGeocode(trip.endlat, trip.endlon);
               trip.endlocation = { 
@@ -150,8 +182,11 @@ Deno.serve(async (req) => {
                 longitude: trip.endlon, 
                 address: address 
               };
+              console.log(`End address for trip ${i}: ${address}`);
             }
           }
+
+          console.log('Address enrichment completed');
         }
         break;
 
