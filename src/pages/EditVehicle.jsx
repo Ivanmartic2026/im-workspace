@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +12,17 @@ import { ArrowLeft, Loader2, X, Upload, Sparkles } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion } from "framer-motion";
+
+const formatDateForInput = (dateString) => {
+  if (!dateString || dateString === '') return '';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+  } catch {
+    return '';
+  }
+};
 
 export default function EditVehicle() {
   const navigate = useNavigate();
@@ -49,10 +61,10 @@ export default function EditVehicle() {
         fuel_cards: vehicle.fuel_cards || [],
         assigned_driver: vehicle.assigned_driver || '',
         current_mileage: vehicle.current_mileage || '',
-        next_service_date: vehicle.next_service_date || '',
+        next_service_date: formatDateForInput(vehicle.next_service_date),
         next_service_mileage: vehicle.next_service_mileage || '',
-        next_inspection_date: vehicle.next_inspection_date || '',
-        tire_change_date: vehicle.tire_change_date || '',
+        next_inspection_date: formatDateForInput(vehicle.next_inspection_date),
+        tire_change_date: formatDateForInput(vehicle.tire_change_date),
         status: vehicle.status || 'aktiv',
         image_url: vehicle.image_url || '',
         notes: vehicle.notes || ''
@@ -428,8 +440,8 @@ export default function EditVehicle() {
                     <Input
                       id="next_service_date"
                       type="date"
-                      value={formData.next_service_date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, next_service_date: e.target.value }))}
+                      value={formData.next_service_date || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, next_service_date: e.target.value || '' }))}
                       className="h-11"
                     />
                   </div>
@@ -452,8 +464,8 @@ export default function EditVehicle() {
                     <Input
                       id="next_inspection_date"
                       type="date"
-                      value={formData.next_inspection_date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, next_inspection_date: e.target.value }))}
+                      value={formData.next_inspection_date || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, next_inspection_date: e.target.value || '' }))}
                       className="h-11"
                     />
                   </div>
@@ -463,8 +475,8 @@ export default function EditVehicle() {
                     <Input
                       id="tire_change_date"
                       type="date"
-                      value={formData.tire_change_date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, tire_change_date: e.target.value }))}
+                      value={formData.tire_change_date || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tire_change_date: e.target.value || '' }))}
                       className="h-11"
                     />
                   </div>
