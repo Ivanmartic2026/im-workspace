@@ -328,7 +328,7 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
           </div>
 
           {/* Parent Manual / Group */}
-          {availableGroups.length > 0 && (
+          {!editManual && parentManuals.length > 0 && (
             <div>
               <Label>Lägg till i grupp (valfri)</Label>
               <Select 
@@ -339,8 +339,8 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
                   <SelectValue placeholder="Välj en grupp..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>Ingen grupp</SelectItem>
-                  {availableGroups.map(group => (
+                  <SelectItem value={null}>Skapa som egen grupp</SelectItem>
+                  {parentManuals.map(group => (
                     <SelectItem key={group.id} value={group.id}>
                       {group.title}
                     </SelectItem>
