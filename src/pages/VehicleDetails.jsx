@@ -202,7 +202,7 @@ export default function VehicleDetails() {
                   Kommande
                 </h3>
                 <div className="space-y-1 text-sm">
-                  {vehicle.next_service_date && (
+                  {vehicle.next_service_date && vehicle.next_service_date !== '' && (
                     <div className="flex items-center justify-between">
                       <span className="text-amber-700">Nästa service</span>
                       <span className="font-medium text-amber-900">
@@ -210,7 +210,7 @@ export default function VehicleDetails() {
                       </span>
                     </div>
                   )}
-                  {vehicle.next_inspection_date && (
+                  {vehicle.next_inspection_date && vehicle.next_inspection_date !== '' && (
                     <div className="flex items-center justify-between">
                       <span className="text-amber-700">Besiktning</span>
                       <span className="font-medium text-amber-900">
