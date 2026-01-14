@@ -63,31 +63,31 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
 
     const selected = selectedTrips
       .map(i => trips[i])
-      .filter(trip => trip && trip.starttime && trip.endtime)
-      .sort((a, b) => new Date(a.starttime) - new Date(b.starttime));
+      .filter(trip => trip && trip.begintime && trip.endtime)
+      .sort((a, b) => new Date(a.begintime * 1000) - new Date(b.begintime * 1000));
 
     if (selected.length === 0) return null;
 
     const firstTrip = selected[0];
     const lastTrip = selected[selected.length - 1];
 
-    const totalDistance = selected.reduce((sum, trip) => sum + (trip?.tripdistance || 0), 0);
-    const totalTime = selected.reduce((sum, trip) => sum + (trip?.triptime || 0), 0);
+    const totalDistance = selected.reduce((sum, trip) => sum + (trip?.mileage || 0), 0);
+    const totalTime = selected.reduce((sum, trip) => sum + ((trip?.endtime - trip?.begintime) || 0), 0);
 
     return {
-      start_time: new Date(firstTrip.starttime).toISOString(),
-      end_time: new Date(lastTrip.endtime).toISOString(),
-      distance_km: totalDistance / 1000,
-      duration_minutes: totalTime / (1000 * 60),
+      start_time: new Date(firstTrip.begintime * 1000).toISOString(),
+      end_time: new Date(lastTrip.endtime * 1000).toISOString(),
+      distance_km: totalDistance,
+      duration_minutes: totalTime / 60,
       start_location: {
-        latitude: firstTrip.startlat,
-        longitude: firstTrip.startlon,
-        address: firstTrip.startaddress || `${firstTrip.startlat?.toFixed(5) || 0}, ${firstTrip.startlon?.toFixed(5) || 0}`
+        latitude: firstTrip.beginlocation?.latitude,
+        longitude: firstTrip.beginlocation?.longitude,
+        address: firstTrip.beginlocation?.address || `${firstTrip.beginlocation?.latitude?.toFixed(5)}, ${firstTrip.beginlocation?.longitude?.toFixed(5)}`
       },
       end_location: {
-        latitude: lastTrip.endlat,
-        longitude: lastTrip.endlon,
-        address: lastTrip.endaddress || `${lastTrip.endlat?.toFixed(5) || 0}, ${lastTrip.endlon?.toFixed(5) || 0}`
+        latitude: lastTrip.endlocation?.latitude,
+        longitude: lastTrip.endlocation?.longitude,
+        address: lastTrip.endlocation?.address || `${lastTrip.endlocation?.latitude?.toFixed(5)}, ${lastTrip.endlocation?.longitude?.toFixed(5)}`
       }
     };
   };
@@ -187,24 +187,24 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-sm font-medium text-slate-900">
-                          {format(new Date(trip.starttime), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
+                          {format(new Date(trip.begintime * 1000), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
                         </p>
                         <p className="text-sm font-bold text-slate-900">
-                          {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
+                          {(trip?.mileage || 0).toFixed(1)} km
                         </p>
                       </div>
                       <div className="mb-1.5 space-y-0.5">
                         <p className="text-xs text-slate-600 line-clamp-1">
-                          📍 {trip.startaddress || `${trip.startlat?.toFixed(5)}, ${trip.startlon?.toFixed(5)}`}
+                          📍 {trip.beginlocation?.address || `${trip.beginlocation?.latitude?.toFixed(5)}, ${trip.beginlocation?.longitude?.toFixed(5)}`}
                         </p>
-                        {(trip.endaddress || (trip.endlat && trip.endlon)) && (
+                        {trip.endlocation && (
                           <p className="text-xs text-slate-600 line-clamp-1">
-                            🏁 {trip.endaddress || `${trip.endlat?.toFixed(5)}, ${trip.endlon?.toFixed(5)}`}
+                            🏁 {trip.endlocation?.address || `${trip.endlocation?.latitude?.toFixed(5)}, ${trip.endlocation?.longitude?.toFixed(5)}`}
                           </p>
                         )}
                       </div>
                       <p className="text-xs text-slate-500">
-                        {Math.round((trip?.triptime || 0) / (1000 * 60))} min • Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h
+                        {Math.round((trip?.endtime - trip?.begintime) / 60)} min • Snitt: {Math.round(trip?.averagespeed || 0)} km/h
                       </p>
                     </div>
                   </div>
