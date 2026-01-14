@@ -162,8 +162,158 @@ export default function ManualDetail() {
             </div>
           </div>
 
-          {/* Action Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* File Preview */}
+          <Card className="border-0 shadow-sm mb-6">
+            <CardContent className="p-6">
+              {manual.file_type === 'pdf' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-slate-900">Dokumentvisning</h3>
+                    <a href={manual.file_url} download>
+                      <Button size="sm" variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Ladda ner
+                      </Button>
+                    </a>
+                  </div>
+                  <iframe 
+                    src={manual.file_url} 
+                    className="w-full h-[600px] rounded-lg border border-slate-200"
+                    title={manual.title}
+                  />
+                </div>
+              )}
+
+              {(manual.file_type === 'jpg' || manual.file_type === 'jpeg' || manual.file_type === 'png') && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-slate-900">Bildvisning</h3>
+                    <a href={manual.file_url} download>
+                      <Button size="sm" variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Ladda ner
+                      </Button>
+                    </a>
+                  </div>
+                  <img 
+                    src={manual.file_url} 
+                    alt={manual.title}
+                    className="w-full rounded-lg border border-slate-200"
+                  />
+                </div>
+              )}
+
+              {(manual.file_type === 'mp4' || manual.file_type === 'webm') && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-slate-900">Videovisning</h3>
+                    <a href={manual.file_url} download>
+                      <Button size="sm" variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        Ladda ner
+                      </Button>
+                    </a>
+                  </div>
+                  <video 
+                    src={manual.file_url} 
+                    controls
+                    className="w-full rounded-lg border border-slate-200"
+                  >
+                    Din webbläsare stödjer inte videouppspelning.
+                  </video>
+                </div>
+              )}
+
+              {!['pdf', 'jpg', 'jpeg', 'png', 'mp4', 'webm'].includes(manual.file_type) && (
+                <div className="text-center py-8">
+                  <div className="h-16 w-16 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                    <Download className="h-8 w-8 text-slate-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 mb-2">Förhandsvisning ej tillgänglig</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Filtyp: {manual.file_type?.toUpperCase()}
+                  </p>
+                  <a href={manual.file_url} download>
+                    <Button className="bg-slate-900 hover:bg-slate-800">
+                      <Download className="h-4 w-4 mr-2" />
+                      Ladda ner dokument
+                    </Button>
+                  </a>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Acknowledgment Card */}
+          {manual.requires_acknowledgment && (
+            <Card className={`border-0 shadow-sm mb-6 ${hasAcknowledged ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
+                    hasAcknowledged ? 'bg-emerald-100' : 'bg-amber-100'
+                  }`}>
+                    <CheckCircle2 className={`h-6 w-6 ${
+                      hasAcknowledged ? 'text-emerald-600' : 'text-amber-600'
+                    }`} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`font-semibold ${hasAcknowledged ? 'text-emerald-900' : 'text-amber-900'}`}>
+                      {hasAcknowledged ? 'Bekräftad' : 'Bekräftelse krävs'}
+                    </h3>
+                    <p className={`text-xs ${hasAcknowledged ? 'text-emerald-700' : 'text-amber-700'}`}>
+                      {hasAcknowledged ? 'Du har läst denna manual' : 'Bekräfta att du har läst'}
+                    </p>
+                  </div>
+                  {!hasAcknowledged && (
+                    <Button 
+                      onClick={handleAcknowledge}
+                      disabled={acknowledgeMutation.isPending}
+                      className="bg-amber-600 hover:bg-amber-700"
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Bekräfta läsning
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sequence Navigation */}
+          {manual.subcategory && (
+            <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <Badge className="bg-blue-100 text-blue-700">
+                    {manual.subcategory}
+                  </Badge>
+                  {manual.sequence_order && (
+                    <Badge variant="outline">
+                      Steg {manual.sequence_order}
+                    </Badge>
+                  )}
+                </div>
+                {manual.sequence_order && (
+                  <div className="flex gap-2">
+                    {manuals
+                      .filter(m => m.subcategory === manual.subcategory && m.id !== manual.id)
+                      .sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0))
+                      .map(relatedManual => (
+                        <Link key={relatedManual.id} to={createPageUrl('ManualDetail') + `?id=${relatedManual.id}`}>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            Steg {relatedManual.sequence_order}: {relatedManual.title}
+                          </Button>
+                        </Link>
+                      ))
+                    }
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action Section for old file types */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 hidden">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -184,39 +334,6 @@ export default function ManualDetail() {
               </CardContent>
             </Card>
 
-            {manual.requires_acknowledgment && (
-              <Card className={`border-0 shadow-sm ${hasAcknowledged ? 'bg-emerald-50' : 'bg-amber-50'}`}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                      hasAcknowledged ? 'bg-emerald-100' : 'bg-amber-100'
-                    }`}>
-                      <CheckCircle2 className={`h-6 w-6 ${
-                        hasAcknowledged ? 'text-emerald-600' : 'text-amber-600'
-                      }`} />
-                    </div>
-                    <div>
-                      <h3 className={`font-semibold ${hasAcknowledged ? 'text-emerald-900' : 'text-amber-900'}`}>
-                        {hasAcknowledged ? 'Bekräftad' : 'Bekräftelse krävs'}
-                      </h3>
-                      <p className={`text-xs ${hasAcknowledged ? 'text-emerald-700' : 'text-amber-700'}`}>
-                        {hasAcknowledged ? 'Du har läst denna manual' : 'Bekräfta att du har läst'}
-                      </p>
-                    </div>
-                  </div>
-                  {!hasAcknowledged && (
-                    <Button 
-                      onClick={handleAcknowledge}
-                      disabled={acknowledgeMutation.isPending}
-                      className="w-full bg-amber-600 hover:bg-amber-700"
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Bekräfta läsning
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Admin Actions */}
