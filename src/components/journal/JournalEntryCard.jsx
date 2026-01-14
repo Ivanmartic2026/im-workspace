@@ -72,7 +72,12 @@ export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, on
                     <MapPin className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                     <span className="text-xs font-medium text-slate-600">Start:</span>
                   </div>
-                  <span className="text-sm text-slate-700">{entry.start_location.address}</span>
+                  <span className="text-sm text-slate-700">
+                    {entry.start_location.address || 
+                     (entry.start_location.latitude && entry.start_location.longitude 
+                       ? `${entry.start_location.latitude.toFixed(5)}, ${entry.start_location.longitude.toFixed(5)}`
+                       : 'Okänd plats')}
+                  </span>
                 </div>
               )}
 
@@ -82,7 +87,12 @@ export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, on
                     <MapPin className="h-4 w-4 text-rose-500 flex-shrink-0" />
                     <span className="text-xs font-medium text-slate-600">Slut:</span>
                   </div>
-                  <span className="text-sm text-slate-700">{entry.end_location.address}</span>
+                  <span className="text-sm text-slate-700">
+                    {entry.end_location.address || 
+                     (entry.end_location.latitude && entry.end_location.longitude 
+                       ? `${entry.end_location.latitude.toFixed(5)}, ${entry.end_location.longitude.toFixed(5)}`
+                       : 'Okänd plats')}
+                  </span>
                 </div>
               )}
             </div>
