@@ -246,8 +246,8 @@ export default function ManualDetail() {
                     </a>
                   </div>
                   <iframe 
-                    src={manual.file_url} 
-                    className="w-full h-[600px] rounded-lg border border-slate-200"
+                    src={`${manual.file_url}#toolbar=1&navpanes=1&scrollbar=1`}
+                    className="w-full h-[800px] rounded-lg border border-slate-200"
                     title={manual.title}
                   />
                 </div>
