@@ -150,40 +150,56 @@ Deno.serve(async (req) => {
           timezone: 1
         });
 
-        // Berika med adresser
+        // Optimerad geokodning - samla unika koordinater först
         if (result && result.totaltrips && result.totaltrips.length > 0) {
           console.log(`Enriching ${result.totaltrips.length} trips with addresses...`);
 
-          for (let i = 0; i < result.totaltrips.length; i++) {
-            const trip = result.totaltrips[i];
-
-            // Add delay between requests to respect rate limits (max 1 req/sec)
-            if (i > 0) {
-              await delay(1100);
-            }
-
-            // API använder slat/slon för start och elat/elon för slut
+          // Samla alla unika koordinater
+          const uniqueCoordinates = new Map();
+          for (const trip of result.totaltrips) {
             if (trip.slat && trip.slon) {
-              const address = await reverseGeocode(trip.slat, trip.slon);
-              trip.beginlocation = { 
-                latitude: trip.slat, 
-                longitude: trip.slon, 
-                address: address 
-              };
-              console.log(`Begin address for trip ${i}: ${address}`);
+              const key = `${trip.slat},${trip.slon}`;
+              uniqueCoordinates.set(key, null);
             }
-
-            // Small delay between begin and end location
-            await delay(1100);
-
             if (trip.elat && trip.elon) {
-              const address = await reverseGeocode(trip.elat, trip.elon);
-              trip.endlocation = { 
-                latitude: trip.elat, 
-                longitude: trip.elon, 
-                address: address 
+              const key = `${trip.elat},${trip.elon}`;
+              uniqueCoordinates.set(key, null);
+            }
+          }
+
+          console.log(`Found ${uniqueCoordinates.size} unique coordinates to geocode`);
+
+          // Geokoda varje unik koordinat med fördröjning
+          let geocodeCount = 0;
+          for (const [coordKey] of uniqueCoordinates) {
+            if (geocodeCount > 0) {
+              await delay(1100); // Respektera Nominatim rate limit (max 1 req/sec)
+            }
+            
+            const [lat, lon] = coordKey.split(',');
+            const address = await reverseGeocode(lat, lon);
+            uniqueCoordinates.set(coordKey, address);
+            console.log(`[${geocodeCount + 1}/${uniqueCoordinates.size}] Geocoded ${lat}, ${lon}`);
+            geocodeCount++;
+          }
+
+          // Tilldela adresser till resor
+          for (const trip of result.totaltrips) {
+            if (trip.slat && trip.slon) {
+              const key = `${trip.slat},${trip.slon}`;
+              trip.beginlocation = {
+                latitude: trip.slat,
+                longitude: trip.slon,
+                address: uniqueCoordinates.get(key)
               };
-              console.log(`End address for trip ${i}: ${address}`);
+            }
+            if (trip.elat && trip.elon) {
+              const key = `${trip.elat},${trip.elon}`;
+              trip.endlocation = {
+                latitude: trip.elat,
+                longitude: trip.elon,
+                address: uniqueCoordinates.get(key)
+              };
             }
           }
 

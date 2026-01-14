@@ -9,7 +9,7 @@ import {
   ArrowLeft, Car, Fuel, Wrench, AlertCircle, Calendar, 
   FileText, User, MapPin, Hash, Zap, CreditCard, Edit, Trash2, Navigation 
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
@@ -30,6 +30,17 @@ const statusColors = {
   service: "bg-amber-100 text-amber-700",
   skadad: "bg-rose-100 text-rose-700",
   avställd: "bg-slate-100 text-slate-700"
+};
+
+const formatDate = (dateString) => {
+  if (!dateString || dateString === '') return null;
+  try {
+    const date = parseISO(dateString);
+    if (!isValid(date)) return null;
+    return format(date, "d MMM yyyy", { locale: sv });
+  } catch {
+    return null;
+  }
 };
 
 export default function VehicleDetails() {
@@ -90,6 +101,9 @@ export default function VehicleDetails() {
       alert('Kunde inte ta bort fordonet');
     }
   };
+
+  const nextServiceDate = formatDate(vehicle.next_service_date);
+  const nextInspectionDate = formatDate(vehicle.next_inspection_date);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -194,7 +208,7 @@ export default function VehicleDetails() {
           </Card>
 
           {/* Alerts */}
-          {(vehicle.next_service_date || vehicle.next_inspection_date) && (
+          {(nextServiceDate || nextInspectionDate) && (
             <Card className="border-0 shadow-sm mb-6 bg-amber-50 border-l-4 border-l-amber-500">
               <CardContent className="p-4">
                 <h3 className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-2">
@@ -202,20 +216,16 @@ export default function VehicleDetails() {
                   Kommande
                 </h3>
                 <div className="space-y-1 text-sm">
-                  {vehicle.next_service_date && vehicle.next_service_date !== '' && (
+                  {nextServiceDate && (
                     <div className="flex items-center justify-between">
                       <span className="text-amber-700">Nästa service</span>
-                      <span className="font-medium text-amber-900">
-                        {format(new Date(vehicle.next_service_date), "d MMM yyyy", { locale: sv })}
-                      </span>
+                      <span className="font-medium text-amber-900">{nextServiceDate}</span>
                     </div>
                   )}
-                  {vehicle.next_inspection_date && vehicle.next_inspection_date !== '' && (
+                  {nextInspectionDate && (
                     <div className="flex items-center justify-between">
                       <span className="text-amber-700">Besiktning</span>
-                      <span className="font-medium text-amber-900">
-                        {format(new Date(vehicle.next_inspection_date), "d MMM yyyy", { locale: sv })}
-                      </span>
+                      <span className="font-medium text-amber-900">{nextInspectionDate}</span>
                     </div>
                   )}
                 </div>
