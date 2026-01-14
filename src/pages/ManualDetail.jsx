@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, CheckCircle2, Eye, Users, Calendar, User, Tag, AlertTriangle, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, Eye, Users, Calendar, User, Tag, AlertTriangle, Edit, Trash2, Star, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -32,6 +32,9 @@ export default function ManualDetail() {
   const [user, setUser] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
   const queryClient = useQueryClient();
   
   const urlParams = new URLSearchParams(window.location.search);
@@ -71,6 +74,38 @@ export default function ManualDetail() {
     },
   });
 
+  const feedbackMutation = useMutation({
+    mutationFn: async ({ rating, comment }) => {
+      const feedback = manual.feedback || [];
+      
+      // Remove existing feedback from same user
+      const filteredFeedback = feedback.filter(f => f.user_email !== user.email);
+      
+      // Add new feedback
+      filteredFeedback.push({
+        user_email: user.email,
+        user_name: user.full_name,
+        rating,
+        comment,
+        created_at: new Date().toISOString()
+      });
+      
+      // Calculate new average
+      const average_rating = filteredFeedback.reduce((sum, f) => sum + f.rating, 0) / filteredFeedback.length;
+      
+      return base44.entities.Manual.update(manualId, { 
+        feedback: filteredFeedback,
+        average_rating: Math.round(average_rating * 10) / 10
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['manuals'] });
+      setShowFeedbackForm(false);
+      setRating(0);
+      setComment('');
+    },
+  });
+
   const handleAcknowledge = async () => {
     if (window.confirm('Bekräfta att du har läst och förstått denna manual?')) {
       await acknowledgeMutation.mutateAsync();
@@ -106,6 +141,9 @@ export default function ManualDetail() {
 
   const hasAcknowledged = manual.acknowledged_by?.some(a => a.email === user?.email);
   const isAdmin = user?.role === 'admin';
+  const userFeedback = manual.feedback?.find(f => f.user_email === user?.email);
+  const averageRating = manual.average_rating || 0;
+  const totalFeedback = manual.feedback?.length || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
@@ -436,6 +474,182 @@ export default function ManualDetail() {
                     Utgår: {format(new Date(manual.expiry_date), 'PPP', { locale: sv })}
                   </p>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Feedback Section */}
+          <Card className="border-0 shadow-sm mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-amber-500" />
+                  Betyg & Feedback
+                </div>
+                {averageRating > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${
+                            star <= Math.round(averageRating)
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-slate-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm text-slate-600">
+                      {averageRating.toFixed(1)} ({totalFeedback})
+                    </span>
+                  </div>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Feedback Form */}
+              {user && !showFeedbackForm && !userFeedback && (
+                <Button
+                  onClick={() => setShowFeedbackForm(true)}
+                  variant="outline"
+                  className="w-full mb-4"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Lämna feedback
+                </Button>
+              )}
+
+              {user && showFeedbackForm && (
+                <div className="p-4 bg-slate-50 rounded-lg mb-4">
+                  <div className="mb-4">
+                    <label className="text-sm font-medium text-slate-900 mb-2 block">
+                      Betyg
+                    </label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setRating(star)}
+                          className="transition-transform hover:scale-110"
+                        >
+                          <Star
+                            className={`h-8 w-8 ${
+                              star <= rating
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-slate-300 hover:text-amber-200'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="text-sm font-medium text-slate-900 mb-2 block">
+                      Kommentar (valfritt)
+                    </label>
+                    <textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Dela dina tankar om denna manual..."
+                      className="w-full p-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => feedbackMutation.mutate({ rating, comment })}
+                      disabled={rating === 0 || feedbackMutation.isPending}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    >
+                      Skicka feedback
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowFeedbackForm(false);
+                        setRating(0);
+                        setComment('');
+                      }}
+                    >
+                      Avbryt
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* User's existing feedback */}
+              {userFeedback && (
+                <div className="p-4 bg-emerald-50 rounded-lg mb-4 border border-emerald-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-emerald-900">Din feedback</p>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-3 w-3 ${
+                            star <= userFeedback.rating
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-slate-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {userFeedback.comment && (
+                    <p className="text-sm text-slate-600">{userFeedback.comment}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Recent feedback */}
+              {manual.feedback && manual.feedback.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-slate-900">Senaste feedback</h4>
+                  {manual.feedback
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .slice(0, 5)
+                    .map((feedback, index) => (
+                      <div key={index} className="p-3 bg-slate-50 rounded-lg">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">
+                              {feedback.user_name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {format(new Date(feedback.created_at), 'PPp', { locale: sv })}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-3 w-3 ${
+                                  star <= feedback.rating
+                                    ? 'fill-amber-400 text-amber-400'
+                                    : 'text-slate-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {feedback.comment && (
+                          <p className="text-sm text-slate-600">{feedback.comment}</p>
+                        )}
+                      </div>
+                    ))}
+                  {manual.feedback.length > 5 && (
+                    <p className="text-sm text-slate-500 text-center">
+                      +{manual.feedback.length - 5} till
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {(!manual.feedback || manual.feedback.length === 0) && !showFeedbackForm && (
+                <p className="text-sm text-slate-500 text-center py-4">
+                  Ingen feedback ännu. Var den första att betygsätta!
+                </p>
               )}
             </CardContent>
           </Card>
