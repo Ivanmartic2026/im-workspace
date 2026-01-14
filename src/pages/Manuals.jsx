@@ -78,6 +78,19 @@ export default function Manuals() {
     return matchesSearch && matchesCategory;
   });
 
+  // Separate parent and child manuals
+  const parentManuals = filteredManuals.filter(m => !m.parent_manual_id);
+  const childManualsMap = {};
+  
+  filteredManuals.forEach(m => {
+    if (m.parent_manual_id) {
+      if (!childManualsMap[m.parent_manual_id]) {
+        childManualsMap[m.parent_manual_id] = [];
+      }
+      childManualsMap[m.parent_manual_id].push(m);
+    }
+  });
+
   // Categorize manuals
   const requiresAcknowledgment = filteredManuals.filter(m => 
     m.requires_acknowledgment && 
@@ -272,21 +285,55 @@ export default function Manuals() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredManuals.map((manual, index) => (
-                <motion.div
-                  key={manual.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
-                >
-                  <ManualCard 
-                    manual={manual} 
-                    user={user}
-                    isAdmin={user?.role === 'admin'}
-                  />
-                </motion.div>
-              ))}
+            <div className="space-y-8">
+              {parentManuals.map((parentManual, parentIndex) => {
+                const children = childManualsMap[parentManual.id] || [];
+
+                return (
+                  <div key={parentManual.id}>
+                    {/* Parent Manual */}
+                    <div className="mb-4">
+                      <Link to={createPageUrl('ManualDetail') + `?id=${parentManual.id}`}>
+                        <div className="p-4 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl border-2 border-indigo-300 cursor-pointer hover:shadow-lg transition-shadow">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                              <BookOpen className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-bold text-indigo-900">{parentManual.title}</h3>
+                              {children.length > 0 && (
+                                <p className="text-sm text-indigo-700">{children.length} innehållselement</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+
+                    {/* Child Manuals */}
+                    {children.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 ml-0 md:ml-4">
+                        {children
+                          .sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0))
+                          .map((childManual, childIndex) => (
+                            <motion.div
+                              key={childManual.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: childIndex * 0.05, duration: 0.3 }}
+                            >
+                              <ManualCard 
+                                manual={childManual} 
+                                user={user}
+                                isAdmin={user?.role === 'admin'}
+                              />
+                            </motion.div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </motion.div>
