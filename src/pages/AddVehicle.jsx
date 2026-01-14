@@ -479,8 +479,8 @@ export default function AddVehicle() {
                     <Input
                       id="next_service_date"
                       type="date"
-                      value={formData.next_service_date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, next_service_date: e.target.value }))}
+                      value={formData.next_service_date || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, next_service_date: e.target.value || '' }))}
                       className="h-11"
                     />
                   </div>
@@ -504,8 +504,8 @@ export default function AddVehicle() {
                     <Input
                       id="next_inspection_date"
                       type="date"
-                      value={formData.next_inspection_date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, next_inspection_date: e.target.value }))}
+                      value={formData.next_inspection_date || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, next_inspection_date: e.target.value || '' }))}
                       className="h-11"
                     />
                   </div>
@@ -515,8 +515,8 @@ export default function AddVehicle() {
                     <Input
                       id="tire_change_date"
                       type="date"
-                      value={formData.tire_change_date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, tire_change_date: e.target.value }))}
+                      value={formData.tire_change_date || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tire_change_date: e.target.value || '' }))}
                       className="h-11"
                     />
                   </div>
