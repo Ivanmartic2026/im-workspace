@@ -238,7 +238,7 @@ export default function ManualDetail() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-slate-900">Dokumentvisning</h3>
-                    <a href={manual.file_url} download>
+                    <a href={manual.file_url} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" variant="outline">
                         <Download className="h-4 w-4 mr-2" />
                         Ladda ner
@@ -399,30 +399,63 @@ export default function ManualDetail() {
 
           {/* Admin Actions */}
           {isAdmin && (
-            <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-indigo-50 to-purple-50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-indigo-600" />
+            <>
+              {/* Group Management */}
+              {!manual.parent_manual_id && (
+                <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-indigo-50 to-purple-50">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-indigo-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">Lägg till innehål i denna grupp</p>
+                          <p className="text-xs text-slate-600">
+                            {manuals.filter(m => m.parent_manual_id === manual.id).length} manualer tilldelade
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setShowEditModal(true);
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Lägg till innehål
+                      </Button>
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-900">Fördela till personal</p>
-                      <p className="text-xs text-slate-600">
-                        {manual.assigned_to?.length || 0} personer tilldelade
-                      </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Assign to users */}
+              <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-indigo-50 to-purple-50">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900">Fördela till personal</p>
+                        <p className="text-xs text-slate-600">
+                          {manual.assigned_to?.length || 0} personer tilldelade
+                        </p>
+                      </div>
                     </div>
+                    <Button
+                      onClick={() => setShowAssignModal(true)}
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Hantera tilldelning
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => setShowAssignModal(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Hantera tilldelning
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </>
           )}
 
           {/* Metadata */}
