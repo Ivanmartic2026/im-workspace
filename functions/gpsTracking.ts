@@ -162,11 +162,12 @@ Deno.serve(async (req) => {
               await delay(1100);
             }
 
-            if (trip.beginlat && trip.beginlon) {
-              const address = await reverseGeocode(trip.beginlat, trip.beginlon);
+            // API använder slat/slon för start och elat/elon för slut
+            if (trip.slat && trip.slon) {
+              const address = await reverseGeocode(trip.slat, trip.slon);
               trip.beginlocation = { 
-                latitude: trip.beginlat, 
-                longitude: trip.beginlon, 
+                latitude: trip.slat, 
+                longitude: trip.slon, 
                 address: address 
               };
               console.log(`Begin address for trip ${i}: ${address}`);
@@ -175,11 +176,11 @@ Deno.serve(async (req) => {
             // Small delay between begin and end location
             await delay(1100);
 
-            if (trip.endlat && trip.endlon) {
-              const address = await reverseGeocode(trip.endlat, trip.endlon);
+            if (trip.elat && trip.elon) {
+              const address = await reverseGeocode(trip.elat, trip.elon);
               trip.endlocation = { 
-                latitude: trip.endlat, 
-                longitude: trip.endlon, 
+                latitude: trip.elat, 
+                longitude: trip.elon, 
                 address: address 
               };
               console.log(`End address for trip ${i}: ${address}`);
