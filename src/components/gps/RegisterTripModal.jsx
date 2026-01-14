@@ -82,12 +82,12 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
       start_location: {
         latitude: firstTrip.startlat,
         longitude: firstTrip.startlon,
-        address: firstTrip.startaddress || `${firstTrip.startlat}, ${firstTrip.startlon}`
+        address: firstTrip.startaddress || `${firstTrip.startlat?.toFixed(5) || 0}, ${firstTrip.startlon?.toFixed(5) || 0}`
       },
       end_location: {
         latitude: lastTrip.endlat,
         longitude: lastTrip.endlon,
-        address: lastTrip.endaddress || `${lastTrip.endlat}, ${lastTrip.endlon}`
+        address: lastTrip.endaddress || `${lastTrip.endlat?.toFixed(5) || 0}, ${lastTrip.endlon?.toFixed(5) || 0}`
       }
     };
   };
