@@ -127,10 +127,13 @@ export default function EditVehicle() {
         year: formData.year ? Number(formData.year) : undefined,
         current_mileage: formData.current_mileage ? Number(formData.current_mileage) : undefined,
         next_service_mileage: formData.next_service_mileage ? Number(formData.next_service_mileage) : undefined,
+        next_service_date: formData.next_service_date || undefined,
+        next_inspection_date: formData.next_inspection_date || undefined,
+        tire_change_date: formData.tire_change_date || undefined,
       };
 
       Object.keys(dataToSave).forEach(key => {
-        if (dataToSave[key] === '') {
+        if (dataToSave[key] === '' || dataToSave[key] === undefined) {
           delete dataToSave[key];
         }
       });
