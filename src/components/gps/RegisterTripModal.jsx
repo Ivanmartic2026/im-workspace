@@ -193,20 +193,16 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
                           {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
                         </p>
                       </div>
-                      {(trip.startaddress || trip.endaddress) && (
-                        <div className="mb-1.5 space-y-0.5">
-                          {trip.startaddress && (
-                            <p className="text-xs text-slate-600 line-clamp-1">
-                              📍 {trip.startaddress}
-                            </p>
-                          )}
-                          {trip.endaddress && trip.startaddress !== trip.endaddress && (
-                            <p className="text-xs text-slate-600 line-clamp-1">
-                              🏁 {trip.endaddress}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      <div className="mb-1.5 space-y-0.5">
+                        <p className="text-xs text-slate-600 line-clamp-1">
+                          📍 {trip.startaddress || `${trip.startlat?.toFixed(5)}, ${trip.startlon?.toFixed(5)}`}
+                        </p>
+                        {(trip.endaddress || (trip.endlat && trip.endlon)) && (
+                          <p className="text-xs text-slate-600 line-clamp-1">
+                            🏁 {trip.endaddress || `${trip.endlat?.toFixed(5)}, ${trip.endlon?.toFixed(5)}`}
+                          </p>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500">
                         {Math.round((trip?.triptime || 0) / (1000 * 60))} min • Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h
                       </p>
