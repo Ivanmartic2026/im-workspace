@@ -16,13 +16,11 @@ import UploadManualModal from '@/components/manuals/UploadManualModal';
 import ManualCard from '@/components/manuals/ManualCard';
 
 const categoryLabels = {
-  produkt: 'Produkt',
-  säkerhet: 'Säkerhet',
-  hr_policy: 'HR & Policy',
-  it_system: 'IT-system',
-  fordon: 'Fordon',
+  produkt_teknik: 'Produkt & Teknik',
   arbetsrutiner: 'Arbetsrutiner',
-  allmänt: 'Allmänt'
+  it_system: 'IT & System',
+  hr: 'HR',
+  varumarke_allmant: 'Varumärke & Allmänt'
 };
 
 export default function Manuals() {

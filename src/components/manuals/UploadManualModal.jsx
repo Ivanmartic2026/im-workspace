@@ -10,13 +10,11 @@ import { base44 } from '@/api/base44Client';
 import { Upload, Loader2, FileText, X } from "lucide-react";
 
 const categoryOptions = [
-  { value: 'produkt', label: 'Produkt' },
-  { value: 'säkerhet', label: 'Säkerhet' },
-  { value: 'hr_policy', label: 'HR & Policy' },
-  { value: 'it_system', label: 'IT-system' },
-  { value: 'fordon', label: 'Fordon' },
+  { value: 'produkt_teknik', label: 'Produkt & Teknik' },
   { value: 'arbetsrutiner', label: 'Arbetsrutiner' },
-  { value: 'allmänt', label: 'Allmänt' }
+  { value: 'it_system', label: 'IT & System' },
+  { value: 'hr', label: 'HR' },
+  { value: 'varumarke_allmant', label: 'Varumärke & Allmänt' }
 ];
 
 const priorityOptions = [
@@ -33,7 +31,7 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'allmänt',
+    category: 'varumarke_allmant',
     subcategory: '',
     sequence_order: null,
     version: '1.0',
@@ -63,7 +61,7 @@ export default function UploadManualModal({ open, onClose, onSuccess, editManual
       setFormData({
         title: '',
         description: '',
-        category: 'allmänt',
+        category: 'varumarke_allmant',
         subcategory: '',
         sequence_order: null,
         version: '1.0',
