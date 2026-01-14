@@ -30,7 +30,6 @@ export default function Manuals() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [priorityFilter, setPriorityFilter] = useState('all');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -77,9 +76,8 @@ export default function Manuals() {
       manual.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesCategory = selectedCategory === 'all' || manual.category === selectedCategory;
-    const matchesPriority = priorityFilter === 'all' || manual.priority === priorityFilter;
     
-    return matchesSearch && matchesCategory && matchesPriority;
+    return matchesSearch && matchesCategory;
   });
 
   // Categorize manuals
@@ -190,7 +188,7 @@ export default function Manuals() {
           {/* Filters */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mb-8">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="relative md:col-span-2">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <Input
@@ -210,19 +208,6 @@ export default function Manuals() {
                     {Object.entries(categoryLabels).map(([key, label]) => (
                       <SelectItem key={key} value={key}>{label}</SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Prioritet" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alla prioriteter</SelectItem>
-                    <SelectItem value="kritisk">Kritisk</SelectItem>
-                    <SelectItem value="hög">Hög</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="låg">Låg</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
