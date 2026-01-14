@@ -157,7 +157,8 @@ export default function NotificationBell({ user }) {
       return notifs.sort((a, b) => new Date(b.date) - new Date(a.date));
     },
     enabled: !!user,
-    refetchInterval: 2000, // Uppdatera varje 2 sekunder för realtidsuppdateringar
+    refetchInterval: 30000, // Uppdatera var 30:e sekund
+    staleTime: 20000
   });
 
   const deleteNotificationMutation = useMutation({
