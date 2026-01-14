@@ -123,19 +123,52 @@ export default function ManualDetail() {
               </Button>
             </Link>
 
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className={priorityColors[manual.priority]}>
-                    {manual.priority}
-                  </Badge>
-                  <Badge variant="outline">
-                    {categoryLabels[manual.category]}
-                  </Badge>
-                  <Badge variant="outline">v{manual.version}</Badge>
+                <h1 className="text-3xl font-bold text-slate-900 mb-3">{manual.title}</h1>
+                {manual.description && (
+                  <p className="text-slate-600 mb-4">{manual.description}</p>
+                )}
+                
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Kategori</p>
+                    <Badge variant="outline" className="font-medium">
+                      {categoryLabels[manual.category]}
+                    </Badge>
+                  </div>
+                  
+                  {manual.subcategory && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Underkategori</p>
+                      <Badge className="bg-blue-100 text-blue-700 font-medium">
+                        {manual.subcategory}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {manual.sequence_order && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Ordning</p>
+                      <Badge variant="outline" className="font-medium">
+                        Steg {manual.sequence_order}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Prioritet</p>
+                    <Badge className={priorityColors[manual.priority]}>
+                      {manual.priority}
+                    </Badge>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Version</p>
+                    <Badge variant="outline" className="font-medium">v{manual.version}</Badge>
+                  </div>
                 </div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">{manual.title}</h1>
-                <p className="text-slate-600">{manual.description}</p>
               </div>
 
               {isAdmin && (
@@ -278,34 +311,26 @@ export default function ManualDetail() {
           )}
 
           {/* Sequence Navigation */}
-          {manual.subcategory && (
+          {manual.subcategory && manual.sequence_order && (
             <Card className="border-0 shadow-sm mb-6 bg-gradient-to-r from-blue-50 to-indigo-50">
               <CardContent className="p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <Badge className="bg-blue-100 text-blue-700">
-                    {manual.subcategory}
-                  </Badge>
-                  {manual.sequence_order && (
-                    <Badge variant="outline">
-                      Steg {manual.sequence_order}
-                    </Badge>
-                  )}
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-600"></span>
+                  Relaterade manualer i {manual.subcategory}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {manuals
+                    .filter(m => m.subcategory === manual.subcategory && m.id !== manual.id)
+                    .sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0))
+                    .map(relatedManual => (
+                      <Link key={relatedManual.id} to={createPageUrl('ManualDetail') + `?id=${relatedManual.id}`}>
+                        <Button size="sm" variant="outline" className="text-xs">
+                          Steg {relatedManual.sequence_order}: {relatedManual.title}
+                        </Button>
+                      </Link>
+                    ))
+                  }
                 </div>
-                {manual.sequence_order && (
-                  <div className="flex gap-2">
-                    {manuals
-                      .filter(m => m.subcategory === manual.subcategory && m.id !== manual.id)
-                      .sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0))
-                      .map(relatedManual => (
-                        <Link key={relatedManual.id} to={createPageUrl('ManualDetail') + `?id=${relatedManual.id}`}>
-                          <Button size="sm" variant="outline" className="text-xs">
-                            Steg {relatedManual.sequence_order}: {relatedManual.title}
-                          </Button>
-                        </Link>
-                      ))
-                    }
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
