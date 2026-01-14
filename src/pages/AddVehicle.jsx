@@ -160,9 +160,9 @@ export default function AddVehicle() {
         next_service_mileage: formData.next_service_mileage ? Number(formData.next_service_mileage) : undefined,
       };
 
-      // Remove empty strings
+      // Remove empty strings and undefined values
       Object.keys(dataToSave).forEach(key => {
-        if (dataToSave[key] === '') {
+        if (dataToSave[key] === '' || dataToSave[key] === undefined) {
           delete dataToSave[key];
         }
       });
