@@ -333,19 +333,19 @@ export default function VehicleTracking() {
                         <div>
                           <p className="text-xs text-slate-500 mb-1">Total sträcka</p>
                           <p className="text-lg font-bold text-slate-900">
-                            {(tripsData.totaldistance / 1000).toFixed(1)} km
+                            {tripsData.totalmileage?.toFixed(1)} km
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 mb-1">Total tid</p>
                           <p className="text-lg font-bold text-slate-900">
-                            {Math.round(tripsData.totaltriptime / (1000 * 60))} min
+                            {Math.round((tripsData.totalduration || 0) / 60)} min
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 mb-1">Max hastighet</p>
                           <p className="text-lg font-bold text-slate-900">
-                            {Math.round(tripsData.totalmaxspeed * 3.6)} km/h
+                            {Math.round(tripsData.maxspeed || 0)} km/h
                           </p>
                         </div>
                       </div>
@@ -358,26 +358,42 @@ export default function VehicleTracking() {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <p className="text-sm font-medium text-slate-900">
-                              {format(new Date(trip.starttime), 'HH:mm')} - {format(new Date(trip.endtime), 'HH:mm')}
+                              {format(new Date(trip.begintime * 1000), 'HH:mm')} - {format(new Date(trip.endtime * 1000), 'HH:mm')}
                             </p>
                             <p className="text-xs text-slate-500 mt-1">
-                              {Math.round((trip?.triptime || 0) / (1000 * 60))} minuter
+                              {Math.round((trip?.endtime - trip?.begintime) / 60)} minuter
                             </p>
+                            {(trip.beginlocation?.address || trip.endlocation?.address) && (
+                              <div className="mt-2 space-y-1 text-xs">
+                                {trip.beginlocation?.address && (
+                                  <div className="flex items-start gap-1.5">
+                                    <MapPin className="h-3 w-3 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <span className="text-slate-600 line-clamp-1">{trip.beginlocation.address}</span>
+                                  </div>
+                                )}
+                                {trip.endlocation?.address && (
+                                  <div className="flex items-start gap-1.5">
+                                    <MapPin className="h-3 w-3 text-rose-500 mt-0.5 flex-shrink-0" />
+                                    <span className="text-slate-600 line-clamp-1">{trip.endlocation.address}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-slate-900">
-                              {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
+                              {trip.mileage?.toFixed(1)} km
                             </p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-xs text-slate-500">
                           <div className="flex items-center gap-1">
                             <Gauge className="h-3 w-3" />
-                            <span>Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h</span>
+                            <span>Snitt: {Math.round(trip?.averagespeed || 0)} km/h</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Activity className="h-3 w-3" />
-                            <span>Max: {Math.round((trip?.maxspeed || 0) * 3.6)} km/h</span>
+                            <span>Max: {Math.round(trip?.maxspeed || 0)} km/h</span>
                           </div>
                         </div>
                       </CardContent>
@@ -409,13 +425,13 @@ export default function VehicleTracking() {
                         <div>
                           <p className="text-xs text-slate-500 mb-1">Total sträcka</p>
                           <p className="text-lg font-bold text-slate-900">
-                            {(monthTripsData.totaldistance / 1000).toFixed(1)} km
+                            {monthTripsData.totalmileage?.toFixed(1)} km
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 mb-1">Total tid</p>
                           <p className="text-lg font-bold text-slate-900">
-                            {Math.round(monthTripsData.totaltriptime / (1000 * 60 * 60))} tim
+                            {Math.round((monthTripsData.totalduration || 0) / 60 / 60)} tim
                           </p>
                         </div>
                         <div>
@@ -434,26 +450,42 @@ export default function VehicleTracking() {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <p className="text-sm font-medium text-slate-900">
-                              {format(new Date(trip.starttime), 'dd MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
+                              {format(new Date(trip.begintime * 1000), 'dd MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
                             </p>
                             <p className="text-xs text-slate-500 mt-1">
-                              {Math.round((trip?.triptime || 0) / (1000 * 60))} minuter
+                              {Math.round((trip?.endtime - trip?.begintime) / 60)} minuter
                             </p>
+                            {(trip.beginlocation?.address || trip.endlocation?.address) && (
+                              <div className="mt-2 space-y-1 text-xs">
+                                {trip.beginlocation?.address && (
+                                  <div className="flex items-start gap-1.5">
+                                    <MapPin className="h-3 w-3 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                    <span className="text-slate-600 line-clamp-1">{trip.beginlocation.address}</span>
+                                  </div>
+                                )}
+                                {trip.endlocation?.address && (
+                                  <div className="flex items-start gap-1.5">
+                                    <MapPin className="h-3 w-3 text-rose-500 mt-0.5 flex-shrink-0" />
+                                    <span className="text-slate-600 line-clamp-1">{trip.endlocation.address}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-slate-900">
-                              {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
+                              {trip.mileage?.toFixed(1)} km
                             </p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-xs text-slate-500">
                           <div className="flex items-center gap-1">
                             <Gauge className="h-3 w-3" />
-                            <span>Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h</span>
+                            <span>Snitt: {Math.round(trip?.averagespeed || 0)} km/h</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Activity className="h-3 w-3" />
-                            <span>Max: {Math.round((trip?.maxspeed || 0) * 3.6)} km/h</span>
+                            <span>Max: {Math.round(trip?.maxspeed || 0)} km/h</span>
                           </div>
                         </div>
                       </CardContent>
@@ -513,13 +545,13 @@ export default function VehicleTracking() {
                         <div>
                           <p className="text-xs text-slate-600 mb-1">Total sträcka</p>
                           <p className="text-2xl font-bold text-slate-900">
-                            {(historyData.totaldistance / 1000).toFixed(0)} km
+                            {historyData.totalmileage?.toFixed(0)} km
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-600 mb-1">Total tid</p>
                           <p className="text-2xl font-bold text-slate-900">
-                            {Math.round(historyData.totaltriptime / (1000 * 60 * 60))} tim
+                            {Math.round((historyData.totalduration || 0) / 60 / 60)} tim
                           </p>
                         </div>
                         <div>
@@ -539,8 +571,8 @@ export default function VehicleTracking() {
                       if (!acc[day]) {
                         acc[day] = { distance: 0, time: 0, trips: 0, tripsList: [] };
                       }
-                      acc[day].distance += (trip?.tripdistance || 0);
-                      acc[day].time += (trip?.triptime || 0);
+                      acc[day].distance += (trip?.mileage || 0);
+                      acc[day].time += ((trip?.endtime - trip?.begintime) || 0);
                       acc[day].trips += 1;
                       acc[day].tripsList.push(trip);
                       return acc;
@@ -554,7 +586,7 @@ export default function VehicleTracking() {
                               {format(new Date(day), 'EEEE d MMMM', { locale: sv })}
                             </p>
                             <p className="text-xs text-slate-500 mt-1">
-                              {stats.trips} {stats.trips === 1 ? 'resa' : 'resor'} • {(stats.distance / 1000).toFixed(1)} km • {Math.round(stats.time / (1000 * 60))} min
+                              {stats.trips} {stats.trips === 1 ? 'resa' : 'resor'} • {stats.distance.toFixed(1)} km • {Math.round(stats.time / 60)} min
                             </p>
                           </div>
                           <Button
@@ -577,26 +609,26 @@ export default function VehicleTracking() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
                                     <p className="text-sm font-semibold text-slate-900">
-                                      {format(new Date(trip.starttime), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime), 'HH:mm', { locale: sv })}
+                                      {format(new Date(trip.begintime * 1000), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
                                     </p>
                                     <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
-                                      {Math.round((trip?.triptime || 0) / (1000 * 60))} min
+                                      {Math.round((trip?.endtime - trip?.begintime) / 60)} min
                                     </span>
                                   </div>
                                   
                                   {/* Addresses */}
-                                  {(trip.startaddress || trip.endaddress) && (
+                                  {(trip.beginlocation?.address || trip.endlocation?.address) && (
                                     <div className="mb-2 space-y-1 text-xs">
-                                      {trip.startaddress && (
+                                      {trip.beginlocation?.address && (
                                         <div className="flex items-start gap-1.5">
                                           <MapPin className="h-3 w-3 text-emerald-500 mt-0.5 flex-shrink-0" />
-                                          <span className="text-slate-600 line-clamp-1">{trip.startaddress}</span>
+                                          <span className="text-slate-600 line-clamp-1">{trip.beginlocation.address}</span>
                                         </div>
                                       )}
-                                      {trip.endaddress && (
+                                      {trip.endlocation?.address && (
                                         <div className="flex items-start gap-1.5">
                                           <MapPin className="h-3 w-3 text-rose-500 mt-0.5 flex-shrink-0" />
-                                          <span className="text-slate-600 line-clamp-1">{trip.endaddress}</span>
+                                          <span className="text-slate-600 line-clamp-1">{trip.endlocation.address}</span>
                                         </div>
                                       )}
                                     </div>
@@ -605,15 +637,15 @@ export default function VehicleTracking() {
                                   <div className="flex items-center gap-3 text-xs text-slate-500">
                                     <span className="flex items-center gap-1">
                                       <Navigation className="h-3 w-3" />
-                                      {((trip?.tripdistance || 0) / 1000).toFixed(1)} km
+                                      {trip.mileage?.toFixed(1)} km
                                     </span>
                                     <span className="flex items-center gap-1">
                                       <Gauge className="h-3 w-3" />
-                                      Snitt: {Math.round((trip?.averagespeed || 0) * 3.6)} km/h
+                                      Snitt: {Math.round(trip?.averagespeed || 0)} km/h
                                     </span>
                                     <span className="flex items-center gap-1">
                                       <Activity className="h-3 w-3" />
-                                      Max: {Math.round((trip?.maxspeed || 0) * 3.6)} km/h
+                                      Max: {Math.round(trip?.maxspeed || 0)} km/h
                                     </span>
                                   </div>
                                 </div>
