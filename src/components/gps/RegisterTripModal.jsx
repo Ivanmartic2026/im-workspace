@@ -125,8 +125,7 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
         trip_type: formData.trip_type,
         purpose: formData.purpose,
         project_code: selectedProject?.project_code || null,
-        project_id: formData.project_id || null,
-        customer: formData.customer,
+        customer: formData.customer || selectedProject?.customer || null,
         notes: formData.notes,
         status: 'submitted'
       };
