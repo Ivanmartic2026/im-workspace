@@ -27,6 +27,7 @@ import StaffLocationMap from '@/components/admin/StaffLocationMap';
 import BulkNotifications from '@/components/admin/BulkNotifications';
 import AutomationSettings from '@/components/admin/AutomationSettings';
 import RealtimeDashboard from '@/components/admin/RealtimeDashboard';
+import DetailedProjectReports from '@/components/admin/DetailedProjectReports';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -101,7 +102,7 @@ export default function Admin() {
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-8 gap-2 mb-8">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-9 gap-2 mb-8">
               <TabsTrigger value="dashboard" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Dashboard
@@ -109,6 +110,10 @@ export default function Admin() {
               <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <Database className="h-4 w-4 mr-2" />
                 System
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Rapporter
               </TabsTrigger>
               <TabsTrigger value="employees" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <Users className="h-4 w-4 mr-2" />
@@ -140,6 +145,12 @@ export default function Admin() {
             <TabsContent value="dashboard" className="space-y-4">
               <h2 className="text-lg font-semibold text-slate-900 mb-4">Realtidsdashboard</h2>
               <RealtimeDashboard />
+            </TabsContent>
+
+            {/* Reports Tab */}
+            <TabsContent value="reports" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Projektrapporter</h2>
+              <DetailedProjectReports />
             </TabsContent>
 
             {/* Employees Tab */}
