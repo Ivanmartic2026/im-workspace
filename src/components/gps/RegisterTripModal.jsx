@@ -124,6 +124,7 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
         duration_minutes: mergedData.duration_minutes,
         trip_type: formData.trip_type,
         purpose: formData.purpose,
+        project_id: formData.project_id || null,
         project_code: selectedProject?.project_code || null,
         customer: formData.customer || selectedProject?.customer || null,
         notes: formData.notes,

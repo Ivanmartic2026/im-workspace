@@ -8,18 +8,12 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 
 export default function ProjectDrivingJournal({ projectId }) {
-  const { data: project } = useQuery({
-    queryKey: ['project', projectId],
-    queryFn: () => base44.entities.Project.get(projectId)
-  });
-
   const { data: journalEntries = [] } = useQuery({
     queryKey: ['project-journal', projectId],
     queryFn: async () => {
       const allEntries = await base44.entities.DrivingJournalEntry.list();
-      return allEntries.filter(entry => entry.project_code === project?.project_code);
+      return allEntries.filter(entry => entry.project_id === projectId);
     },
-    enabled: !!project,
     refetchInterval: 60000,
     initialData: []
   });
@@ -38,6 +32,7 @@ export default function ProjectDrivingJournal({ projectId }) {
   };
 
   const totalDistance = journalEntries.reduce((sum, entry) => sum + (entry.distance_km || 0), 0);
+  const totalTime = journalEntries.reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0);
   const avgDistance = journalEntries.length > 0 ? (totalDistance / journalEntries.length).toFixed(1) : 0;
 
   if (journalEntries.length === 0) {
@@ -66,10 +61,14 @@ export default function ProjectDrivingJournal({ projectId }) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Summary Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4 pb-4 border-b">
+        <div className="grid grid-cols-4 gap-2 mb-4 pb-4 border-b">
           <div className="text-center">
             <p className="text-2xl font-bold text-slate-900">{totalDistance.toFixed(1)}</p>
             <p className="text-xs text-slate-600">km totalt</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-slate-900">{Math.round(totalTime / 60)}</p>
+            <p className="text-xs text-slate-600">timmar</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-slate-900">{journalEntries.length}</p>
@@ -108,12 +107,18 @@ export default function ProjectDrivingJournal({ projectId }) {
               <div className="space-y-1 text-xs text-slate-600">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-3 w-3" />
-                  {format(new Date(entry.start_time), 'dd MMM yyyy HH:mm', { locale: sv })}
+                  {format(new Date(entry.start_time), 'dd MMM yyyy HH:mm', { locale: sv })} • {Math.round(entry.duration_minutes || 0)} min
                 </div>
                 {entry.start_location?.address && (
                   <div className="flex items-start gap-2">
-                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0 text-green-600" />
                     <span className="line-clamp-1">{entry.start_location.address}</span>
+                  </div>
+                )}
+                {entry.end_location?.address && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0 text-red-600" />
+                    <span className="line-clamp-1">{entry.end_location.address}</span>
                   </div>
                 )}
               </div>
