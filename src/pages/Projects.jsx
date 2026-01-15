@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, Filter, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -45,6 +45,18 @@ export default function Projects() {
   const { data: allProjects = [], isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-created_date'),
+    initialData: []
+  });
+
+  const { data: timeEntries = [] } = useQuery({
+    queryKey: ['time-entries'],
+    queryFn: () => base44.entities.TimeEntry.list(),
+    initialData: []
+  });
+
+  const { data: journalEntries = [] } = useQuery({
+    queryKey: ['journal-entries'],
+    queryFn: () => base44.entities.DrivingJournalEntry.list(),
     initialData: []
   });
 
@@ -322,18 +334,49 @@ export default function Projects() {
                       <p className="text-sm text-slate-500">Kund: {project.customer}</p>
                     )}
                     <div className="pt-3 border-t space-y-2">
-                      {project.budget_hours && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-600">{project.budget_hours}h budget</span>
-                        </div>
-                      )}
-                      {project.hourly_rate && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <DollarSign className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-600">{project.hourly_rate} kr/h</span>
-                        </div>
-                      )}
+                      {(() => {
+                        const projectHours = timeEntries
+                          .filter(entry => {
+                            if (entry.project_id === project.id) return true;
+                            if (entry.project_allocations?.length > 0) {
+                              return entry.project_allocations.some(alloc => alloc.project_id === project.id);
+                            }
+                            return false;
+                          })
+                          .reduce((sum, entry) => {
+                            if (entry.project_allocations?.length > 0) {
+                              const allocation = entry.project_allocations.find(alloc => alloc.project_id === project.id);
+                              return sum + (allocation?.hours || 0);
+                            }
+                            return sum + (entry.total_hours || 0);
+                          }, 0);
+
+                        const projectKm = journalEntries
+                          .filter(entry => entry.project_code === project.project_code)
+                          .reduce((sum, entry) => sum + (entry.distance_km || 0), 0);
+
+                        return (
+                          <>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Clock className="h-4 w-4 text-blue-500" />
+                              <span className="text-slate-600 font-medium">{projectHours.toFixed(1)}h nedlagt</span>
+                              {project.budget_hours && (
+                                <span className="text-slate-400">/ {project.budget_hours}h</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Navigation className="h-4 w-4 text-green-500" />
+                              <span className="text-slate-600 font-medium">{projectKm.toFixed(0)} km körda</span>
+                            </div>
+                            {project.hourly_rate && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <DollarSign className="h-4 w-4 text-slate-400" />
+                                <span className="text-slate-600">{project.hourly_rate} kr/h</span>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </CardContent>
                 </Card>
