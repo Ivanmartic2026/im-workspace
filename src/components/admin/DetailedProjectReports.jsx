@@ -304,6 +304,60 @@ export default function DetailedProjectReports() {
 
   return (
     <div className="space-y-6">
+      {/* Active Filter Display */}
+      {(selectedProject || filters.employee_email || filters.start_date || filters.end_date) && (
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-5 w-5" />
+                  <h3 className="text-lg font-bold">Aktiv rapport</h3>
+                </div>
+                <div className="space-y-1">
+                  {selectedProject && (
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-white/20 text-white border-white/30">
+                        Projekt
+                      </Badge>
+                      <span className="font-semibold">{selectedProject.name}</span>
+                      <span className="text-blue-100">({selectedProject.project_code})</span>
+                    </div>
+                  )}
+                  {filters.employee_email && (
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-white/20 text-white border-white/30">
+                        Anställd
+                      </Badge>
+                      <span className="font-semibold">
+                        {users.find(u => u.email === filters.employee_email)?.full_name}
+                      </span>
+                    </div>
+                  )}
+                  {(filters.start_date || filters.end_date) && (
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-white/20 text-white border-white/30">
+                        Period
+                      </Badge>
+                      <span className="font-semibold">
+                        {filters.start_date || 'Start'} → {filters.end_date || 'Nu'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <Button
+                onClick={() => setFilters({ project_id: '', employee_email: '', start_date: '', end_date: '' })}
+                variant="ghost"
+                className="text-white hover:bg-white/20"
+              >
+                Rensa alla filter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card className="border-0 shadow-sm">
         <CardHeader>
@@ -312,16 +366,16 @@ export default function DetailedProjectReports() {
             Filtrera projektdata
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Projekt</Label>
+              <Label className="text-sm font-semibold text-slate-700">Projekt</Label>
               <Select
                 value={filters.project_id}
                 onValueChange={(value) => setFilters({ ...filters, project_id: value })}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Alla projekt" />
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Välj projekt..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={null}>Alla projekt</SelectItem>
@@ -335,13 +389,13 @@ export default function DetailedProjectReports() {
             </div>
 
             <div>
-              <Label>Anställd</Label>
+              <Label className="text-sm font-semibold text-slate-700">Anställd</Label>
               <Select
                 value={filters.employee_email}
                 onValueChange={(value) => setFilters({ ...filters, employee_email: value })}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Alla anställda" />
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Välj anställd..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={null}>Alla anställda</SelectItem>
@@ -355,49 +409,69 @@ export default function DetailedProjectReports() {
             </div>
 
             <div>
-              <Label>Startdatum</Label>
+              <Label className="text-sm font-semibold text-slate-700">Startdatum</Label>
               <Input
                 type="date"
                 value={filters.start_date}
                 onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
+                className="mt-1.5"
               />
             </div>
 
             <div>
-              <Label>Slutdatum</Label>
+              <Label className="text-sm font-semibold text-slate-700">Slutdatum</Label>
               <Input
                 type="date"
                 value={filters.end_date}
                 onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
+                className="mt-1.5"
               />
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              onClick={() => setFilters({ project_id: '', employee_email: '', start_date: '', end_date: '' })}
-              variant="outline"
-              className="flex-1"
-            >
-              Rensa filter
-            </Button>
-            <Button
-              onClick={exportToCSV}
-              disabled={exportLoading}
-              variant="outline"
-              className="flex-1"
-            >
-              {exportLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
-              Exportera CSV
-            </Button>
-            <Button
-              onClick={exportToPDF}
-              disabled={exportLoading}
-              className="flex-1 bg-slate-900 hover:bg-slate-800"
-            >
-              {exportLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
-              Exportera PDF
-            </Button>
+          {/* Export Section */}
+          <div className="pt-4 border-t border-slate-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Download className="h-4 w-4 text-slate-600" />
+              <h4 className="text-sm font-semibold text-slate-900">Exportera rapport</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={exportToCSV}
+                disabled={exportLoading}
+                variant="outline"
+                className="h-auto py-4 flex-col items-center gap-2 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all"
+              >
+                <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                  {exportLoading ? (
+                    <Loader2 className="h-6 w-6 text-emerald-600 animate-spin" />
+                  ) : (
+                    <FileText className="h-6 w-6 text-emerald-600" />
+                  )}
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold">CSV-fil</div>
+                  <div className="text-xs text-slate-500">Excel-kompatibel</div>
+                </div>
+              </Button>
+              <Button
+                onClick={exportToPDF}
+                disabled={exportLoading}
+                className="h-auto py-4 flex-col items-center gap-2 bg-gradient-to-br from-slate-900 to-slate-700 hover:from-slate-800 hover:to-slate-600 transition-all"
+              >
+                <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
+                  {exportLoading ? (
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                  ) : (
+                    <FileText className="h-6 w-6 text-white" />
+                  )}
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold">PDF-dokument</div>
+                  <div className="text-xs text-slate-200">Färdig rapport</div>
+                </div>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
