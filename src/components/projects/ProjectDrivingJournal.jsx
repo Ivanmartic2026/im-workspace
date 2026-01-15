@@ -8,12 +8,21 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 
 export default function ProjectDrivingJournal({ projectId }) {
+  const { data: project } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => base44.entities.Project.filter({ id: projectId }).then(p => p[0])
+  });
+
   const { data: journalEntries = [] } = useQuery({
     queryKey: ['project-journal', projectId],
     queryFn: async () => {
       const allEntries = await base44.entities.DrivingJournalEntry.list();
-      return allEntries.filter(entry => entry.project_id === projectId);
+      return allEntries.filter(entry => 
+        entry.project_id === projectId || 
+        (project?.project_code && entry.project_code === project.project_code)
+      );
     },
+    enabled: !!project,
     refetchInterval: 60000,
     initialData: []
   });
