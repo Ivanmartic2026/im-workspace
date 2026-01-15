@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Download, Calendar, User, Navigation, Clock, DollarSign, TrendingUp, Loader2 } from "lucide-react";
+import { FileText, Download, Calendar, User, Navigation, Clock, DollarSign, TrendingUp, Loader2, PieChart, BarChart } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import jsPDF from 'jspdf';
+import { BarChart as RechartsBar, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell } from 'recharts';
 
 export default function DetailedProjectReports() {
   const [filters, setFilters] = useState({
@@ -77,6 +78,57 @@ export default function DetailedProjectReports() {
 
   const selectedProject = projects.find(p => p.id === filters.project_id);
   const projectCost = selectedProject?.hourly_rate ? totalHours * selectedProject.hourly_rate : 0;
+
+  // Chart data - Hours per employee
+  const hoursPerEmployee = filteredTimeEntries.reduce((acc, entry) => {
+    const user = users.find(u => u.email === entry.employee_email);
+    const name = user?.full_name || entry.employee_email;
+    
+    if (filters.project_id && entry.project_allocations) {
+      const pa = entry.project_allocations.find(p => p.project_id === filters.project_id);
+      if (pa) {
+        acc[name] = (acc[name] || 0) + pa.hours;
+      }
+    } else {
+      acc[name] = (acc[name] || 0) + (entry.total_hours || 0);
+    }
+    return acc;
+  }, {});
+
+  const employeeChartData = Object.entries(hoursPerEmployee)
+    .map(([name, hours]) => ({ name, hours: Number(hours.toFixed(1)) }))
+    .sort((a, b) => b.hours - a.hours)
+    .slice(0, 10);
+
+  // Chart data - Category distribution
+  const categoryDistribution = filteredTimeEntries.reduce((acc, entry) => {
+    if (filters.project_id && entry.project_allocations) {
+      const pa = entry.project_allocations.find(p => p.project_id === filters.project_id);
+      if (pa) {
+        acc[pa.category] = (acc[pa.category] || 0) + pa.hours;
+      }
+    } else {
+      acc[entry.category] = (acc[entry.category] || 0) + (entry.total_hours || 0);
+    }
+    return acc;
+  }, {});
+
+  const categoryChartData = Object.entries(categoryDistribution)
+    .map(([name, value]) => ({ name, value: Number(value.toFixed(1)) }));
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
+
+  // Distance per employee
+  const distancePerEmployee = filteredJournalEntries.reduce((acc, entry) => {
+    const name = entry.driver_name;
+    acc[name] = (acc[name] || 0) + (entry.distance_km || 0);
+    return acc;
+  }, {});
+
+  const distanceChartData = Object.entries(distancePerEmployee)
+    .map(([name, km]) => ({ name, km: Number(km.toFixed(1)) }))
+    .sort((a, b) => b.km - a.km)
+    .slice(0, 10);
 
   // Export to PDF
   const exportToPDF = () => {
@@ -402,6 +454,173 @@ export default function DetailedProjectReports() {
           </Card>
         )}
       </div>
+
+      {/* Charts */}
+      {(employeeChartData.length > 0 || categoryChartData.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Hours per employee chart */}
+          {employeeChartData.length > 0 && (
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart className="h-4 w-4 text-slate-600" />
+                  Timmar per anställd
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsBar data={employeeChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="hours" fill="#3b82f6" name="Timmar" />
+                  </RechartsBar>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Category distribution */}
+          {categoryChartData.length > 0 && (
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <PieChart className="h-4 w-4 text-slate-600" />
+                  Fördelning per kategori
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsPie>
+                    <Pie
+                      data={categoryChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoryChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </RechartsPie>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Distance per employee */}
+          {distanceChartData.length > 0 && (
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Navigation className="h-4 w-4 text-slate-600" />
+                  Körsträcka per anställd
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RechartsBar data={distanceChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="km" fill="#10b981" name="Kilometer" />
+                  </RechartsBar>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Project progress */}
+          {selectedProject?.budget_hours && (
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-slate-600" />
+                  Projektframsteg
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-slate-700">Budgeterad tid</span>
+                      <span className="text-sm font-bold text-slate-900">{selectedProject.budget_hours}h</span>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-slate-700">Använd tid</span>
+                      <span className="text-sm font-bold text-blue-600">{totalHours.toFixed(1)}h</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all ${
+                          totalHours > selectedProject.budget_hours 
+                            ? 'bg-red-500' 
+                            : totalHours > selectedProject.budget_hours * 0.8 
+                            ? 'bg-amber-500' 
+                            : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min((totalHours / selectedProject.budget_hours) * 100, 100)}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-slate-500">
+                        {((totalHours / selectedProject.budget_hours) * 100).toFixed(0)}% använt
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {Math.max(0, selectedProject.budget_hours - totalHours).toFixed(1)}h kvar
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {selectedProject.hourly_rate && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-slate-700">Budget</span>
+                        <span className="text-sm font-bold text-slate-900">
+                          {(selectedProject.budget_hours * selectedProject.hourly_rate).toFixed(0)} kr
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-slate-700">Förbrukat</span>
+                        <span className="text-sm font-bold text-blue-600">{projectCost.toFixed(0)} kr</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">Återstående</span>
+                        <span className={`text-sm font-bold ${
+                          projectCost > selectedProject.budget_hours * selectedProject.hourly_rate 
+                            ? 'text-red-600' 
+                            : 'text-emerald-600'
+                        }`}>
+                          {Math.max(0, (selectedProject.budget_hours * selectedProject.hourly_rate) - projectCost).toFixed(0)} kr
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Detailed Lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
