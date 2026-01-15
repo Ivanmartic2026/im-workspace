@@ -326,14 +326,14 @@ export default function Projects() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-4">
                     {project.description && (
                       <p className="text-sm text-slate-600 line-clamp-2">{project.description}</p>
                     )}
                     {project.customer && (
                       <p className="text-sm text-slate-500">Kund: {project.customer}</p>
                     )}
-                    <div className="pt-3 border-t space-y-2">
+                    <div className="pt-3 border-t">
                       {(() => {
                         const projectHours = timeEntries
                           .filter(entry => {
@@ -355,26 +355,56 @@ export default function Projects() {
                           .filter(entry => entry.project_code === project.project_code)
                           .reduce((sum, entry) => sum + (entry.distance_km || 0), 0);
 
+                        const budgetProgress = project.budget_hours ? (projectHours / project.budget_hours) * 100 : 0;
+
                         return (
-                          <>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Clock className="h-4 w-4 text-blue-500" />
-                              <span className="text-slate-600 font-medium">{projectHours.toFixed(1)}h nedlagt</span>
+                          <div className="space-y-3">
+                            {/* Timmar */}
+                            <div className="bg-blue-50 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-4 w-4 text-blue-600" />
+                                  <span className="text-xs font-medium text-blue-900">Nedlagd tid</span>
+                                </div>
+                                <span className="text-sm font-bold text-blue-700">{projectHours.toFixed(1)}h</span>
+                              </div>
                               {project.budget_hours && (
-                                <span className="text-slate-400">/ {project.budget_hours}h</span>
+                                <>
+                                  <div className="flex items-center justify-between text-xs text-blue-600 mb-1">
+                                    <span>Budget: {project.budget_hours}h</span>
+                                    <span>{budgetProgress.toFixed(0)}%</span>
+                                  </div>
+                                  <div className="w-full bg-blue-200 rounded-full h-1.5">
+                                    <div 
+                                      className={`h-1.5 rounded-full ${budgetProgress > 100 ? 'bg-red-500' : 'bg-blue-600'}`}
+                                      style={{ width: `${Math.min(budgetProgress, 100)}%` }}
+                                    />
+                                  </div>
+                                </>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Navigation className="h-4 w-4 text-green-500" />
-                              <span className="text-slate-600 font-medium">{projectKm.toFixed(0)} km körda</span>
-                            </div>
-                            {project.hourly_rate && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <DollarSign className="h-4 w-4 text-slate-400" />
-                                <span className="text-slate-600">{project.hourly_rate} kr/h</span>
+
+                            {/* Kilometer */}
+                            {projectKm > 0 && (
+                              <div className="bg-green-50 rounded-lg p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Navigation className="h-4 w-4 text-green-600" />
+                                    <span className="text-xs font-medium text-green-900">Körda kilometer</span>
+                                  </div>
+                                  <span className="text-sm font-bold text-green-700">{projectKm.toFixed(0)} km</span>
+                                </div>
                               </div>
                             )}
-                          </>
+
+                            {/* Timpris */}
+                            {project.hourly_rate && (
+                              <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                                <span>Timpris</span>
+                                <span className="font-medium">{project.hourly_rate} kr/h</span>
+                              </div>
+                            )}
+                          </div>
                         );
                       })()}
                     </div>
