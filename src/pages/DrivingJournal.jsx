@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search } from "lucide-react";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,9 @@ export default function DrivingJournal() {
   const [selectedForAI, setSelectedForAI] = useState(new Set());
   const [processingDrafts, setProcessingDrafts] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
+  const [sortField, setSortField] = useState('start_time');
+  const [sortDirection, setSortDirection] = useState('desc');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -389,6 +393,65 @@ export default function DrivingJournal() {
     return matchesTab && matchesDriver && matchesVehicle && matchesPeriod && matchesEmployee && matchesSearch;
   });
 
+  // Sort entries
+  const sortedEntries = [...filteredEntries].sort((a, b) => {
+    let aVal, bVal;
+    
+    switch (sortField) {
+      case 'start_time':
+        aVal = new Date(a.start_time).getTime();
+        bVal = new Date(b.start_time).getTime();
+        break;
+      case 'distance_km':
+        aVal = a.distance_km || 0;
+        bVal = b.distance_km || 0;
+        break;
+      case 'duration_minutes':
+        aVal = a.duration_minutes || 0;
+        bVal = b.duration_minutes || 0;
+        break;
+      case 'driver_name':
+        aVal = a.driver_name || '';
+        bVal = b.driver_name || '';
+        break;
+      case 'registration_number':
+        aVal = a.registration_number || '';
+        bVal = b.registration_number || '';
+        break;
+      default:
+        return 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aVal > bVal ? 1 : -1;
+    } else {
+      return aVal < bVal ? 1 : -1;
+    }
+  });
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const handleQuickClassify = async (entryId, tripType) => {
+    await updateEntryMutation.mutateAsync({
+      id: entryId,
+      data: { trip_type: tripType }
+    });
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />;
+    return sortDirection === 'asc' ? 
+      <ArrowUp className="h-3 w-3 ml-1" /> : 
+      <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
   // Calculate stats
   const stats = {
     totalTrips: filteredEntries.length,
@@ -415,6 +478,20 @@ export default function DrivingJournal() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant={viewMode === 'table' ? 'default' : 'outline'}
+                onClick={() => setViewMode('table')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button 
+                size="sm" 
+                variant={viewMode === 'cards' ? 'default' : 'outline'}
+                onClick={() => setViewMode('cards')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
               {user?.role === 'admin' && (
                 <>
                   <Link to={createPageUrl('AllVehicles')}>
@@ -764,9 +841,132 @@ export default function DrivingJournal() {
                 )}
               </CardContent>
             </Card>
+          ) : viewMode === 'table' ? (
+            <Card className="border-0 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50">
+                      <TableHead className="cursor-pointer" onClick={() => handleSort('start_time')}>
+                        <div className="flex items-center">
+                          Datum
+                          <SortIcon field="start_time" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort('registration_number')}>
+                        <div className="flex items-center">
+                          Fordon
+                          <SortIcon field="registration_number" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort('driver_name')}>
+                        <div className="flex items-center">
+                          Förare
+                          <SortIcon field="driver_name" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="cursor-pointer text-right" onClick={() => handleSort('distance_km')}>
+                        <div className="flex items-center justify-end">
+                          Distans
+                          <SortIcon field="distance_km" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="cursor-pointer text-right" onClick={() => handleSort('duration_minutes')}>
+                        <div className="flex items-center justify-end">
+                          Tid
+                          <SortIcon field="duration_minutes" />
+                        </div>
+                      </TableHead>
+                      <TableHead>Typ</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Åtgärd</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedEntries.map(entry => (
+                      <TableRow key={entry.id} className="hover:bg-slate-50">
+                        <TableCell className="font-medium">
+                          <div className="text-sm">{format(new Date(entry.start_time), 'dd MMM yyyy', { locale: sv })}</div>
+                          <div className="text-xs text-slate-500">{format(new Date(entry.start_time), 'HH:mm')}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm font-medium">{entry.registration_number}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">{entry.driver_name || 'Okänd'}</div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="text-sm font-medium">{entry.distance_km?.toFixed(1)} km</div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="text-sm">{Math.round(entry.duration_minutes || 0)} min</div>
+                        </TableCell>
+                        <TableCell>
+                          {entry.trip_type === 'väntar' ? (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => handleQuickClassify(entry.id, 'tjänst')}
+                              >
+                                Tjänst
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => handleQuickClassify(entry.id, 'privat')}
+                              >
+                                Privat
+                              </Button>
+                            </div>
+                          ) : (
+                            <Badge 
+                              className={
+                                entry.trip_type === 'tjänst' ? 'bg-blue-100 text-blue-800' :
+                                entry.trip_type === 'privat' ? 'bg-purple-100 text-purple-800' :
+                                'bg-amber-100 text-amber-800'
+                              }
+                            >
+                              {entry.trip_type}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline"
+                            className={
+                              entry.status === 'approved' ? 'border-green-500 text-green-700' :
+                              entry.status === 'submitted' ? 'border-blue-500 text-blue-700' :
+                              entry.status === 'requires_info' ? 'border-red-500 text-red-700' :
+                              'border-amber-500 text-amber-700'
+                            }
+                          >
+                            {entry.status === 'approved' ? 'Godkänd' :
+                             entry.status === 'submitted' ? 'Inskickad' :
+                             entry.status === 'requires_info' ? 'Kräver info' :
+                             'Väntande'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditEntry(entry)}
+                          >
+                            Visa
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
           ) : (
             <div className="space-y-3">
-              {filteredEntries.map(entry => (
+              {sortedEntries.map(entry => (
                 <JournalEntryCard
                   key={entry.id}
                   entry={entry}
