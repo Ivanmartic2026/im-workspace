@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    const trips = gpsResponse.data.data || [];
+    const trips = gpsResponse.data.totaltrips || [];
     const syncedTrips = [];
     const skippedTrips = [];
 
