@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, Plus } from "lucide-react";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, Plus, TrendingUp } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import JournalEntryCard from "@/components/journal/JournalEntryCard";
 import JournalStatsCard from "@/components/journal/JournalStatsCard";
 import EditJournalModal from "@/components/journal/EditJournalModal";
@@ -42,6 +43,8 @@ export default function DrivingJournal() {
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
   const [sortField, setSortField] = useState('start_time');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -364,6 +367,38 @@ export default function DrivingJournal() {
     });
   };
 
+  const handleDeleteRequest = (entry) => {
+    setEntryToDelete(entry);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!entryToDelete) return;
+
+    const changeEntry = {
+      timestamp: new Date().toISOString(),
+      changed_by: user.email,
+      change_type: 'deleted',
+      comment: 'Markerad som raderad (soft delete)'
+    };
+
+    await updateEntryMutation.mutateAsync({
+      id: entryToDelete.id,
+      data: {
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: user.email,
+        change_history: [
+          ...(entryToDelete.change_history || []),
+          changeEntry
+        ]
+      }
+    });
+
+    setDeleteDialogOpen(false);
+    setEntryToDelete(null);
+  };
+
   // Filter entries
   const draftEntries = entries.filter(entry => 
     entry.suggested_classification && 
@@ -373,6 +408,9 @@ export default function DrivingJournal() {
   );
 
   const filteredEntries = entries.filter(entry => {
+    // Filtrera bort raderade poster
+    if (entry.is_deleted) return false;
+
     const matchesTab = user?.role === 'admin' 
       ? (activeTab === 'pending' ? (entry.status === 'pending_review' || entry.status === 'submitted') && !entry.suggested_classification :
          activeTab === 'drafts' ? entry.suggested_classification && entry.status === 'pending_review' :
@@ -540,8 +578,13 @@ export default function DrivingJournal() {
                     </Button>
                   </Link>
                   <Link to={createPageUrl('DrivingJournalReports')}>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" title="Rapporter">
                       <BarChart3 className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('JournalDashboard')}>
+                    <Button size="sm" variant="outline" title="Dashboard">
+                      <TrendingUp className="h-4 w-4" />
                     </Button>
                   </Link>
                   <Button
@@ -1042,6 +1085,24 @@ export default function DrivingJournal() {
           queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
         }}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bekräfta radering</AlertDialogTitle>
+            <AlertDialogDescription>
+              Denna resa kommer att markeras som raderad och döljas från alla vyer. 
+              Åtgärden sparas i ändringsloggen för revision. Vill du fortsätta?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">
+              Markera som raderad
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

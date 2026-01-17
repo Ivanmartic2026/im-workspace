@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import ProjectAllocationEditor from './ProjectAllocationEditor';
 
 export default function EditJournalModal({ open, onClose, entry, onSave }) {
   const [loading, setLoading] = useState(false);
@@ -226,6 +227,13 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
                   placeholder="T.ex. Installation, Service, Konsultation"
                 />
               </div>
+
+              <ProjectAllocationEditor
+                allocations={formData.project_allocations}
+                onChange={(allocations) => setFormData(prev => ({ ...prev, project_allocations: allocations }))}
+                projects={projects}
+                totalDistance={formData.distance_km}
+              />
             </>
           )}
 
