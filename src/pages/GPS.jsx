@@ -74,7 +74,7 @@ export default function GPS() {
       });
       return response.data;
     },
-    enabled: allDevices.length > 0 && activeTab === 'live',
+    enabled: allDevices.length > 0 && (activeTab === 'live' || activeTab === 'register'),
     refetchInterval: 30000, // Realtidsuppdateringar var 30:e sekund
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -140,7 +140,7 @@ export default function GPS() {
         };
       });
     },
-    enabled: allDevices.length > 0 && activeTab === 'live',
+    enabled: allDevices.length > 0 && (activeTab === 'live' || activeTab === 'register'),
     refetchInterval: 60000,
   });
 
