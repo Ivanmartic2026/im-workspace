@@ -593,216 +593,21 @@ export default function DrivingJournal() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+    <div className="min-h-screen bg-slate-50 pb-24">
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Körjournal</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                {user?.role === 'admin' ? 'Administrera körjournaler' : 'Hantera dina resor'}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                variant={viewMode === 'table' ? 'default' : 'outline'}
-                onClick={() => setViewMode('table')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-              <Button 
-                size="sm" 
-                variant={viewMode === 'cards' ? 'default' : 'outline'}
-                onClick={() => setViewMode('cards')}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={() => setShowManualModal(true)}
-                size="sm"
-                variant="outline"
-                className="gap-1"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              {user?.role === 'admin' && (
-                <>
-                  <Link to={createPageUrl('AllVehicles')}>
-                    <Button size="sm" variant="outline" title="Visa alla GPS-enheter">
-                      <Car className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl('JournalPolicySettings')}>
-                    <Button size="sm" variant="outline">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl('DrivingJournalReports')}>
-                    <Button size="sm" variant="outline" title="Rapporter">
-                      <BarChart3 className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl('JournalDashboard')}>
-                    <Button size="sm" variant="outline" title="Dashboard">
-                      <TrendingUp className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Button
-                    onClick={handleSync}
-                    disabled={syncTripsMutation.isPending || selectedVehicle === 'all'}
-                    size="sm"
-                    variant="outline"
-                  >
-                    {syncTripsMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-slate-900">Körjournal</h1>
+        </div>
 
-          {/* Stats */}
-          <JournalStatsCard stats={stats} />
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full bg-white shadow-sm grid grid-cols-3 mb-4">
+            <TabsTrigger value="live">Live Spårning</TabsTrigger>
+            <TabsTrigger value="register">Registrera Resor</TabsTrigger>
+            <TabsTrigger value="journal">Körjournal</TabsTrigger>
+          </TabsList>
 
-          {/* Search Bar */}
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              type="text"
-              placeholder="Sök fordon, förare, projekt, kund..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-slate-200"
-            />
-          </div>
-
-          {/* Filters */}
-          <Card className="border-0 shadow-sm mb-4">
-            <CardContent className="p-4">
-              {selectedPeriod === 'custom' && (
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <Label className="text-xs mb-1 block">Från datum</Label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs mb-1 block">Till datum</Label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-3">
-                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Idag</SelectItem>
-                    <SelectItem value="week">Denna vecka</SelectItem>
-                    <SelectItem value="month">Denna månad</SelectItem>
-                    <SelectItem value="custom">Anpassat intervall</SelectItem>
-                    <SelectItem value="all">Alla</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Välj fordon" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alla fordon</SelectItem>
-                    {vehicles.map(v => (
-                      <SelectItem key={v.id} value={v.id}>
-                        {v.registration_number}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {user?.role === 'admin' && (
-                  <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Välj medarbetare" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Alla medarbetare</SelectItem>
-                      {employees.map(emp => (
-                        <SelectItem key={emp.user_email} value={emp.user_email}>
-                          {emp.user_email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              {/* Export Buttons */}
-              {user?.role === 'admin' && (
-                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-200">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleExportPDF}
-                    disabled={exportLoading}
-                    className="flex-1"
-                  >
-                    {exportLoading ? (
-                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                    ) : (
-                      <FileDown className="h-3 w-3 mr-2" />
-                    )}
-                    Export PDF
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleExportCSV}
-                    disabled={exportLoading}
-                    className="flex-1"
-                  >
-                    {exportLoading ? (
-                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                    ) : (
-                      <FileDown className="h-3 w-3 mr-2" />
-                    )}
-                    Export CSV
-                  </Button>
-                </div>
-              )}
-              </CardContent>
-              </Card>
-
-              {/* Main Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-            <TabsList className="w-full bg-white shadow-sm grid grid-cols-3">
-              <TabsTrigger value="live">
-                Live Spårning
-              </TabsTrigger>
-              <TabsTrigger value="register">
-                Registrera Resor
-              </TabsTrigger>
-              <TabsTrigger value="journal">
-                Körjournal
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Live Tracking Tab */}
-            <TabsContent value="live">
+          {/* Live Tracking Tab */}
+          <TabsContent value="live">
               {devicesLoading ? (
                 <div className="text-center py-12">
                   <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
@@ -919,13 +724,13 @@ export default function DrivingJournal() {
               )}
             </TabsContent>
 
-            {/* Register Tab */}
-            <TabsContent value="register">
-              <UnregisteredTrips vehicles={vehicles} />
-            </TabsContent>
+          {/* Register Tab */}
+          <TabsContent value="register">
+            <UnregisteredTrips vehicles={vehicles} />
+          </TabsContent>
 
-            {/* Journal Tab */}
-            <TabsContent value="journal">
+          {/* Journal Tab */}
+          <TabsContent value="journal">
               <Tabs value={activeTab.startsWith('journal-') ? activeTab : 'journal-pending'} onValueChange={setActiveTab} className="mb-4">
                 <TabsList className="w-full bg-white shadow-sm grid grid-cols-5">
               {user?.role === 'admin' ? (
@@ -1262,9 +1067,8 @@ export default function DrivingJournal() {
               )}
             </>
           )}
-            </TabsContent>
-          </Tabs>
-        </motion.div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <EditJournalModal
