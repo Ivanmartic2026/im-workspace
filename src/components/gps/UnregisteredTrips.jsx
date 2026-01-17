@@ -41,8 +41,10 @@ export default function UnregisteredTrips({ vehicles }) {
   });
 
   // Hämta GPS-resor för alla fordon
+  const vehicleIds = vehiclesWithGPS.map(v => v.id).join(',');
+  
   const { data: allTripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['unregistered-gps-trips', period, vehiclesWithGPS],
+    queryKey: ['unregistered-gps-trips', period, vehicleIds],
     queryFn: async () => {
       if (vehiclesWithGPS.length === 0) return [];
 
@@ -57,6 +59,8 @@ export default function UnregisteredTrips({ vehicles }) {
         startDate = subDays(now, 30);
       }
 
+      console.log('Hämtar GPS-resor för period:', period, 'från', startDate, 'till', now);
+
       const promises = vehiclesWithGPS.map(async (vehicle) => {
         try {
           const response = await base44.functions.invoke('gpsTracking', {
@@ -70,7 +74,7 @@ export default function UnregisteredTrips({ vehicles }) {
 
           const trips = response.data?.totaltrips || [];
           
-          console.log(`${vehicle.registration_number}: Hämtade ${trips.length} GPS-resor`);
+          console.log(`${vehicle.registration_number}: Hämtade ${trips.length} GPS-resor från API`);
           
           // Markera vilka resor som redan är registrerade
           const tripsWithStatus = trips.map(trip => {
@@ -96,24 +100,22 @@ export default function UnregisteredTrips({ vehicles }) {
             return { ...trip, isRegistered };
           }).filter(t => t !== null);
           
-          console.log(`${vehicle.registration_number}: ${tripsWithStatus.filter(t => !t.isRegistered).length} oregistrerade resor`);
+          console.log(`${vehicle.registration_number}: ${tripsWithStatus.length} resor totalt`);
 
           return {
             vehicle,
-            trips: tripsWithStatus,
-            totalDistance: tripsWithStatus.reduce((sum, trip) => sum + (trip.mileage || 0), 0),
-            totalTime: tripsWithStatus.reduce((sum, trip) => sum + ((trip.endtime - trip.begintime) || 0), 0)
+            trips: tripsWithStatus
           };
         } catch (error) {
-          console.error(`Failed to fetch trips for ${vehicle.registration_number}:`, error);
-          return { vehicle, trips: [], totalDistance: 0, totalTime: 0 };
+          console.error(`Misslyckades att hämta resor för ${vehicle.registration_number}:`, error);
+          return { vehicle, trips: [] };
         }
       });
 
       const results = await Promise.all(promises);
+      console.log('Totalt antal fordon med data:', results.filter(r => r.trips.length > 0).length);
       
-      // Filtrera baserat på showAll toggle
-      return results.filter(r => r.trips.length > 0);
+      return results;
     },
     enabled: vehiclesWithGPS.length > 0
   });
@@ -135,7 +137,9 @@ export default function UnregisteredTrips({ vehicles }) {
     return 'Senaste månaden';
   };
 
-  const filteredVehicleData = allTripsData?.filter(v => v.trips.length > 0);
+  const filteredVehicleData = allTripsData?.filter(v => v.trips.length > 0) || [];
+
+  console.log('Filtrerade fordon med resor:', filteredVehicleData.length);
 
   return (
     <div className="space-y-3">
@@ -175,10 +179,18 @@ export default function UnregisteredTrips({ vehicles }) {
       {tripsLoading && (
         <div className="p-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto" />
+          <p className="text-sm text-slate-500 mt-2">Hämtar resor...</p>
         </div>
       )}
 
-      {!tripsLoading && filteredVehicleData?.map((vehicleData) => {
+      {!tripsLoading && filteredVehicleData.length === 0 && (
+        <div className="p-8 text-center bg-white rounded-lg border">
+          <Car className="h-12 w-12 text-slate-300 mx-auto mb-2" />
+          <p className="text-sm text-slate-600">Inga resor hittades för vald period</p>
+        </div>
+      )}
+
+      {!tripsLoading && filteredVehicleData.map((vehicleData) => {
         const { vehicle, trips } = vehicleData;
         
         return (
