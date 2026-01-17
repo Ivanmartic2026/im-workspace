@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Navigation, AlertTriangle, Edit, CheckCircle, Info } from "lucide-react";
+import { MapPin, Clock, Navigation, AlertTriangle, Edit, CheckCircle, Info, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -20,7 +20,7 @@ const tripTypeConfig = {
   väntar: { label: 'Ej angiven', color: 'bg-amber-100 text-amber-800' }
 };
 
-export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, onRequestInfo, isAdmin, canEdit = true }) {
+export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, onRequestInfo, onDelete, isAdmin, canEdit = true }) {
   const status = statusConfig[entry.status] || statusConfig.pending_review;
   const tripType = tripTypeConfig[entry.trip_type] || tripTypeConfig.väntar;
   const StatusIcon = status.icon;
@@ -167,6 +167,17 @@ export default function JournalEntryCard({ entry, vehicle, onEdit, onApprove, on
                   Kräv info
                 </Button>
               </>
+            )}
+
+            {isAdmin && onDelete && (
+              <Button
+                onClick={() => onDelete(entry)}
+                size="sm"
+                variant="ghost"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             )}
           </div>
         </CardContent>

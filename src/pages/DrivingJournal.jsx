@@ -1058,6 +1058,7 @@ export default function DrivingJournal() {
                   onEdit={handleEditEntry}
                   onApprove={user?.role === 'admin' ? handleApprove : null}
                   onRequestInfo={user?.role === 'admin' ? handleRequestInfo : null}
+                  onDelete={user?.role === 'admin' ? handleDeleteRequest : null}
                   isAdmin={user?.role === 'admin'}
                 />
               ))}
