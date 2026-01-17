@@ -140,12 +140,23 @@ export default function DrivingJournal() {
   };
 
   const handleApprove = async (entry) => {
+    const changeEntry = {
+      timestamp: new Date().toISOString(),
+      changed_by: user.email,
+      change_type: 'approved',
+      comment: 'Godkänd av administratör'
+    };
+
     await updateEntryMutation.mutateAsync({
       id: entry.id,
       data: {
         status: 'approved',
         reviewed_by: user.email,
-        reviewed_at: new Date().toISOString()
+        reviewed_at: new Date().toISOString(),
+        change_history: [
+          ...(entry.change_history || []),
+          changeEntry
+        ]
       }
     });
   };
@@ -153,6 +164,13 @@ export default function DrivingJournal() {
   const handleRequestInfo = async (entry) => {
     const comment = prompt('Ange kommentar till föraren:');
     if (!comment) return;
+
+    const changeEntry = {
+      timestamp: new Date().toISOString(),
+      changed_by: user.email,
+      change_type: 'status_changed',
+      comment: `Kräver mer information: ${comment}`
+    };
     
     await updateEntryMutation.mutateAsync({
       id: entry.id,
@@ -160,7 +178,11 @@ export default function DrivingJournal() {
         status: 'requires_info',
         reviewed_by: user.email,
         reviewed_at: new Date().toISOString(),
-        review_comment: comment
+        review_comment: comment,
+        change_history: [
+          ...(entry.change_history || []),
+          changeEntry
+        ]
       }
     });
   };

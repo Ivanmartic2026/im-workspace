@@ -75,7 +75,15 @@ export default function ManualTripModal({ open, onClose, onSuccess }) {
         notes: formData.notes,
         status: 'submitted',
         start_location: { address: 'Manuellt tillagd' },
-        end_location: { address: 'Manuellt tillagd' }
+        end_location: { address: 'Manuellt tillagd' },
+        is_manual: true,
+        manual_reason: 'Manuellt registrerad av användare',
+        change_history: [{
+          timestamp: new Date().toISOString(),
+          changed_by: user.email,
+          change_type: 'created',
+          comment: 'Manuellt skapad resa'
+        }]
       };
 
       await base44.entities.DrivingJournalEntry.create(journalEntry);

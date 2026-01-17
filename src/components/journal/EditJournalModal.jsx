@@ -5,9 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, History, Clock } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { sv } from 'date-fns/locale';
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function EditJournalModal({ open, onClose, entry, onSave }) {
   const [loading, setLoading] = useState(false);
@@ -17,12 +21,15 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
     project_id: '',
     project_code: '',
     customer: '',
+    activity: '',
     notes: '',
     status: 'pending_review',
     start_time: '',
     end_time: '',
-    distance_km: 0
+    distance_km: 0,
+    project_allocations: []
   });
+  const [showHistory, setShowHistory] = useState(false);
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -38,11 +45,13 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
         project_id: entry.project_id || '',
         project_code: entry.project_code || '',
         customer: entry.customer || '',
+        activity: entry.activity || '',
         notes: entry.notes || '',
         status: entry.status,
         start_time: entry.start_time ? new Date(entry.start_time).toISOString().slice(0, 16) : '',
         end_time: entry.end_time ? new Date(entry.end_time).toISOString().slice(0, 16) : '',
-        distance_km: entry.distance_km || 0
+        distance_km: entry.distance_km || 0,
+        project_allocations: entry.project_allocations || []
       });
     }
   }, [entry]);
@@ -65,13 +74,14 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
       return;
     }
 
-    if (!formData.purpose?.trim()) {
-      alert('Ange syfte med resan');
+    if (formData.trip_type === 'tjänst' && !formData.purpose?.trim()) {
+      alert('Ange syfte med resan - obligatoriskt för tjänsteresor');
       return;
     }
 
     setLoading(true);
     try {
+      const user = await base44.auth.me();
       const updateData = {
         ...formData,
         status: 'submitted'
@@ -84,6 +94,19 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
         const duration = (new Date(formData.end_time) - new Date(formData.start_time)) / (1000 * 60);
         updateData.duration_minutes = duration;
       }
+
+      // Lägg till ändringslogg
+      const changeEntry = {
+        timestamp: new Date().toISOString(),
+        changed_by: user?.email || 'okänd',
+        change_type: 'updated',
+        comment: 'Redigerad via modal'
+      };
+
+      updateData.change_history = [
+        ...(entry?.change_history || []),
+        changeEntry
+      ];
       
       await onSave(updateData);
     } catch (error) {
@@ -193,6 +216,16 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
                   placeholder="T.ex. Företag AB"
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="activity">Aktivitet/Arbetsorder (valfritt)</Label>
+                <Input
+                  id="activity"
+                  value={formData.activity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, activity: e.target.value }))}
+                  placeholder="T.ex. Installation, Service, Konsultation"
+                />
+              </div>
             </>
           )}
 
@@ -206,6 +239,40 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
               className="min-h-[60px]"
             />
           </div>
+
+          {/* Ändringshistorik */}
+          {entry?.change_history && entry.change_history.length > 0 && (
+            <Collapsible open={showHistory} onOpenChange={setShowHistory}>
+              <CollapsibleTrigger asChild>
+                <Button type="button" variant="outline" size="sm" className="w-full">
+                  <History className="h-4 w-4 mr-2" />
+                  Visa ändringshistorik ({entry.change_history.length})
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-2">
+                {entry.change_history.slice().reverse().map((change, idx) => (
+                  <div key={idx} className="bg-slate-50 p-3 rounded-lg text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="outline" className="text-xs">
+                        {change.change_type}
+                      </Badge>
+                      <span className="text-slate-500 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {format(new Date(change.timestamp), 'dd MMM yyyy HH:mm', { locale: sv })}
+                      </span>
+                    </div>
+                    <div className="text-slate-700">
+                      <strong>{change.changed_by}</strong>
+                      {change.field && `: Ändrade ${change.field}`}
+                    </div>
+                    {change.comment && (
+                      <div className="text-slate-600 mt-1">{change.comment}</div>
+                    )}
+                  </div>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>
