@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid } from "lucide-react";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, Plus } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import { createPageUrl } from '../utils';
 import JournalEntryCard from "@/components/journal/JournalEntryCard";
 import JournalStatsCard from "@/components/journal/JournalStatsCard";
 import EditJournalModal from "@/components/journal/EditJournalModal";
+import ManualTripModal from "@/components/journal/ManualTripModal";
 import SuggestionsView from "@/components/journal/SuggestionsView";
 import QuickApproveCard from "@/components/journal/QuickApproveCard";
 
@@ -28,6 +29,7 @@ export default function DrivingJournal() {
   const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showManualModal, setShowManualModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -461,6 +463,9 @@ export default function DrivingJournal() {
     privateTrips: filteredEntries.filter(e => e.trip_type === 'privat').length,
     pendingTrips: filteredEntries.filter(e => e.trip_type === 'väntar').length,
     actionRequired: filteredEntries.filter(e => e.status === 'pending_review' && e.trip_type === 'väntar').length,
+    pending: entries.filter(e => (e.status === 'pending_review' || e.status === 'submitted') && !e.suggested_classification).length,
+    approved: entries.filter(e => e.status === 'approved').length,
+    total: entries.length,
   };
 
   return (
@@ -491,6 +496,14 @@ export default function DrivingJournal() {
                 onClick={() => setViewMode('cards')}
               >
                 <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setShowManualModal(true)}
+                size="sm"
+                variant="outline"
+                className="gap-1"
+              >
+                <Plus className="h-4 w-4" />
               </Button>
               {user?.role === 'admin' && (
                 <>
@@ -650,10 +663,10 @@ export default function DrivingJournal() {
             <TabsList className="w-full bg-white shadow-sm grid grid-cols-5">
               {user?.role === 'admin' ? (
                 <>
-                  <TabsTrigger value="pending">
-                    Väntande
-                    {entries.filter(e => (e.status === 'pending_review' || e.status === 'submitted') && !e.suggested_classification).length > 0 && (
-                      <Badge className="ml-1 bg-amber-500 text-xs">{entries.filter(e => (e.status === 'pending_review' || e.status === 'submitted') && !e.suggested_classification).length}</Badge>
+                  <TabsTrigger value="pending" className="flex-col gap-1 py-3">
+                    <span>Väntande</span>
+                    {stats.pending > 0 && (
+                      <Badge className="bg-amber-500 text-white text-xs px-2 py-0 h-5">{stats.pending}</Badge>
                     )}
                   </TabsTrigger>
                   <TabsTrigger value="drafts">
@@ -668,8 +681,14 @@ export default function DrivingJournal() {
                       <Badge className="ml-1 bg-purple-500 text-xs">{aiSuggestions.length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="approved">Godkända</TabsTrigger>
-                  <TabsTrigger value="all">Alla</TabsTrigger>
+                  <TabsTrigger value="approved" className="flex-col gap-1 py-3">
+                    <span>Godkända</span>
+                    <Badge className="bg-emerald-500 text-white text-xs px-2 py-0 h-5">{stats.approved}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="all" className="flex-col gap-1 py-3">
+                    <span>Alla</span>
+                    <Badge className="bg-slate-500 text-white text-xs px-2 py-0 h-5">{stats.total}</Badge>
+                  </TabsTrigger>
                 </>
               ) : (
                 <>
@@ -992,6 +1011,14 @@ export default function DrivingJournal() {
         }}
         entry={selectedEntry}
         onSave={handleSaveEntry}
+      />
+
+      <ManualTripModal
+        open={showManualModal}
+        onClose={() => setShowManualModal(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
+        }}
       />
     </div>
   );
