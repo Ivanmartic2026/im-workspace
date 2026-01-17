@@ -71,6 +71,7 @@ export default function UnregisteredTrips({ vehicles }) {
           
           // Filtrera bort redan registrerade resor
           const unregisteredTrips = trips.filter(trip => {
+            if (!trip.begintime || !trip.endtime) return false;
             const tripStart = new Date(trip.begintime * 1000);
             const tripEnd = new Date(trip.endtime * 1000);
             
@@ -203,6 +204,7 @@ export default function UnregisteredTrips({ vehicles }) {
             // Gruppera resor per dag
             const tripsByDay = {};
             trips.forEach(trip => {
+              if (!trip.begintime) return;
               const date = format(new Date(trip.begintime * 1000), 'yyyy-MM-dd');
               if (!tripsByDay[date]) {
                 tripsByDay[date] = [];
