@@ -316,7 +316,7 @@ export default function DrivingJournal() {
     }
 
     setAnalyzingAI(true);
-    setActiveTab('suggestions');
+    setActiveTab('journal-suggestions');
 
     try {
       const response = await base44.functions.invoke('analyzeTrips', {
@@ -970,288 +970,282 @@ export default function DrivingJournal() {
                 </>
               )}
             </TabsList>
-          </Tabs>
+              </Tabs>
 
-          {/* Journal Content */}
-          {activeTab === 'journal-drafts' ? (
+          {/* Journal Content Based on Sub-Tab */}
+          {activeTab.startsWith('journal-') && (
             <>
-              {/* Process Drafts Button */}
-              <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <Sparkles className="h-5 w-5 text-indigo-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">Skapa AI-utkast</p>
-                        <p className="text-xs text-slate-600">
-                          Analysera resor och skapa förslag baserat på historik
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={handleProcessDrafts}
-                      disabled={processingDrafts}
-                      className="bg-indigo-600 hover:bg-indigo-700"
-                    >
-                      {processingDrafts ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Bearbetar...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Skapa utkast
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {draftEntries.length === 0 ? (
-                <Card className="border-0 shadow-sm">
-                  <CardContent className="p-12 text-center">
-                    <Sparkles className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga utkast</h3>
-                    <p className="text-slate-500 text-sm">
-                      Klicka på "Skapa utkast" för att låta AI analysera oklassificerade resor
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-3">
-                  {draftEntries.map(entry => (
-                    <QuickApproveCard
-                      key={entry.id}
-                      entry={entry}
-                      vehicle={vehicles.find(v => v.id === entry.vehicle_id)}
-                      onApprove={handleQuickApprove}
-                      onEdit={handleEditEntry}
-                      onReject={handleRejectDraft}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : activeTab === 'journal-suggestions' ? (
-            <SuggestionsView
-              suggestions={aiSuggestions}
-              onAccept={handleAcceptSuggestion}
-              onReject={handleRejectSuggestion}
-              onEdit={handleEditSuggestion}
-              isLoading={analyzingAI}
-            />
-          ) : (
-            <>
-              {/* AI Analyze Button */}
-              {activeTab === 'journal-pending' && filteredEntries.some(e => e.trip_type === 'väntar') && (
-                <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                          <Sparkles className="h-5 w-5 text-indigo-600" />
+              {activeTab === 'journal-drafts' ? (
+                <>
+                  {/* Process Drafts Button */}
+                  <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <Sparkles className="h-5 w-5 text-indigo-600" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900">Skapa AI-utkast</p>
+                            <p className="text-xs text-slate-600">
+                              Analysera resor och skapa förslag baserat på historik
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-slate-900">AI-assisterad klassificering</p>
-                          <p className="text-xs text-slate-600">
-                            Låt AI analysera och föreslå klassificering för dina resor
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={handleAnalyzeWithAI}
-                        disabled={analyzingAI}
-                        className="bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        {analyzingAI ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Analyserar...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Analysera med AI
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Entries List */}
-              {isLoading ? (
-            <div className="text-center py-12">
-              <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
-            </div>
-          ) : filteredEntries.length === 0 ? (
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-12 text-center">
-                <Car className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga resor att visa</h3>
-                <p className="text-slate-500 text-sm mb-4">
-                  {entries.length === 0 
-                    ? 'Inga körjournalsposter finns i systemet ännu.' 
-                    : activeTab === 'journal-pending' 
-                    ? 'Inga väntande körjournaler just nu' 
-                    : 'Inga resor hittades för denna period'}
-                </p>
-                {entries.length === 0 && user?.role === 'admin' && (
-                  <div className="text-xs text-slate-500 space-y-2">
-                    <p>För att få körjournalsposter:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Se till att fordon har GPS Device ID</li>
-                      <li>Välj ett specifikt fordon och klicka synkronisera-knappen</li>
-                      <li>Eller använd "Registrera" i GPS-vyn för att lägga till resor manuellt</li>
-                    </ul>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : viewMode === 'table' ? (
-            <Card className="border-0 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50">
-                      <TableHead className="cursor-pointer" onClick={() => handleSort('start_time')}>
-                        <div className="flex items-center">
-                          Datum
-                          <SortIcon field="start_time" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="cursor-pointer" onClick={() => handleSort('registration_number')}>
-                        <div className="flex items-center">
-                          Fordon
-                          <SortIcon field="registration_number" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="cursor-pointer" onClick={() => handleSort('driver_name')}>
-                        <div className="flex items-center">
-                          Förare
-                          <SortIcon field="driver_name" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="cursor-pointer text-right" onClick={() => handleSort('distance_km')}>
-                        <div className="flex items-center justify-end">
-                          Distans
-                          <SortIcon field="distance_km" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="cursor-pointer text-right" onClick={() => handleSort('duration_minutes')}>
-                        <div className="flex items-center justify-end">
-                          Tid
-                          <SortIcon field="duration_minutes" />
-                        </div>
-                      </TableHead>
-                      <TableHead>Typ</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Åtgärd</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedEntries.map(entry => (
-                      <TableRow key={entry.id} className="hover:bg-slate-50">
-                        <TableCell className="font-medium">
-                          <div className="text-sm">{format(new Date(entry.start_time), 'dd MMM yyyy', { locale: sv })}</div>
-                          <div className="text-xs text-slate-500">{format(new Date(entry.start_time), 'HH:mm')}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm font-medium">{entry.registration_number}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{entry.driver_name || 'Okänd'}</div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="text-sm font-medium">{entry.distance_km?.toFixed(1)} km</div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="text-sm">{Math.round(entry.duration_minutes || 0)} min</div>
-                        </TableCell>
-                        <TableCell>
-                          {entry.trip_type === 'väntar' ? (
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 px-2 text-xs"
-                                onClick={() => handleQuickClassify(entry.id, 'tjänst')}
-                              >
-                                Tjänst
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 px-2 text-xs"
-                                onClick={() => handleQuickClassify(entry.id, 'privat')}
-                              >
-                                Privat
-                              </Button>
-                            </div>
+                        <Button
+                          onClick={handleProcessDrafts}
+                          disabled={processingDrafts}
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          {processingDrafts ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Bearbetar...
+                            </>
                           ) : (
-                            <Badge 
-                              className={
-                                entry.trip_type === 'tjänst' ? 'bg-blue-100 text-blue-800' :
-                                entry.trip_type === 'privat' ? 'bg-purple-100 text-purple-800' :
-                                'bg-amber-100 text-amber-800'
-                              }
-                            >
-                              {entry.trip_type}
-                            </Badge>
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Skapa utkast
+                            </>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant="outline"
-                            className={
-                              entry.status === 'approved' ? 'border-green-500 text-green-700' :
-                              entry.status === 'submitted' ? 'border-blue-500 text-blue-700' :
-                              entry.status === 'requires_info' ? 'border-red-500 text-red-700' :
-                              'border-amber-500 text-amber-700'
-                            }
-                          >
-                            {entry.status === 'approved' ? 'Godkänd' :
-                             entry.status === 'submitted' ? 'Inskickad' :
-                             entry.status === 'requires_info' ? 'Kräver info' :
-                             'Väntande'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditEntry(entry)}
-                          >
-                            Visa
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {sortedEntries.map(entry => (
-                <JournalEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  vehicle={vehicles.find(v => v.id === entry.vehicle_id)}
-                  onEdit={handleEditEntry}
-                  onApprove={user?.role === 'admin' ? handleApprove : null}
-                  onRequestInfo={user?.role === 'admin' ? handleRequestInfo : null}
-                  onDelete={user?.role === 'admin' ? handleDeleteRequest : null}
-                  isAdmin={user?.role === 'admin'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {draftEntries.length === 0 ? (
+                    <Card className="border-0 shadow-sm">
+                      <CardContent className="p-12 text-center">
+                        <Sparkles className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga utkast</h3>
+                        <p className="text-slate-500 text-sm">
+                          Klicka på "Skapa utkast" för att låta AI analysera oklassificerade resor
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-3">
+                      {draftEntries.map(entry => (
+                        <QuickApproveCard
+                          key={entry.id}
+                          entry={entry}
+                          vehicle={vehicles.find(v => v.id === entry.vehicle_id)}
+                          onApprove={handleQuickApprove}
+                          onEdit={handleEditEntry}
+                          onReject={handleRejectDraft}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : activeTab === 'journal-suggestions' ? (
+                <SuggestionsView
+                  suggestions={aiSuggestions}
+                  onAccept={handleAcceptSuggestion}
+                  onReject={handleRejectSuggestion}
+                  onEdit={handleEditSuggestion}
+                  isLoading={analyzingAI}
                 />
-              ))}
-            </div>
-          )}
+              ) : (
+                <>
+                  {/* AI Analyze Button */}
+                  {activeTab === 'journal-pending' && filteredEntries.some(e => e.trip_type === 'väntar') && (
+                    <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                              <Sparkles className="h-5 w-5 text-indigo-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-900">AI-assisterad klassificering</p>
+                              <p className="text-xs text-slate-600">
+                                Låt AI analysera och föreslå klassificering för dina resor
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={handleAnalyzeWithAI}
+                            disabled={analyzingAI}
+                            className="bg-indigo-600 hover:bg-indigo-700"
+                          >
+                            {analyzingAI ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Analyserar...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4 mr-2" />
+                                Analysera med AI
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Entries List */}
+                  {isLoading ? (
+                    <div className="text-center py-12">
+                      <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
+                    </div>
+                  ) : filteredEntries.length === 0 ? (
+                    <Card className="border-0 shadow-sm">
+                      <CardContent className="p-12 text-center">
+                        <Car className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga resor att visa</h3>
+                        <p className="text-slate-500 text-sm mb-4">
+                          {entries.length === 0 
+                            ? 'Inga körjournalsposter finns i systemet ännu.' 
+                            : activeTab === 'journal-pending' 
+                            ? 'Inga väntande körjournaler just nu' 
+                            : 'Inga resor hittades för denna period'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : viewMode === 'table' ? (
+                    <Card className="border-0 shadow-sm overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-slate-50">
+                              <TableHead className="cursor-pointer" onClick={() => handleSort('start_time')}>
+                                <div className="flex items-center">
+                                  Datum
+                                  <SortIcon field="start_time" />
+                                </div>
+                              </TableHead>
+                              <TableHead className="cursor-pointer" onClick={() => handleSort('registration_number')}>
+                                <div className="flex items-center">
+                                  Fordon
+                                  <SortIcon field="registration_number" />
+                                </div>
+                              </TableHead>
+                              <TableHead className="cursor-pointer" onClick={() => handleSort('driver_name')}>
+                                <div className="flex items-center">
+                                  Förare
+                                  <SortIcon field="driver_name" />
+                                </div>
+                              </TableHead>
+                              <TableHead className="cursor-pointer text-right" onClick={() => handleSort('distance_km')}>
+                                <div className="flex items-center justify-end">
+                                  Distans
+                                  <SortIcon field="distance_km" />
+                                </div>
+                              </TableHead>
+                              <TableHead className="cursor-pointer text-right" onClick={() => handleSort('duration_minutes')}>
+                                <div className="flex items-center justify-end">
+                                  Tid
+                                  <SortIcon field="duration_minutes" />
+                                </div>
+                              </TableHead>
+                              <TableHead>Typ</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="text-right">Åtgärd</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {sortedEntries.map(entry => (
+                              <TableRow key={entry.id} className="hover:bg-slate-50">
+                                <TableCell className="font-medium">
+                                  <div className="text-sm">{format(new Date(entry.start_time), 'dd MMM yyyy', { locale: sv })}</div>
+                                  <div className="text-xs text-slate-500">{format(new Date(entry.start_time), 'HH:mm')}</div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="text-sm font-medium">{entry.registration_number}</div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="text-sm">{entry.driver_name || 'Okänd'}</div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="text-sm font-medium">{entry.distance_km?.toFixed(1)} km</div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="text-sm">{Math.round(entry.duration_minutes || 0)} min</div>
+                                </TableCell>
+                                <TableCell>
+                                  {entry.trip_type === 'väntar' ? (
+                                    <div className="flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() => handleQuickClassify(entry.id, 'tjänst')}
+                                      >
+                                        Tjänst
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-6 px-2 text-xs"
+                                        onClick={() => handleQuickClassify(entry.id, 'privat')}
+                                      >
+                                        Privat
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Badge 
+                                      className={
+                                        entry.trip_type === 'tjänst' ? 'bg-blue-100 text-blue-800' :
+                                        entry.trip_type === 'privat' ? 'bg-purple-100 text-purple-800' :
+                                        'bg-amber-100 text-amber-800'
+                                      }
+                                    >
+                                      {entry.trip_type}
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant="outline"
+                                    className={
+                                      entry.status === 'approved' ? 'border-green-500 text-green-700' :
+                                      entry.status === 'submitted' ? 'border-blue-500 text-blue-700' :
+                                      entry.status === 'requires_info' ? 'border-red-500 text-red-700' :
+                                      'border-amber-500 text-amber-700'
+                                    }
+                                  >
+                                    {entry.status === 'approved' ? 'Godkänd' :
+                                     entry.status === 'submitted' ? 'Inskickad' :
+                                     entry.status === 'requires_info' ? 'Kräver info' :
+                                     'Väntande'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditEntry(entry)}
+                                  >
+                                    Visa
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </Card>
+                  ) : (
+                    <div className="space-y-3">
+                      {sortedEntries.map(entry => (
+                        <JournalEntryCard
+                          key={entry.id}
+                          entry={entry}
+                          vehicle={vehicles.find(v => v.id === entry.vehicle_id)}
+                          onEdit={handleEditEntry}
+                          onApprove={user?.role === 'admin' ? handleApprove : null}
+                          onRequestInfo={user?.role === 'admin' ? handleRequestInfo : null}
+                          onDelete={user?.role === 'admin' ? handleDeleteRequest : null}
+                          isAdmin={user?.role === 'admin'}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </>
           )}
               </Tabs>
