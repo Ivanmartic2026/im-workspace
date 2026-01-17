@@ -3,17 +3,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Loader2, MapPin, Navigation, Clock, Merge, CheckCircle2, CheckSquare } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function RegisterTripModal({ open, onClose, trips = [], vehicleId, vehicleReg, onSuccess }) {
-  const [suggestions, setSuggestions] = useState([]);
+  const [tripData, setTripData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const { data: projects = [] } = useQuery({
@@ -24,58 +23,30 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
 
   useEffect(() => {
     if (open && trips.length > 0) {
-      const initialSuggestions = trips.map(trip => ({
+      const initial = trips.map(trip => ({
         trip,
-        trip_type: 'tjänst',
-        purpose: '',
         project_id: '',
-        customer: '',
-        notes: '',
-        approved: false
+        purpose: ''
       }));
-      setSuggestions(initialSuggestions);
+      setTripData(initial);
     }
   }, [open, trips]);
 
-  const updateSuggestion = (index, field, value) => {
-    setSuggestions(prev => prev.map((s, i) => 
-      i === index ? { ...s, [field]: value } : s
+  const updateTrip = (index, field, value) => {
+    setTripData(prev => prev.map((t, i) => 
+      i === index ? { ...t, [field]: value } : t
     ));
-  };
-
-  const toggleApproval = (index) => {
-    setSuggestions(prev => prev.map((s, i) => 
-      i === index ? { ...s, approved: !s.approved } : s
-    ));
-  };
-
-  const approveAll = () => {
-    setSuggestions(prev => prev.map(s => ({ ...s, approved: true })));
   };
 
   const handleSubmit = async () => {
-    const approved = suggestions.filter(s => s.approved);
-    
-    if (approved.length === 0) {
-      alert('Godkänn minst en resa för att registrera');
-      return;
-    }
-
-    for (const suggestion of approved) {
-      if (suggestion.trip_type === 'tjänst' && !suggestion.purpose) {
-        alert('Fyll i syfte för alla tjänsteresor');
-        return;
-      }
-    }
-
     setLoading(true);
 
     try {
       const user = await base44.auth.me();
 
-      for (const suggestion of approved) {
-        const selectedProject = projects.find(p => p.id === suggestion.project_id);
-        const trip = suggestion.trip;
+      for (const item of tripData) {
+        const selectedProject = projects.find(p => p.id === item.project_id);
+        const trip = item.trip;
 
         const journalEntry = {
           vehicle_id: vehicleId,
@@ -88,21 +59,20 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
           start_location: {
             latitude: trip.beginlocation?.latitude,
             longitude: trip.beginlocation?.longitude,
-            address: trip.beginlocation?.address || `${trip.beginlocation?.latitude?.toFixed(5)}, ${trip.beginlocation?.longitude?.toFixed(5)}`
+            address: trip.beginlocation?.address || ''
           },
           end_location: {
             latitude: trip.endlocation?.latitude,
             longitude: trip.endlocation?.longitude,
-            address: trip.endlocation?.address || `${trip.endlocation?.latitude?.toFixed(5)}, ${trip.endlocation?.longitude?.toFixed(5)}`
+            address: trip.endlocation?.address || ''
           },
           distance_km: trip.mileage || 0,
           duration_minutes: (trip.endtime - trip.begintime) / 60,
-          trip_type: suggestion.trip_type,
-          purpose: suggestion.purpose,
-          project_id: suggestion.project_id || null,
+          trip_type: 'tjänst',
+          purpose: item.purpose || 'Resa',
+          project_id: item.project_id || null,
           project_code: selectedProject?.project_code || null,
-          customer: suggestion.customer || selectedProject?.customer || null,
-          notes: suggestion.notes,
+          customer: selectedProject?.customer || null,
           status: 'submitted'
         };
 
@@ -119,156 +89,69 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
     setLoading(false);
   };
 
-  const approvedCount = suggestions.filter(s => s.approved).length;
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Granska och godkänn resor</DialogTitle>
+          <DialogTitle>Fördela resor till projekt - {vehicleReg}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Header with approve all */}
-          <div className="flex items-center justify-between pb-3 border-b">
-            <p className="text-sm text-slate-600">
-              {approvedCount} av {suggestions.length} resor godkända
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={approveAll}
-            >
-              <CheckSquare className="h-4 w-4 mr-1" />
-              Godkänn alla
-            </Button>
-          </div>
-
-          {/* Suggestions list */}
-          <div className="space-y-4">
-            {suggestions.map((suggestion, idx) => (
-              <div
-                key={idx}
-                className={`border-2 rounded-lg p-4 transition-all ${
-                  suggestion.approved 
-                    ? 'border-green-500 bg-green-50' 
-                    : 'border-slate-200 bg-white'
-                }`}
-              >
-                {/* Trip header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-slate-900">
-                        {format(new Date(suggestion.trip.begintime * 1000), 'EEE d MMM, HH:mm', { locale: sv })} - {format(new Date(suggestion.trip.endtime * 1000), 'HH:mm', { locale: sv })}
-                      </p>
-                      <Badge>{(suggestion.trip.mileage || 0).toFixed(1)} km</Badge>
-                    </div>
-                    <p className="text-xs text-slate-600 line-clamp-1">
-                      {suggestion.trip.beginlocation?.address || 'Start'} → {suggestion.trip.endlocation?.address || 'Slut'}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={suggestion.approved ? "default" : "outline"}
-                    onClick={() => toggleApproval(idx)}
-                    className={suggestion.approved ? "bg-green-600 hover:bg-green-700" : ""}
-                  >
-                    {suggestion.approved ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Godkänd
-                      </>
-                    ) : (
-                      'Godkänn'
-                    )}
-                  </Button>
+        <div className="space-y-3">
+          {tripData.map((item, idx) => (
+            <div key={idx} className={`border rounded-lg p-3 ${
+              item.trip.isRegistered ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="font-semibold text-slate-900 text-sm">
+                    {format(new Date(item.trip.begintime * 1000), 'EEE d MMM, HH:mm', { locale: sv })} - {format(new Date(item.trip.endtime * 1000), 'HH:mm', { locale: sv })}
+                  </p>
+                  <p className="text-xs text-slate-600">
+                    {(item.trip.mileage || 0).toFixed(1)} km • {Math.round((item.trip.endtime - item.trip.begintime) / 60)} min
+                  </p>
                 </div>
+                {item.trip.isRegistered && (
+                  <Badge className="bg-green-600 text-white">Registrerad</Badge>
+                )}
+              </div>
 
-                {/* Form fields */}
-                <div className="space-y-3 mt-3 pt-3 border-t">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-xs">Typ av resa</Label>
-                      <Select 
-                        value={suggestion.trip_type} 
-                        onValueChange={(value) => updateSuggestion(idx, 'trip_type', value)}
-                      >
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="tjänst">Tjänsteresa</SelectItem>
-                          <SelectItem value="privat">Privatresa</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {suggestion.trip_type === 'tjänst' && (
-                      <div>
-                        <Label className="text-xs">Syfte *</Label>
-                        <Input
-                          className="h-9 text-sm"
-                          value={suggestion.purpose}
-                          onChange={(e) => updateSuggestion(idx, 'purpose', e.target.value)}
-                          placeholder="T.ex. Kundbesök..."
-                        />
-                      </div>
-                    )}
+              {!item.trip.isRegistered && (
+                <div className="space-y-2 mt-3 pt-3 border-t">
+                  <div>
+                    <Label className="text-xs">Projekt</Label>
+                    <Select
+                      value={item.project_id}
+                      onValueChange={(value) => updateTrip(idx, 'project_id', value)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Välj projekt" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.filter(p => p.status === 'pågående').map(project => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-
-                  {suggestion.trip_type === 'tjänst' && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs">Projekt</Label>
-                        <Select
-                          value={suggestion.project_id}
-                          onValueChange={(value) => updateSuggestion(idx, 'project_id', value)}
-                        >
-                          <SelectTrigger className="h-9 text-sm">
-                            <SelectValue placeholder="Välj projekt" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {projects.filter(p => p.status === 'pågående').map(project => (
-                              <SelectItem key={project.id} value={project.id}>
-                                {project.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs">Kund</Label>
-                        <Input
-                          className="h-9 text-sm"
-                          value={suggestion.customer}
-                          onChange={(e) => updateSuggestion(idx, 'customer', e.target.value)}
-                          placeholder="Kundnamn"
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   <div>
-                    <Label className="text-xs">Anteckningar</Label>
-                    <Textarea
-                      className="text-sm"
-                      value={suggestion.notes}
-                      onChange={(e) => updateSuggestion(idx, 'notes', e.target.value)}
-                      placeholder="Övrig information..."
-                      rows={2}
+                    <Label className="text-xs">Syfte</Label>
+                    <Input
+                      className="h-9"
+                      value={item.purpose}
+                      onChange={(e) => updateTrip(idx, 'purpose', e.target.value)}
+                      placeholder="T.ex. Kundbesök, leverans..."
                     />
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+          ))}
 
-          {/* Actions */}
           <div className="flex gap-3 pt-3 border-t">
             <Button
-              type="button"
               variant="outline"
               onClick={onClose}
               className="flex-1"
@@ -278,8 +161,8 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={loading || approvedCount === 0}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              disabled={loading}
+              className="flex-1 bg-slate-900 hover:bg-slate-800"
             >
               {loading ? (
                 <>
@@ -289,7 +172,7 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Registrera {approvedCount} {approvedCount === 1 ? 'resa' : 'resor'}
+                  Registrera resor
                 </>
               )}
             </Button>
