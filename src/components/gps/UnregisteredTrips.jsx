@@ -253,19 +253,28 @@ export default function UnregisteredTrips({ vehicles }) {
                     </div>
                   </div>
 
-                  {/* Trips per day */}
-                  <div className="border-t border-slate-100 pt-3 mb-3 space-y-2 max-h-40 overflow-y-auto">
-                    {Object.entries(tripsByDay)
-                      .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-                      .map(([date, dayTrips]) => (
-                        <div key={date} className="flex items-center justify-between text-xs">
-                          <span className="text-slate-500">
-                            {format(new Date(date), 'EEE d MMM', { locale: sv })}
-                          </span>
-                          <span className="text-slate-700 font-medium">
-                            {dayTrips.length} {dayTrips.length === 1 ? 'resa' : 'resor'} • {' '}
-                            {dayTrips.reduce((sum, trip) => sum + (trip.mileage || 0), 0).toFixed(1)} km
-                          </span>
+                  {/* Trips list */}
+                  <div className="border-t border-slate-100 pt-3 mb-3 space-y-2 max-h-60 overflow-y-auto">
+                    {trips
+                      .sort((a, b) => b.begintime - a.begintime)
+                      .map((trip, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
+                          <div className="flex-1">
+                            <div className="text-slate-700 font-medium mb-1">
+                              {format(new Date(trip.begintime * 1000), 'EEE d MMM', { locale: sv })}
+                            </div>
+                            <div className="text-slate-500">
+                              {format(new Date(trip.begintime * 1000), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-slate-900 font-semibold">
+                              {(trip.mileage || 0).toFixed(1)} km
+                            </div>
+                            <div className="text-slate-500">
+                              {Math.round((trip.endtime - trip.begintime) / 60)} min
+                            </div>
+                          </div>
                         </div>
                       ))}
                   </div>
