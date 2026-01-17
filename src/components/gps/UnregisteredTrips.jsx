@@ -69,6 +69,8 @@ export default function UnregisteredTrips({ vehicles }) {
 
           const trips = response.data?.totaltrips || [];
           
+          console.log(`${vehicle.registration_number}: Hämtade ${trips.length} GPS-resor`);
+          
           // Filtrera bort redan registrerade resor
           const unregisteredTrips = trips.filter(trip => {
             if (!trip.begintime || !trip.endtime) return false;
@@ -77,7 +79,7 @@ export default function UnregisteredTrips({ vehicles }) {
             
             // Kolla om det finns någon journalpost som matchar denna resa
             // Använd gps_trip_id om det finns, annars tid och fordon
-            return !journalEntries.some(entry => {
+            const isRegistered = journalEntries.some(entry => {
               if (entry.vehicle_id !== vehicle.id) return false;
               
               // Om journalposten har ett gps_trip_id, matcha mot det
@@ -93,7 +95,11 @@ export default function UnregisteredTrips({ vehicles }) {
               return Math.abs(tripStart - entryStart) < margin && 
                      Math.abs(tripEnd - entryEnd) < margin;
             });
+            
+            return !isRegistered;
           });
+          
+          console.log(`${vehicle.registration_number}: ${unregisteredTrips.length} oregistrerade resor`);
 
           return {
             vehicle,
