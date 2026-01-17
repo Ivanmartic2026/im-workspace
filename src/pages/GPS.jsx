@@ -79,24 +79,20 @@ export default function GPS() {
   });
 
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['gps-all-trips-today', allDevices],
+    queryKey: ['gps-latest-trips', allDevices],
     queryFn: async () => {
       if (allDevices.length === 0) return null;
 
-      const today = new Date();
+      const now = new Date();
+      const last3Hours = new Date(now.getTime() - (3 * 60 * 60 * 1000)); // 3 timmar tillbaka
       
       const promises = allDevices.map(device => {
-        const startTime = new Date(today);
-        startTime.setHours(0, 0, 0, 0);
-        const endTime = new Date(today);
-        endTime.setHours(23, 59, 59, 999);
-        
         return base44.functions.invoke('gpsTracking', {
           action: 'getTrips',
           params: {
             deviceId: device.deviceid,
-            begintime: Math.floor(startTime.getTime() / 1000),
-            endtime: Math.floor(endTime.getTime() / 1000)
+            begintime: Math.floor(last3Hours.getTime() / 1000),
+            endtime: Math.floor(now.getTime() / 1000)
           }
         }).catch(error => {
           console.error(`Failed to fetch trips for device ${device.deviceid}:`, error);
@@ -105,9 +101,26 @@ export default function GPS() {
       });
 
       const results = await Promise.all(promises);
-      return results.map((r, i) => ({ deviceId: allDevices[i].deviceid, deviceName: allDevices[i].devicename, data: r.data }));
+      
+      // Filtrera och behåll endast senaste 3 resorna per enhet
+      return results.map((r, i) => {
+        const trips = r.data.totaltrips || [];
+        const sortedTrips = trips.sort((a, b) => new Date(b.begintime) - new Date(a.begintime)).slice(0, 3);
+        
+        return {
+          deviceId: allDevices[i].deviceid,
+          deviceName: allDevices[i].devicename,
+          data: {
+            ...r.data,
+            totaltrips: sortedTrips,
+            totaldistance: sortedTrips.reduce((sum, trip) => sum + (trip.distance || 0), 0),
+            totaltriptime: sortedTrips.reduce((sum, trip) => sum + (trip.duration || 0), 0)
+          }
+        };
+      });
     },
     enabled: allDevices.length > 0 && activeTab === 'live',
+    refetchInterval: 60000, // Uppdatera var 60:e sekund
   });
 
   if (devicesLoading) {
