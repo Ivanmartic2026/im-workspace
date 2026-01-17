@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
     end.setHours(23, 59, 59, 999);
     
     let entries = allEntries.filter(entry => {
+      if (entry.is_deleted) return false;
       const entryDate = new Date(entry.start_time);
       return entryDate >= start && entryDate <= end;
     });
@@ -62,6 +63,7 @@ Deno.serve(async (req) => {
     const totalDistance = entries.reduce((sum, e) => sum + (e.distance_km || 0), 0);
     const businessTrips = entries.filter(e => e.trip_type === 'tjänst').length;
     const privateTrips = entries.filter(e => e.trip_type === 'privat').length;
+    const totalMileageAllowance = entries.reduce((sum, e) => sum + (e.mileage_allowance || 0), 0);
 
     doc.setFontSize(10);
     doc.text(`Totalt antal resor: ${entries.length}`, 20, y);
@@ -71,6 +73,8 @@ Deno.serve(async (req) => {
     doc.text(`Tjänsteresor: ${businessTrips}`, 20, y);
     y += 7;
     doc.text(`Privatresor: ${privateTrips}`, 20, y);
+    y += 7;
+    doc.text(`Total milersättning: ${totalMileageAllowance.toFixed(2)} kr`, 20, y);
     y += 15;
 
     // Group by vehicle

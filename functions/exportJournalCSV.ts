@@ -21,6 +21,7 @@ Deno.serve(async (req) => {
     end.setHours(23, 59, 59, 999);
     
     let entries = allEntries.filter(entry => {
+      if (entry.is_deleted) return false;
       const entryDate = new Date(entry.start_time);
       return entryDate >= start && entryDate <= end;
     });
@@ -56,7 +57,9 @@ Deno.serve(async (req) => {
       'Syfte',
       'Projekt',
       'Kund',
+      'Aktivitet',
       'Status',
+      'Milersättning (kr)',
       'Avvikelse',
       'Startplats',
       'Slutplats'
@@ -80,7 +83,9 @@ Deno.serve(async (req) => {
         (entry.purpose || '').replace(/"/g, '""'),
         entry.project_code || '',
         entry.customer || '',
+        entry.activity || '',
         entry.status === 'approved' ? 'Godkänd' : entry.status === 'submitted' ? 'Inskickad' : 'Väntande',
+        (entry.mileage_allowance || 0).toFixed(2),
         entry.is_anomaly ? 'Ja' : 'Nej',
         entry.start_location?.address || '',
         entry.end_location?.address || ''
