@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Car, AlertCircle, Calendar, CheckCircle2 } from "lucide-react";
-import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { Loader2, Car, AlertCircle } from "lucide-react";
+import { format, subDays, startOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import RegisterTripModal from './RegisterTripModal';
 
 export default function UnregisteredTrips({ vehicles }) {
-  const [period, setPeriod] = useState('day'); // 'day', 'week', 'month'
+  const [period, setPeriod] = useState('week');
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedTrips, setSelectedTrips] = useState([]);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const [showAll, setShowAll] = useState(false); // Toggle för att visa alla resor
   const queryClient = useQueryClient();
 
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
@@ -40,11 +38,9 @@ export default function UnregisteredTrips({ vehicles }) {
     }
   });
 
-  // Hämta GPS-resor för alla fordon
-  const vehicleIds = vehiclesWithGPS.map(v => v.id).join(',');
-  
-  const { data: allTripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['unregistered-gps-trips', period, vehicleIds],
+  // Hämta GPS-resor för alla fordon MED FÖRDRÖJNING
+  const { data: allTripsData, isLoading: tripsLoading, error } = useQuery({
+    queryKey: ['gps-trips', period],
     queryFn: async () => {
       if (vehiclesWithGPS.length === 0) return [];
 
@@ -59,9 +55,9 @@ export default function UnregisteredTrips({ vehicles }) {
         startDate = subDays(now, 30);
       }
 
-      console.log('Hämtar GPS-resor för period:', period, 'från', startDate, 'till', now);
-
-      const promises = vehiclesWithGPS.map(async (vehicle) => {
+      const results = [];
+      
+      for (const vehicle of vehiclesWithGPS) {
         try {
           const response = await base44.functions.invoke('gpsTracking', {
             action: 'getTrips',
@@ -74,50 +70,38 @@ export default function UnregisteredTrips({ vehicles }) {
 
           const trips = response.data?.totaltrips || [];
           
-          console.log(`${vehicle.registration_number}: Hämtade ${trips.length} GPS-resor från API`);
-          
-          // Markera vilka resor som redan är registrerade
           const tripsWithStatus = trips.map(trip => {
             if (!trip.begintime || !trip.endtime) return null;
-            const tripStart = new Date(trip.begintime * 1000);
-            const tripEnd = new Date(trip.endtime * 1000);
             
             const isRegistered = journalEntries.some(entry => {
               if (entry.vehicle_id !== vehicle.id) return false;
-              
               if (entry.gps_trip_id && trip.tripid) {
                 return entry.gps_trip_id === trip.tripid.toString();
               }
-              
-              const entryStart = new Date(entry.start_time);
-              const entryEnd = new Date(entry.end_time);
-              
-              const margin = 5 * 60 * 1000;
-              return Math.abs(tripStart - entryStart) < margin && 
-                     Math.abs(tripEnd - entryEnd) < margin;
+              return false;
             });
             
             return { ...trip, isRegistered };
           }).filter(t => t !== null);
-          
-          console.log(`${vehicle.registration_number}: ${tripsWithStatus.length} resor totalt`);
 
-          return {
+          results.push({
             vehicle,
             trips: tripsWithStatus
-          };
-        } catch (error) {
-          console.error(`Misslyckades att hämta resor för ${vehicle.registration_number}:`, error);
-          return { vehicle, trips: [] };
-        }
-      });
+          });
 
-      const results = await Promise.all(promises);
-      console.log('Totalt antal fordon med data:', results.filter(r => r.trips.length > 0).length);
+          // Vänta 300ms mellan varje fordon för att undvika rate limit
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+        } catch (error) {
+          console.error(`Fel för ${vehicle.registration_number}:`, error);
+          results.push({ vehicle, trips: [], error: true });
+        }
+      }
       
       return results;
     },
-    enabled: vehiclesWithGPS.length > 0
+    enabled: vehiclesWithGPS.length > 0,
+    staleTime: 60000 // Cache i 1 minut
   });
 
   const handleRegisterTrips = (vehicle, trips) => {
@@ -137,13 +121,8 @@ export default function UnregisteredTrips({ vehicles }) {
     return 'Senaste månaden';
   };
 
-  const filteredVehicleData = allTripsData?.filter(v => v.trips.length > 0) || [];
-
-  console.log('Filtrerade fordon med resor:', filteredVehicleData.length);
-
   return (
     <div className="space-y-3">
-      {/* Datum och period */}
       <div className="bg-white p-3 rounded-lg border">
         <p className="text-sm font-medium text-slate-900 mb-2">
           {format(new Date(), 'EEEE d MMMM yyyy', { locale: sv })}
@@ -177,20 +156,21 @@ export default function UnregisteredTrips({ vehicles }) {
       </div>
 
       {tripsLoading && (
-        <div className="p-8 text-center">
+        <div className="p-8 text-center bg-white rounded-lg border">
           <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto" />
           <p className="text-sm text-slate-500 mt-2">Hämtar resor...</p>
         </div>
       )}
 
-      {!tripsLoading && filteredVehicleData.length === 0 && (
-        <div className="p-8 text-center bg-white rounded-lg border">
-          <Car className="h-12 w-12 text-slate-300 mx-auto mb-2" />
-          <p className="text-sm text-slate-600">Inga resor hittades för vald period</p>
+      {error && (
+        <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
+          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+          <p className="text-sm text-red-700">Kunde inte hämta resor från GPS</p>
         </div>
       )}
 
-      {!tripsLoading && filteredVehicleData.map((vehicleData) => {
+      {!tripsLoading && allTripsData?.map((vehicleData) => {
+        if (vehicleData.trips.length === 0) return null;
         const { vehicle, trips } = vehicleData;
         
         return (
