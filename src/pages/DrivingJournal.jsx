@@ -39,7 +39,7 @@ LeafletLib.Icon.Default.mergeOptions({
 
 export default function DrivingJournal() {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('journal');
+  const [activeTab, setActiveTab] = useState('register');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
