@@ -15,7 +15,10 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
     project_code: '',
     customer: '',
     notes: '',
-    status: 'pending_review'
+    status: 'pending_review',
+    start_time: '',
+    end_time: '',
+    distance_km: 0
   });
 
   useEffect(() => {
@@ -26,7 +29,10 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
         project_code: entry.project_code || '',
         customer: entry.customer || '',
         notes: entry.notes || '',
-        status: entry.status
+        status: entry.status,
+        start_time: entry.start_time ? new Date(entry.start_time).toISOString().slice(0, 16) : '',
+        end_time: entry.end_time ? new Date(entry.end_time).toISOString().slice(0, 16) : '',
+        distance_km: entry.distance_km || 0
       });
     }
   }, [entry]);
@@ -46,10 +52,20 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
 
     setLoading(true);
     try {
-      await onSave({
+      const updateData = {
         ...formData,
         status: 'submitted'
-      });
+      };
+      
+      // Konvertera tider och beräkna duration om ändrade
+      if (formData.start_time && formData.end_time) {
+        updateData.start_time = new Date(formData.start_time).toISOString();
+        updateData.end_time = new Date(formData.end_time).toISOString();
+        const duration = (new Date(formData.end_time) - new Date(formData.start_time)) / (1000 * 60);
+        updateData.duration_minutes = duration;
+      }
+      
+      await onSave(updateData);
     } catch (error) {
       console.error('Error saving:', error);
       alert('Kunde inte spara: ' + error.message);
@@ -65,6 +81,38 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="start_time">Starttid</Label>
+              <Input
+                id="start_time"
+                type="datetime-local"
+                value={formData.start_time}
+                onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end_time">Sluttid</Label>
+              <Input
+                id="end_time"
+                type="datetime-local"
+                value={formData.end_time}
+                onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="distance_km">Körsträcka (km)</Label>
+            <Input
+              id="distance_km"
+              type="number"
+              step="0.1"
+              value={formData.distance_km}
+              onChange={(e) => setFormData(prev => ({ ...prev, distance_km: parseFloat(e.target.value) || 0 }))}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="trip_type">Typ av resa *</Label>
             <Select
