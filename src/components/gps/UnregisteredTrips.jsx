@@ -135,18 +135,7 @@ export default function UnregisteredTrips({ vehicles }) {
     return 'Senaste månaden';
   };
 
-  const filteredVehicleData = allTripsData?.map(vehicleData => {
-    const filteredTrips = showAll 
-      ? vehicleData.trips 
-      : vehicleData.trips.filter(t => !t.isRegistered);
-    
-    return {
-      ...vehicleData,
-      trips: filteredTrips,
-      totalDistance: filteredTrips.reduce((sum, trip) => sum + (trip.mileage || 0), 0),
-      totalTime: filteredTrips.reduce((sum, trip) => sum + ((trip.endtime - trip.begintime) || 0), 0)
-    };
-  }).filter(v => v.trips.length > 0);
+  const filteredVehicleData = allTripsData?.filter(v => v.trips.length > 0);
 
   return (
     <div className="space-y-3">
