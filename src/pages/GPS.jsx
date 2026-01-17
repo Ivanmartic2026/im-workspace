@@ -27,6 +27,7 @@ L.Icon.Default.mergeOptions({
 
 export default function GPS() {
   const [activeTab, setActiveTab] = useState('live');
+  const [tripsPeriod, setTripsPeriod] = useState('week'); // 'week' eller 'month'
 
   const { data: vehicles = [] } = useQuery({
     queryKey: ['vehicles'],
@@ -79,19 +80,21 @@ export default function GPS() {
   });
 
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['gps-latest-trips', allDevices],
+    queryKey: ['gps-latest-trips', allDevices, tripsPeriod],
     queryFn: async () => {
       if (allDevices.length === 0) return null;
 
       const now = new Date();
-      const last3Hours = new Date(now.getTime() - (3 * 60 * 60 * 1000)); // 3 timmar tillbaka
+      const startDate = tripsPeriod === 'week' 
+        ? subDays(now, 7)
+        : subDays(now, 30);
       
       const promises = allDevices.map(device => {
         return base44.functions.invoke('gpsTracking', {
           action: 'getTrips',
           params: {
             deviceId: device.deviceid,
-            begintime: Math.floor(last3Hours.getTime() / 1000),
+            begintime: Math.floor(startDate.getTime() / 1000),
             endtime: Math.floor(now.getTime() / 1000)
           }
         }).catch(error => {
@@ -102,10 +105,27 @@ export default function GPS() {
 
       const results = await Promise.all(promises);
       
-      // Filtrera och behåll endast senaste 3 resorna per enhet
+      // Gruppera resor per dag och ta senaste resan för varje dag
       return results.map((r, i) => {
         const trips = r.data.totaltrips || [];
-        const sortedTrips = trips.sort((a, b) => new Date(b.begintime) - new Date(a.begintime)).slice(0, 3);
+        
+        // Gruppera resor efter datum
+        const tripsByDay = {};
+        trips.forEach(trip => {
+          const tripDate = format(new Date(trip.begintime * 1000), 'yyyy-MM-dd');
+          if (!tripsByDay[tripDate]) {
+            tripsByDay[tripDate] = [];
+          }
+          tripsByDay[tripDate].push(trip);
+        });
+        
+        // Ta senaste resan från varje dag
+        const latestPerDay = Object.values(tripsByDay).map(dayTrips => {
+          return dayTrips.sort((a, b) => b.begintime - a.begintime)[0];
+        });
+        
+        // Sortera efter datum (nyast först)
+        const sortedTrips = latestPerDay.sort((a, b) => b.begintime - a.begintime);
         
         return {
           deviceId: allDevices[i].deviceid,
@@ -120,7 +140,7 @@ export default function GPS() {
       });
     },
     enabled: allDevices.length > 0 && activeTab === 'live',
-    refetchInterval: 60000, // Uppdatera var 60:e sekund
+    refetchInterval: 60000,
   });
 
   if (devicesLoading) {
@@ -245,6 +265,30 @@ export default function GPS() {
           {/* Geofence Alerts */}
           <GeofenceAlerts positions={positions} vehicles={vehiclesWithGPS} />
 
+          {/* Period selector */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setTripsPeriod('week')}
+              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                tripsPeriod === 'week'
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              Senaste veckan
+            </button>
+            <button
+              onClick={() => setTripsPeriod('month')}
+              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                tripsPeriod === 'month'
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              Senaste månaden
+            </button>
+          </div>
+
           {/* Map */}
           <Card className="border-0 shadow-sm overflow-hidden mb-6">
             <div className="h-[500px]">
@@ -367,10 +411,10 @@ export default function GPS() {
                            <p className="text-xs text-slate-500">{displaySubtext}</p>
                          </div>
                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                           {tripCount} {tripCount === 1 ? 'resa' : 'resor'}
+                           {tripCount} {tripCount === 1 ? 'dag' : 'dagar'}
                          </Badge>
                        </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                         <div className="flex items-center gap-2">
                           <Navigation className="h-4 w-4 text-slate-400" />
                           <span className="text-slate-600">{totalDistance.toFixed(1)} km</span>
@@ -379,6 +423,18 @@ export default function GPS() {
                           <Clock className="h-4 w-4 text-slate-400" />
                           <span className="text-slate-600">{Math.round(totalTime)} min</span>
                         </div>
+                      </div>
+                      <div className="border-t border-slate-100 pt-3 space-y-1">
+                        {deviceTrips.data.totaltrips.slice(0, 3).map((trip, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-xs">
+                            <span className="text-slate-500">
+                              {format(new Date(trip.begintime * 1000), 'EEE d MMM', { locale: sv })}
+                            </span>
+                            <span className="text-slate-700 font-medium">
+                              {((trip.distance || 0) / 1000).toFixed(1)} km
+                            </span>
+                          </div>
+                        ))}
                       </div>
                       {vehicle && (
                         <Link to={createPageUrl('VehicleTracking') + `?id=${vehicle.id}`} className="block mt-3">
