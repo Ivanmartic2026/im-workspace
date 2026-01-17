@@ -7,7 +7,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, Plus, TrendingUp } from "lucide-react";
+import { Calendar, MapPin, Clock, AlertTriangle, CheckCircle, Car, Download, RefreshCw, Loader2, BarChart3, Settings, FileDown, Users, Sparkles, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, Plus, TrendingUp, Navigation, Gauge } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip as MapTooltip } from 'react-leaflet';
+import VehicleStatusBadge from '@/components/gps/VehicleStatusBadge';
+import GeofenceAlerts from '@/components/gps/GeofenceAlerts';
+import UnregisteredTrips from '@/components/gps/UnregisteredTrips';
+import 'leaflet/dist/leaflet.css';
+import LeafletLib from 'leaflet';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -22,6 +28,14 @@ import EditJournalModal from "@/components/journal/EditJournalModal";
 import ManualTripModal from "@/components/journal/ManualTripModal";
 import SuggestionsView from "@/components/journal/SuggestionsView";
 import QuickApproveCard from "@/components/journal/QuickApproveCard";
+
+// Fix default marker icons
+delete LeafletLib.Icon.Default.prototype._getIconUrl;
+LeafletLib.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 export default function DrivingJournal() {
   const [user, setUser] = useState(null);
@@ -45,6 +59,7 @@ export default function DrivingJournal() {
   const [sortDirection, setSortDirection] = useState('desc');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState(null);
+  const [tripsPeriod, setTripsPeriod] = useState('week');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -61,25 +76,47 @@ export default function DrivingJournal() {
     queryFn: () => base44.entities.Employee.list(),
   });
 
-  const { data: gpsDevices = [], isLoading: devicesLoading } = useQuery({
-    queryKey: ['gpsDevices', vehicles],
+  const { data: gpsDevicesData, isLoading: devicesLoading } = useQuery({
+    queryKey: ['gps-devices'],
     queryFn: async () => {
-      const deviceIds = vehicles
-        .filter(v => v.gps_device_id)
-        .map(v => v.gps_device_id);
-      
-      if (deviceIds.length === 0) return [];
-
       const response = await base44.functions.invoke('gpsTracking', {
-        action: 'getDevices',
-        deviceIds
+        action: 'getDeviceList',
+        params: {}
       });
-
-      return response.data?.devices || [];
+      return response.data;
     },
-    enabled: vehicles.length > 0 && (activeTab === 'live' || activeTab === 'register'),
-    refetchInterval: activeTab === 'live' ? 30000 : false
+    enabled: activeTab === 'live' || activeTab === 'register',
+    refetchInterval: activeTab === 'live' ? 30000 : false,
+    retry: 2
   });
+
+  const allDevices = gpsDevicesData?.groups?.flatMap(group => group.devices || []) || [];
+  const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
+
+  const { data: positionsData } = useQuery({
+    queryKey: ['gps-all-positions', allDevices],
+    queryFn: async () => {
+      if (allDevices.length === 0) return null;
+      const deviceIds = allDevices.map(d => d.deviceid);
+      const response = await base44.functions.invoke('gpsTracking', {
+        action: 'getLastPosition',
+        params: { deviceIds }
+      });
+      return response.data;
+    },
+    enabled: allDevices.length > 0 && (activeTab === 'live' || activeTab === 'register'),
+    refetchInterval: activeTab === 'live' ? 30000 : false,
+  });
+
+  const positions = positionsData?.records || [];
+  const centerPos = positions[0] ? [positions[0].callat, positions[0].callon] : [59.3293, 18.0686];
+
+  const getVehicleStatus = (speed) => {
+    const speedKmh = speed * 3.6;
+    if (speedKmh > 5) return 'kör';
+    if (speedKmh > 0) return 'långsamt';
+    return 'parkerad';
+  };
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['journalEntries'],
@@ -763,7 +800,7 @@ export default function DrivingJournal() {
                 <div className="text-center py-12">
                   <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
                 </div>
-              ) : gpsDevices.length === 0 ? (
+              ) : allDevices.length === 0 ? (
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-12 text-center">
                     <Car className="h-16 w-16 text-slate-300 mx-auto mb-4" />
@@ -774,55 +811,103 @@ export default function DrivingJournal() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-4">
-                  {gpsDevices.map(device => {
-                    const vehicle = vehicles.find(v => v.gps_device_id === device.id);
-                    return (
-                      <Card key={device.id} className="border-0 shadow-sm">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <h3 className="font-semibold text-slate-900">{vehicle?.registration_number}</h3>
-                              <p className="text-xs text-slate-500">{vehicle?.make} {vehicle?.model}</p>
-                            </div>
-                            <Badge className={device.isOnline ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}>
-                              {device.isOnline ? 'Online' : 'Offline'}
-                            </Badge>
-                          </div>
-                          {device.lastPosition && (
-                            <div className="space-y-2 text-sm">
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-slate-400" />
-                                <span className="text-slate-600">{device.lastPosition.address || 'Okänd plats'}</span>
+                <>
+                  <GeofenceAlerts positions={positions} vehicles={vehiclesWithGPS} />
+
+                  <Card className="border-0 shadow-sm overflow-hidden mb-4">
+                    <div className="h-[400px]">
+                      {positions.length > 0 ? (
+                        <MapContainer
+                          center={centerPos}
+                          zoom={12}
+                          style={{ height: '100%', width: '100%' }}
+                          scrollWheelZoom={false}
+                        >
+                          <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; OpenStreetMap contributors'
+                          />
+                          {positions.map((pos) => {
+                            const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === pos.deviceid);
+                            const device = allDevices.find(d => d.deviceid === pos.deviceid);
+                            const displayName = vehicle?.registration_number || device?.devicename || pos.deviceid;
+                            const status = getVehicleStatus(pos.speed);
+                            
+                            return (
+                              <Marker key={pos.deviceid} position={[pos.callat, pos.callon]}>
+                                <MapTooltip permanent direction="top" offset={[0, -20]}>
+                                  <div className="font-semibold text-xs">
+                                    {displayName}
+                                  </div>
+                                </MapTooltip>
+                                <Popup>
+                                  <div className="min-w-[200px]">
+                                    <p className="font-semibold">{displayName}</p>
+                                    {vehicle && <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>}
+                                    <div className="mt-2 space-y-1">
+                                      <p className="text-sm">
+                                        <Gauge className="h-3 w-3 inline mr-1" />
+                                        {Math.round(pos.speed * 3.6)} km/h
+                                      </p>
+                                      <p className="text-xs text-slate-500">
+                                        <Clock className="h-3 w-3 inline mr-1" />
+                                        {format(new Date(pos.posiTime * 1000), 'PPp', { locale: sv })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </Popup>
+                              </Marker>
+                            );
+                          })}
+                        </MapContainer>
+                      ) : (
+                        <div className="h-full flex items-center justify-center bg-slate-50">
+                          <p className="text-slate-500">Ingen position tillgänglig</p>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+
+                  <div className="space-y-3">
+                    {allDevices.map(device => {
+                      const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === device.deviceid);
+                      const currentPos = positions.find(p => p.deviceid === device.deviceid);
+                      const status = currentPos ? getVehicleStatus(currentPos.speed) : 'okänd';
+
+                      return (
+                        <Card key={device.deviceid} className="border-0 shadow-sm">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <h3 className="font-semibold text-slate-900">{vehicle?.registration_number || device.devicename}</h3>
+                                <p className="text-xs text-slate-500">{vehicle?.make} {vehicle?.model}</p>
                               </div>
-                              <div className="flex items-center gap-4 text-xs text-slate-500">
-                                <span>Hastighet: {device.lastPosition.speed || 0} km/h</span>
-                                <span>Senast: {format(new Date(device.lastPosition.timestamp), 'HH:mm', { locale: sv })}</span>
-                              </div>
+                              {currentPos && <VehicleStatusBadge status={status} />}
                             </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                            {currentPos && (
+                              <div className="space-y-1 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <Gauge className="h-4 w-4 text-slate-400" />
+                                  <span className="text-slate-600">{Math.round(currentPos.speed * 3.6)} km/h</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-500">
+                                  <Clock className="h-4 w-4 text-slate-400" />
+                                  Senast: {format(new Date(currentPos.posiTime * 1000), 'HH:mm', { locale: sv })}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </TabsContent>
 
             {/* Register Tab */}
             <TabsContent value="register">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Registrera oregistrerade GPS-resor</h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Här visas GPS-resor som inte finns i körjournalen än
-                  </p>
-                  <Button onClick={() => setShowManualModal(true)} className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Lägg till resa manuellt
-                  </Button>
-                </CardContent>
-              </Card>
+              <UnregisteredTrips vehicles={vehicles} />
             </TabsContent>
 
             {/* Journal Tab */}
