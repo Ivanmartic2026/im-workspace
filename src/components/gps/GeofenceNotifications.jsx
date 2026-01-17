@@ -142,7 +142,9 @@ export default function GeofenceNotifications({ positions, vehicles, geofences }
                     <span>{notification.geofence.name}</span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    {format(notification.timestamp, 'HH:mm:ss', { locale: sv })}
+                    {notification.timestamp && !isNaN(new Date(notification.timestamp).getTime()) 
+                      ? format(notification.timestamp, 'HH:mm:ss', { locale: sv })
+                      : 'Nu'}
                   </p>
                   {notification.geofence.auto_classify_as && (
                     <p className="text-xs text-slate-600 mt-1">
