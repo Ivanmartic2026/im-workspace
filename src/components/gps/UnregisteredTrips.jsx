@@ -148,195 +148,105 @@ export default function UnregisteredTrips({ vehicles }) {
     };
   }).filter(v => v.trips.length > 0);
 
-  return (
-    <div className="space-y-4">
-      {/* Toggle för alla/oregistrerade */}
-      <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
-        <span className="text-sm font-medium text-slate-700">
-          {showAll ? 'Visa alla resor' : 'Visa endast oregistrerade'}
-        </span>
-        <button
-          onClick={() => setShowAll(!showAll)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            showAll ? 'bg-slate-900' : 'bg-slate-300'
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              showAll ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-        </button>
+  if (tripsLoading) {
+    return (
+      <div className="p-8 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto" />
+        <p className="text-sm text-slate-500 mt-2">Hämtar resor...</p>
       </div>
+    );
+  }
 
+  return (
+    <div className="space-y-3">
       {/* Period selector */}
       <div className="grid grid-cols-3 gap-2">
         <button
           onClick={() => setPeriod('day')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            period === 'day'
-              ? 'bg-slate-900 text-white'
-              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          className={`px-3 py-2 rounded-lg text-sm font-medium ${
+            period === 'day' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'
           }`}
         >
           Idag
         </button>
         <button
           onClick={() => setPeriod('week')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            period === 'week'
-              ? 'bg-slate-900 text-white'
-              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          className={`px-3 py-2 rounded-lg text-sm font-medium ${
+            period === 'week' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'
           }`}
         >
           Vecka
         </button>
         <button
           onClick={() => setPeriod('month')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            period === 'month'
-              ? 'bg-slate-900 text-white'
-              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          className={`px-3 py-2 rounded-lg text-sm font-medium ${
+            period === 'month' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'
           }`}
         >
           Månad
         </button>
       </div>
 
-      {/* Loading state */}
-      {tripsLoading && (
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-12 text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
-            <p className="text-sm text-slate-500 mt-4">Letar efter oregistrerade resor...</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Fordon & Resor */}
+      {filteredVehicleData?.map((vehicleData) => {
+        const { vehicle, trips } = vehicleData;
+        
+        return (
+          <div key={vehicle.id} className="bg-white rounded-lg border p-4">
+            {/* Fordon header */}
+            <div className="flex items-center justify-between mb-3 pb-3 border-b">
+              <div className="flex items-center gap-2">
+                <Car className="h-5 w-5 text-slate-600" />
+                <div>
+                  <h3 className="font-semibold text-slate-900">{vehicle.registration_number}</h3>
+                  <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
+                </div>
+              </div>
+              <Badge className="bg-slate-900 text-white">{trips.length} resor</Badge>
+            </div>
 
-      {/* No trips */}
-      {!tripsLoading && filteredVehicleData?.length === 0 && (
-        <Card className="border-0 shadow-sm bg-emerald-50 border-l-4 border-l-emerald-500">
-          <CardContent className="p-8 text-center">
-            <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-emerald-900 mb-1">
-              {showAll ? 'Inga resor hittades' : 'Alla resor registrerade!'}
-            </h3>
-            <p className="text-sm text-emerald-700">
-              {showAll 
-                ? `Inga GPS-resor hittades ${getPeriodLabel().toLowerCase()}.`
-                : `Det finns inga oregistrerade GPS-resor ${getPeriodLabel().toLowerCase()}.`
-              }
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Vehicles with trips */}
-      {!tripsLoading && filteredVehicleData?.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <p className="text-sm text-slate-600">
-              <strong>{filteredVehicleData.length}</strong> fordon med {showAll ? 'resor' : 'oregistrerade resor'} {getPeriodLabel().toLowerCase()}
-            </p>
-          </div>
-
-          {filteredVehicleData.map((vehicleData) => {
-            const { vehicle, trips, totalDistance, totalTime } = vehicleData;
-            
-            // Gruppera resor per dag
-            const tripsByDay = {};
-            trips.forEach(trip => {
-              if (!trip.begintime) return;
-              const date = format(new Date(trip.begintime * 1000), 'yyyy-MM-dd');
-              if (!tripsByDay[date]) {
-                tripsByDay[date] = [];
-              }
-              tripsByDay[date].push(trip);
-            });
-
-            return (
-              <Card key={vehicle.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                        <Car className="h-5 w-5 text-slate-600" />
-                      </div>
+            {/* Resor lista */}
+            <div className="space-y-2">
+              {trips
+                .sort((a, b) => b.begintime - a.begintime)
+                .map((trip, idx) => (
+                  <div key={idx} className={`p-3 rounded-lg ${
+                    trip.isRegistered ? 'bg-green-50 border border-green-200' : 'bg-slate-50'
+                  }`}>
+                    <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold text-slate-900">
-                          {vehicle.registration_number}
-                        </h3>
-                        <p className="text-xs text-slate-500">
-                          {vehicle.make} {vehicle.model}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                      {trips.length} {trips.length === 1 ? 'resa' : 'resor'}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-600">
-                        {Object.keys(tripsByDay).length} {Object.keys(tripsByDay).length === 1 ? 'dag' : 'dagar'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-600">
-                        {totalDistance.toFixed(1)} km
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Trips list */}
-                  <div className="border-t border-slate-100 pt-3 mb-3 space-y-2 max-h-60 overflow-y-auto">
-                    {trips
-                      .sort((a, b) => b.begintime - a.begintime)
-                      .map((trip, idx) => (
-                        <div key={idx} className={`flex items-center justify-between text-xs p-2 rounded ${
-                          trip.isRegistered ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50'
-                        }`}>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className="text-slate-700 font-medium">
-                                {format(new Date(trip.begintime * 1000), 'EEE d MMM', { locale: sv })}
-                              </div>
-                              {trip.isRegistered && (
-                                <Badge className="bg-emerald-600 text-white text-[10px] px-1 py-0 h-4">
-                                  Registrerad
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="text-slate-500">
-                              {format(new Date(trip.begintime * 1000), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-slate-900 font-semibold">
-                              {(trip.mileage || 0).toFixed(1)} km
-                            </div>
-                            <div className="text-slate-500">
-                              {Math.round((trip.endtime - trip.begintime) / 60)} min
-                            </div>
-                          </div>
+                        <div className="font-medium text-slate-900">
+                          {format(new Date(trip.begintime * 1000), 'EEE d MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
                         </div>
-                      ))}
+                        <div className="text-sm text-slate-600 mt-1">
+                          {(trip.mileage || 0).toFixed(1)} km • {Math.round((trip.endtime - trip.begintime) / 60)} min
+                        </div>
+                      </div>
+                      {trip.isRegistered && (
+                        <Badge className="bg-green-600 text-white text-xs">✓</Badge>
+                      )}
+                    </div>
                   </div>
+                ))}
+            </div>
 
-                  <Button
-                    onClick={() => handleRegisterTrips(vehicle, trips.filter(t => !t.isRegistered))}
-                    className="w-full bg-slate-900 hover:bg-slate-800"
-                    disabled={trips.filter(t => !t.isRegistered).length === 0}
-                  >
-                    Registrera {trips.filter(t => !t.isRegistered).length > 0 ? `${trips.filter(t => !t.isRegistered).length} ` : ''}resor
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
+            {/* Registrera knapp */}
+            {trips.filter(t => !t.isRegistered).length > 0 && (
+              <Button
+                onClick={() => handleRegisterTrips(vehicle, trips.filter(t => !t.isRegistered))}
+                className="w-full bg-slate-900 hover:bg-slate-800 mt-3"
+              >
+                Registrera {trips.filter(t => !t.isRegistered).length} resor
+              </Button>
+            )}
+          </div>
+        );
+      })}
+
+      {filteredVehicleData?.length === 0 && (
+        <div className="p-8 text-center bg-green-50 rounded-lg">
+          <CheckCircle2 className="h-10 w-10 text-green-600 mx-auto mb-2" />
+          <p className="text-sm text-green-700">Alla resor registrerade!</p>
         </div>
       )}
 
