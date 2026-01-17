@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
-import RouteHistoryMap from '@/components/gps/RouteHistoryMap';
+import GPSTripHistory from '@/components/gps/GPSTripHistory';
 import VehicleStatusBadge from '@/components/gps/VehicleStatusBadge';
 import GeofenceAlerts from '@/components/gps/GeofenceAlerts';
 import 'leaflet/dist/leaflet.css';
@@ -26,7 +26,6 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function GPS() {
-  const [selectedPeriod, setSelectedPeriod] = useState('today');
   const [activeTab, setActiveTab] = useState('live');
 
   const { data: vehicles = [] } = useQuery({
@@ -80,15 +79,14 @@ export default function GPS() {
   });
 
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['gps-all-trips', selectedPeriod, allDevices],
+    queryKey: ['gps-all-trips-today', allDevices],
     queryFn: async () => {
       if (allDevices.length === 0) return null;
 
       const today = new Date();
-      const startDate = selectedPeriod === 'today' ? today : subDays(today, 7);
       
       const promises = allDevices.map(device => {
-        const startTime = new Date(startDate);
+        const startTime = new Date(today);
         startTime.setHours(0, 0, 0, 0);
         const endTime = new Date(today);
         endTime.setHours(23, 59, 59, 999);
@@ -109,7 +107,7 @@ export default function GPS() {
       const results = await Promise.all(promises);
       return results.map((r, i) => ({ deviceId: allDevices[i].deviceid, deviceName: allDevices[i].devicename, data: r.data }));
     },
-    enabled: allDevices.length > 0,
+    enabled: allDevices.length > 0 && activeTab === 'live',
   });
 
   if (devicesLoading) {
@@ -228,7 +226,7 @@ export default function GPS() {
           </Tabs>
 
           {activeTab === 'history' ? (
-            <RouteHistoryMap vehicles={vehicles} />
+            <GPSTripHistory vehicles={vehicles} />
           ) : (
             <>
           {/* Geofence Alerts */}
@@ -320,30 +318,6 @@ export default function GPS() {
               )}
             </div>
           </Card>
-
-          {/* Period Selector */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setSelectedPeriod('today')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                selectedPeriod === 'today'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Idag
-            </button>
-            <button
-              onClick={() => setSelectedPeriod('week')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                selectedPeriod === 'week'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Senaste veckan
-            </button>
-          </div>
 
           {/* Trips Summary */}
           {tripsLoading ? (
