@@ -15,6 +15,7 @@ import L from 'leaflet';
 import GPSTripHistory from '@/components/gps/GPSTripHistory';
 import VehicleStatusBadge from '@/components/gps/VehicleStatusBadge';
 import GeofenceAlerts from '@/components/gps/GeofenceAlerts';
+import UnregisteredTrips from '@/components/gps/UnregisteredTrips';
 import 'leaflet/dist/leaflet.css';
 
 // Fix default marker icons
@@ -246,12 +247,16 @@ export default function GPS() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-            <TabsList className="w-full bg-white shadow-sm">
-              <TabsTrigger value="live" className="flex-1">
+            <TabsList className="w-full bg-white shadow-sm grid grid-cols-3">
+              <TabsTrigger value="live">
                 <Navigation className="h-4 w-4 mr-2" />
                 Live
               </TabsTrigger>
-              <TabsTrigger value="history" className="flex-1">
+              <TabsTrigger value="register">
+                <Route className="h-4 w-4 mr-2" />
+                Registrera
+              </TabsTrigger>
+              <TabsTrigger value="history">
                 <History className="h-4 w-4 mr-2" />
                 Historik
               </TabsTrigger>
@@ -260,6 +265,8 @@ export default function GPS() {
 
           {activeTab === 'history' ? (
             <GPSTripHistory vehicles={vehicles} />
+          ) : activeTab === 'register' ? (
+            <UnregisteredTrips vehicles={vehicles} />
           ) : (
             <>
           {/* Geofence Alerts */}
