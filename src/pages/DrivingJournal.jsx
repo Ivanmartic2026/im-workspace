@@ -349,7 +349,7 @@ export default function DrivingJournal() {
     setAiSuggestions(prev => prev.filter(s => s.entryId !== entryId));
     
     if (aiSuggestions.length <= 1) {
-      setActiveTab('pending');
+      setActiveTab('journal-pending');
     }
   };
 
@@ -378,7 +378,7 @@ export default function DrivingJournal() {
     setAiSuggestions(prev => prev.filter(s => s.entryId !== entryId));
     
     if (aiSuggestions.length <= 1) {
-      setActiveTab('pending');
+      setActiveTab('journal-pending');
     }
   };
 
