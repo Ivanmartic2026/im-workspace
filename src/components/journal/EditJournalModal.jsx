@@ -6,12 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 
 export default function EditJournalModal({ open, onClose, entry, onSave }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     trip_type: 'väntar',
     purpose: '',
+    project_id: '',
     project_code: '',
     customer: '',
     notes: '',
@@ -21,11 +24,18 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
     distance_km: 0
   });
 
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+    initialData: []
+  });
+
   useEffect(() => {
     if (entry) {
       setFormData({
         trip_type: entry.trip_type || 'väntar',
         purpose: entry.purpose || '',
+        project_id: entry.project_id || '',
         project_code: entry.project_code || '',
         customer: entry.customer || '',
         notes: entry.notes || '',
@@ -36,6 +46,16 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
       });
     }
   }, [entry]);
+
+  const handleProjectChange = (projectId) => {
+    const selectedProject = projects.find(p => p.id === projectId);
+    setFormData(prev => ({
+      ...prev,
+      project_id: projectId,
+      project_code: selectedProject?.project_code || '',
+      customer: selectedProject?.customer || prev.customer
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -145,13 +165,23 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
           {formData.trip_type === 'tjänst' && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="project_code">Projektkod (valfritt)</Label>
-                <Input
-                  id="project_code"
-                  value={formData.project_code}
-                  onChange={(e) => setFormData(prev => ({ ...prev, project_code: e.target.value }))}
-                  placeholder="T.ex. PRJ-2024-001"
-                />
+                <Label htmlFor="project">Projekt (valfritt)</Label>
+                <Select
+                  value={formData.project_id}
+                  onValueChange={handleProjectChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj projekt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Inget projekt</SelectItem>
+                    {projects.filter(p => p.status === 'pågående').map(project => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name} ({project.project_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
