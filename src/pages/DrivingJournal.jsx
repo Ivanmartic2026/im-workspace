@@ -12,6 +12,8 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip as MapTooltip } from 'r
 import VehicleStatusBadge from '@/components/gps/VehicleStatusBadge';
 import GeofenceAlerts from '@/components/gps/GeofenceAlerts';
 import UnregisteredTrips from '@/components/gps/UnregisteredTrips';
+import GeofenceManager, { GeofenceOverlay } from '@/components/gps/GeofenceManager';
+import GeofenceNotifications from '@/components/gps/GeofenceNotifications';
 import 'leaflet/dist/leaflet.css';
 import LeafletLib from 'leaflet';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
@@ -74,6 +76,11 @@ export default function DrivingJournal() {
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
     queryFn: () => base44.entities.Employee.list(),
+  });
+
+  const { data: geofences = [] } = useQuery({
+    queryKey: ['geofences'],
+    queryFn: () => base44.entities.Geofence.list(),
   });
 
   const { data: gpsDevicesData, isLoading: devicesLoading } = useQuery({
@@ -812,7 +819,13 @@ export default function DrivingJournal() {
                 </Card>
               ) : (
                 <>
-                  <GeofenceAlerts positions={positions} vehicles={vehiclesWithGPS} />
+                  <GeofenceNotifications 
+                    positions={positions} 
+                    vehicles={vehiclesWithGPS}
+                    geofences={geofences}
+                  />
+
+                  <GeofenceManager />
 
                   <Card className="border-0 shadow-sm overflow-hidden mb-4">
                     <div className="h-[400px]">
@@ -827,6 +840,7 @@ export default function DrivingJournal() {
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             attribution='&copy; OpenStreetMap contributors'
                           />
+                          <GeofenceOverlay geofences={geofences} />
                           {positions.map((pos) => {
                             const vehicle = vehiclesWithGPS.find(v => v.gps_device_id === pos.deviceid);
                             const device = allDevices.find(d => d.deviceid === pos.deviceid);

@@ -12,6 +12,7 @@ import Employees from './pages/Employees';
 import GPS from './pages/GPS';
 import GeofenceSettings from './pages/GeofenceSettings';
 import Home from './pages/Home';
+import JournalDashboard from './pages/JournalDashboard';
 import JournalPolicySettings from './pages/JournalPolicySettings';
 import Leave from './pages/Leave';
 import ManagerDashboard from './pages/ManagerDashboard';
@@ -31,7 +32,6 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import JournalDashboard from './pages/JournalDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +50,7 @@ export const PAGES = {
     "GPS": GPS,
     "GeofenceSettings": GeofenceSettings,
     "Home": Home,
+    "JournalDashboard": JournalDashboard,
     "JournalPolicySettings": JournalPolicySettings,
     "Leave": Leave,
     "ManagerDashboard": ManagerDashboard,
@@ -69,7 +70,6 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "JournalDashboard": JournalDashboard,
 }
 
 export const pagesConfig = {
