@@ -38,27 +38,26 @@ export default function UnregisteredTrips({ vehicles }) {
     }
   });
 
-  // Hämta GPS-resor för alla fordon MED FÖRDRÖJNING
+  // Hämta och spara GPS-resor
   const { data: allTripsData, isLoading: tripsLoading, error } = useQuery({
     queryKey: ['gps-trips', period],
     queryFn: async () => {
       if (vehiclesWithGPS.length === 0) return [];
 
-      const now = new Date();
-      let startDate;
-      
-      if (period === 'day') {
-        startDate = startOfDay(now);
-      } else if (period === 'week') {
-        startDate = subDays(now, 7);
-      } else {
-        startDate = subDays(now, 30);
-      }
-
       const results = [];
       
       for (const vehicle of vehiclesWithGPS) {
         try {
+          // Hitta senaste sparade GPS-resa för detta fordon
+          const lastSavedTrip = journalEntries
+            .filter(e => e.vehicle_id === vehicle.id && e.gps_trip_id)
+            .sort((a, b) => new Date(b.start_time) - new Date(a.start_time))[0];
+
+          const now = new Date();
+          const startDate = lastSavedTrip 
+            ? new Date(lastSavedTrip.start_time)
+            : subDays(now, period === 'day' ? 1 : period === 'week' ? 7 : 30);
+
           const response = await base44.functions.invoke('gpsTracking', {
             action: 'getTrips',
             params: {
@@ -70,26 +69,47 @@ export default function UnregisteredTrips({ vehicles }) {
 
           const trips = response.data?.totaltrips || [];
           
-          const tripsWithStatus = trips.map(trip => {
-            if (!trip.begintime || !trip.endtime) return null;
+          // Spara nya resor i systemet
+          for (const trip of trips) {
+            if (!trip.begintime || !trip.endtime || !trip.tripid) continue;
             
-            const isRegistered = journalEntries.some(entry => {
-              if (entry.vehicle_id !== vehicle.id) return false;
-              if (entry.gps_trip_id && trip.tripid) {
-                return entry.gps_trip_id === trip.tripid.toString();
-              }
-              return false;
-            });
+            const exists = journalEntries.some(e => 
+              e.gps_trip_id === trip.tripid.toString() && e.vehicle_id === vehicle.id
+            );
             
-            return { ...trip, isRegistered };
-          }).filter(t => t !== null);
+            if (!exists) {
+              await base44.entities.DrivingJournalEntry.create({
+                vehicle_id: vehicle.id,
+                registration_number: vehicle.registration_number,
+                gps_trip_id: trip.tripid.toString(),
+                start_time: new Date(trip.begintime * 1000).toISOString(),
+                end_time: new Date(trip.endtime * 1000).toISOString(),
+                distance_km: trip.mileage || 0,
+                duration_minutes: Math.round((trip.endtime - trip.begintime) / 60),
+                trip_type: 'väntar',
+                status: 'pending_review',
+                start_location: trip.beginaddress ? { address: trip.beginaddress } : {},
+                end_location: trip.endaddress ? { address: trip.endaddress } : {}
+              });
+            }
+          }
+
+          // Hämta alla resor för detta fordon från databasen
+          const vehicleTrips = journalEntries.filter(e => e.vehicle_id === vehicle.id);
 
           results.push({
             vehicle,
-            trips: tripsWithStatus
+            trips: vehicleTrips.map(entry => ({
+              tripid: entry.gps_trip_id,
+              begintime: Math.floor(new Date(entry.start_time).getTime() / 1000),
+              endtime: Math.floor(new Date(entry.end_time).getTime() / 1000),
+              mileage: entry.distance_km,
+              beginaddress: entry.start_location?.address,
+              endaddress: entry.end_location?.address,
+              isRegistered: entry.trip_type !== 'väntar'
+            }))
           });
 
-          // Vänta 300ms mellan varje fordon för att undvika rate limit
           await new Promise(resolve => setTimeout(resolve, 300));
           
         } catch (error) {
@@ -98,10 +118,11 @@ export default function UnregisteredTrips({ vehicles }) {
         }
       }
       
+      queryClient.invalidateQueries(['journal-entries']);
       return results;
     },
     enabled: vehiclesWithGPS.length > 0,
-    staleTime: 60000 // Cache i 1 minut
+    staleTime: 300000 // Cache i 5 minuter
   });
 
   const handleRegisterTrips = (vehicle, trips) => {
