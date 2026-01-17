@@ -1248,7 +1248,6 @@ export default function DrivingJournal() {
               )}
             </>
           )}
-              </Tabs>
             </TabsContent>
           </Tabs>
         </motion.div>
