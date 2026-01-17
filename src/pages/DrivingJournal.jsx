@@ -865,7 +865,7 @@ export default function DrivingJournal() {
                                       </p>
                                       <p className="text-xs text-slate-500">
                                         <Clock className="h-3 w-3 inline mr-1" />
-                                        {format(new Date(pos.posiTime * 1000), 'PPp', { locale: sv })}
+                                        {pos.posiTime ? format(new Date(pos.posiTime * 1000), 'PPp', { locale: sv }) : 'Okänd tid'}
                                       </p>
                                     </div>
                                   </div>
@@ -906,7 +906,7 @@ export default function DrivingJournal() {
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
                                   <Clock className="h-4 w-4 text-slate-400" />
-                                  Senast: {format(new Date(currentPos.posiTime * 1000), 'HH:mm', { locale: sv })}
+                                  Senast: {currentPos.posiTime ? format(new Date(currentPos.posiTime * 1000), 'HH:mm', { locale: sv }) : 'Okänd'}
                                 </div>
                               </div>
                             )}
