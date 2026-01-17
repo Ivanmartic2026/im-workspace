@@ -9,6 +9,10 @@ import { sv } from "date-fns/locale";
 import AdvancedReportFilters from "@/components/journal/AdvancedReportFilters";
 import DistanceChart from "@/components/journal/DistanceChart";
 import CostAnalysisCard from "@/components/journal/CostAnalysisCard";
+import TripTypeChart from "@/components/journal/TripTypeChart";
+import MonthlyTrendsChart from "@/components/journal/MonthlyTrendsChart";
+import DriverStatsTable from "@/components/journal/DriverStatsTable";
+import VehicleComparisonChart from "@/components/journal/VehicleComparisonChart";
 
 export default function DrivingJournalReports() {
   const [filters, setFilters] = useState({
@@ -83,6 +87,103 @@ export default function DrivingJournalReports() {
     return Object.values(monthlyData).sort((a, b) => {
       return new Date(a.month) - new Date(b.month);
     });
+  }, [filteredData]);
+
+  // Trend data för månadsstatistik
+  const monthlyTrendsData = useMemo(() => {
+    const monthlyData = {};
+
+    filteredData.forEach(entry => {
+      const month = format(new Date(entry.start_time), 'MMM yyyy', { locale: sv });
+      
+      if (!monthlyData[month]) {
+        monthlyData[month] = { 
+          month, 
+          totalDistance: 0,
+          tripCount: 0
+        };
+      }
+
+      monthlyData[month].totalDistance += entry.distance_km || 0;
+      monthlyData[month].tripCount += 1;
+    });
+
+    return Object.values(monthlyData).sort((a, b) => {
+      return new Date(a.month) - new Date(b.month);
+    });
+  }, [filteredData]);
+
+  // Resetyp-fördelning
+  const tripTypeData = useMemo(() => {
+    const typeCount = {
+      tjänst: 0,
+      privat: 0,
+      väntar: 0
+    };
+
+    filteredData.forEach(entry => {
+      if (typeCount.hasOwnProperty(entry.trip_type)) {
+        typeCount[entry.trip_type]++;
+      }
+    });
+
+    return Object.entries(typeCount)
+      .filter(([_, value]) => value > 0)
+      .map(([name, value]) => ({ name, value }));
+  }, [filteredData]);
+
+  // Förarstatistik
+  const driverStats = useMemo(() => {
+    const stats = {};
+
+    filteredData.forEach(entry => {
+      const email = entry.driver_email || 'unknown';
+      
+      if (!stats[email]) {
+        stats[email] = {
+          driverEmail: email,
+          driverName: entry.driver_name,
+          tripCount: 0,
+          totalDistance: 0,
+          businessTrips: 0,
+          privateTrips: 0
+        };
+      }
+
+      stats[email].tripCount++;
+      stats[email].totalDistance += entry.distance_km || 0;
+      
+      if (entry.trip_type === 'tjänst') stats[email].businessTrips++;
+      if (entry.trip_type === 'privat') stats[email].privateTrips++;
+    });
+
+    return Object.values(stats).map(driver => ({
+      ...driver,
+      avgDistance: driver.tripCount > 0 ? driver.totalDistance / driver.tripCount : 0
+    }));
+  }, [filteredData]);
+
+  // Fordonsdata för jämförelse
+  const vehicleComparisonData = useMemo(() => {
+    const vehicleData = {};
+
+    filteredData.forEach(entry => {
+      const vehicleId = entry.vehicle_id;
+      
+      if (!vehicleData[vehicleId]) {
+        vehicleData[vehicleId] = {
+          vehicleId,
+          registrationNumber: entry.registration_number,
+          distance: 0,
+          trips: 0
+        };
+      }
+
+      vehicleData[vehicleId].distance += entry.distance_km || 0;
+      vehicleData[vehicleId].trips++;
+    });
+
+    return Object.values(vehicleData);
   }, [filteredData]);
 
   // Kostnadsanalys per fordon
@@ -251,9 +352,24 @@ export default function DrivingJournalReports() {
         </div>
 
         {/* Charts and Analysis */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DistanceChart data={chartData} />
-          <CostAnalysisCard vehicleAnalysis={vehicleAnalysis} />
+        <div className="space-y-6">
+          {/* Monthly trends - full width */}
+          <MonthlyTrendsChart data={monthlyTrendsData} />
+
+          {/* Two column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DistanceChart data={chartData} />
+            <TripTypeChart data={tripTypeData} />
+          </div>
+
+          {/* Vehicle comparison and cost */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <VehicleComparisonChart data={vehicleComparisonData} />
+            <CostAnalysisCard vehicleAnalysis={vehicleAnalysis} />
+          </div>
+
+          {/* Driver stats - full width */}
+          <DriverStatsTable driverStats={driverStats} />
         </div>
       </div>
     </div>
