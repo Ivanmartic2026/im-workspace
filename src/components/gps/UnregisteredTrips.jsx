@@ -14,6 +14,7 @@ export default function UnregisteredTrips({ vehicles }) {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedTrips, setSelectedTrips] = useState([]);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false); // Toggle för att visa alla resor
   const queryClient = useQueryClient();
 
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
@@ -71,41 +72,37 @@ export default function UnregisteredTrips({ vehicles }) {
           
           console.log(`${vehicle.registration_number}: Hämtade ${trips.length} GPS-resor`);
           
-          // Filtrera bort redan registrerade resor
-          const unregisteredTrips = trips.filter(trip => {
-            if (!trip.begintime || !trip.endtime) return false;
+          // Markera vilka resor som redan är registrerade
+          const tripsWithStatus = trips.map(trip => {
+            if (!trip.begintime || !trip.endtime) return null;
             const tripStart = new Date(trip.begintime * 1000);
             const tripEnd = new Date(trip.endtime * 1000);
             
-            // Kolla om det finns någon journalpost som matchar denna resa
-            // Använd gps_trip_id om det finns, annars tid och fordon
             const isRegistered = journalEntries.some(entry => {
               if (entry.vehicle_id !== vehicle.id) return false;
               
-              // Om journalposten har ett gps_trip_id, matcha mot det
               if (entry.gps_trip_id && trip.tripid) {
                 return entry.gps_trip_id === trip.tripid.toString();
               }
               
-              // Annars, matcha baserat på tid med marginal
               const entryStart = new Date(entry.start_time);
               const entryEnd = new Date(entry.end_time);
               
-              const margin = 5 * 60 * 1000; // 5 minuter
+              const margin = 5 * 60 * 1000;
               return Math.abs(tripStart - entryStart) < margin && 
                      Math.abs(tripEnd - entryEnd) < margin;
             });
             
-            return !isRegistered;
-          });
+            return { ...trip, isRegistered };
+          }).filter(t => t !== null);
           
-          console.log(`${vehicle.registration_number}: ${unregisteredTrips.length} oregistrerade resor`);
+          console.log(`${vehicle.registration_number}: ${tripsWithStatus.filter(t => !t.isRegistered).length} oregistrerade resor`);
 
           return {
             vehicle,
-            trips: unregisteredTrips,
-            totalDistance: unregisteredTrips.reduce((sum, trip) => sum + (trip.mileage || 0), 0),
-            totalTime: unregisteredTrips.reduce((sum, trip) => sum + ((trip.endtime - trip.begintime) || 0), 0)
+            trips: tripsWithStatus,
+            totalDistance: tripsWithStatus.reduce((sum, trip) => sum + (trip.mileage || 0), 0),
+            totalTime: tripsWithStatus.reduce((sum, trip) => sum + ((trip.endtime - trip.begintime) || 0), 0)
           };
         } catch (error) {
           console.error(`Failed to fetch trips for ${vehicle.registration_number}:`, error);
@@ -115,7 +112,7 @@ export default function UnregisteredTrips({ vehicles }) {
 
       const results = await Promise.all(promises);
       
-      // Filtrera bort fordon utan oregistrerade resor
+      // Filtrera baserat på showAll toggle
       return results.filter(r => r.trips.length > 0);
     },
     enabled: vehiclesWithGPS.length > 0
@@ -138,8 +135,40 @@ export default function UnregisteredTrips({ vehicles }) {
     return 'Senaste månaden';
   };
 
+  const filteredVehicleData = allTripsData?.map(vehicleData => {
+    const filteredTrips = showAll 
+      ? vehicleData.trips 
+      : vehicleData.trips.filter(t => !t.isRegistered);
+    
+    return {
+      ...vehicleData,
+      trips: filteredTrips,
+      totalDistance: filteredTrips.reduce((sum, trip) => sum + (trip.mileage || 0), 0),
+      totalTime: filteredTrips.reduce((sum, trip) => sum + ((trip.endtime - trip.begintime) || 0), 0)
+    };
+  }).filter(v => v.trips.length > 0);
+
   return (
     <div className="space-y-4">
+      {/* Toggle för alla/oregistrerade */}
+      <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+        <span className="text-sm font-medium text-slate-700">
+          {showAll ? 'Visa alla resor' : 'Visa endast oregistrerade'}
+        </span>
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            showAll ? 'bg-slate-900' : 'bg-slate-300'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              showAll ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+
       {/* Period selector */}
       <div className="grid grid-cols-3 gap-2">
         <button
@@ -184,32 +213,35 @@ export default function UnregisteredTrips({ vehicles }) {
         </Card>
       )}
 
-      {/* No unregistered trips */}
-      {!tripsLoading && allTripsData?.length === 0 && (
+      {/* No trips */}
+      {!tripsLoading && filteredVehicleData?.length === 0 && (
         <Card className="border-0 shadow-sm bg-emerald-50 border-l-4 border-l-emerald-500">
           <CardContent className="p-8 text-center">
             <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto mb-3" />
             <h3 className="text-base font-semibold text-emerald-900 mb-1">
-              Alla resor registrerade!
+              {showAll ? 'Inga resor hittades' : 'Alla resor registrerade!'}
             </h3>
             <p className="text-sm text-emerald-700">
-              Det finns inga oregistrerade GPS-resor {getPeriodLabel().toLowerCase()}.
+              {showAll 
+                ? `Inga GPS-resor hittades ${getPeriodLabel().toLowerCase()}.`
+                : `Det finns inga oregistrerade GPS-resor ${getPeriodLabel().toLowerCase()}.`
+              }
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Vehicles with unregistered trips */}
-      {!tripsLoading && allTripsData?.length > 0 && (
+      {/* Vehicles with trips */}
+      {!tripsLoading && filteredVehicleData?.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="h-4 w-4 text-amber-600" />
             <p className="text-sm text-slate-600">
-              <strong>{allTripsData.length}</strong> fordon med oregistrerade resor {getPeriodLabel().toLowerCase()}
+              <strong>{filteredVehicleData.length}</strong> fordon med {showAll ? 'resor' : 'oregistrerade resor'} {getPeriodLabel().toLowerCase()}
             </p>
           </div>
 
-          {allTripsData.map((vehicleData) => {
+          {filteredVehicleData.map((vehicleData) => {
             const { vehicle, trips, totalDistance, totalTime } = vehicleData;
             
             // Gruppera resor per dag
@@ -264,10 +296,19 @@ export default function UnregisteredTrips({ vehicles }) {
                     {trips
                       .sort((a, b) => b.begintime - a.begintime)
                       .map((trip, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
+                        <div key={idx} className={`flex items-center justify-between text-xs p-2 rounded ${
+                          trip.isRegistered ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50'
+                        }`}>
                           <div className="flex-1">
-                            <div className="text-slate-700 font-medium mb-1">
-                              {format(new Date(trip.begintime * 1000), 'EEE d MMM', { locale: sv })}
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="text-slate-700 font-medium">
+                                {format(new Date(trip.begintime * 1000), 'EEE d MMM', { locale: sv })}
+                              </div>
+                              {trip.isRegistered && (
+                                <Badge className="bg-emerald-600 text-white text-[10px] px-1 py-0 h-4">
+                                  Registrerad
+                                </Badge>
+                              )}
                             </div>
                             <div className="text-slate-500">
                               {format(new Date(trip.begintime * 1000), 'HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
@@ -286,10 +327,11 @@ export default function UnregisteredTrips({ vehicles }) {
                   </div>
 
                   <Button
-                    onClick={() => handleRegisterTrips(vehicle, trips)}
+                    onClick={() => handleRegisterTrips(vehicle, trips.filter(t => !t.isRegistered))}
                     className="w-full bg-slate-900 hover:bg-slate-800"
+                    disabled={trips.filter(t => !t.isRegistered).length === 0}
                   >
-                    Registrera resor
+                    Registrera {trips.filter(t => !t.isRegistered).length > 0 ? `${trips.filter(t => !t.isRegistered).length} ` : ''}resor
                   </Button>
                 </CardContent>
               </Card>
