@@ -76,15 +76,20 @@ export default function UnregisteredTrips({ vehicles }) {
             const tripEnd = new Date(trip.endtime * 1000);
             
             // Kolla om det finns någon journalpost som matchar denna resa
+            // Använd gps_trip_id om det finns, annars tid och fordon
             return !journalEntries.some(entry => {
               if (entry.vehicle_id !== vehicle.id) return false;
               
+              // Om journalposten har ett gps_trip_id, matcha mot det
+              if (entry.gps_trip_id && trip.tripid) {
+                return entry.gps_trip_id === trip.tripid.toString();
+              }
+              
+              // Annars, matcha baserat på tid med marginal
               const entryStart = new Date(entry.start_time);
               const entryEnd = new Date(entry.end_time);
               
-              // Resa räknas som registrerad om den överlappar med en journalpost
-              // (med 5 minuters marginal)
-              const margin = 5 * 60 * 1000;
+              const margin = 5 * 60 * 1000; // 5 minuter
               return Math.abs(tripStart - entryStart) < margin && 
                      Math.abs(tripEnd - entryEnd) < margin;
             });
