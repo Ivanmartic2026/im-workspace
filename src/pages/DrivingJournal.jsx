@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -25,7 +25,7 @@ import QuickApproveCard from "@/components/journal/QuickApproveCard";
 
 export default function DrivingJournal() {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('journal');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -59,6 +59,26 @@ export default function DrivingJournal() {
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
     queryFn: () => base44.entities.Employee.list(),
+  });
+
+  const { data: gpsDevices = [], isLoading: devicesLoading } = useQuery({
+    queryKey: ['gpsDevices', vehicles],
+    queryFn: async () => {
+      const deviceIds = vehicles
+        .filter(v => v.gps_device_id)
+        .map(v => v.gps_device_id);
+      
+      if (deviceIds.length === 0) return [];
+
+      const response = await base44.functions.invoke('gpsTracking', {
+        action: 'getDevices',
+        deviceIds
+      });
+
+      return response.data?.devices || [];
+    },
+    enabled: vehicles.length > 0 && (activeTab === 'live' || activeTab === 'register'),
+    refetchInterval: activeTab === 'live' ? 30000 : false
   });
 
   const { data: entries = [], isLoading } = useQuery({
@@ -270,7 +290,7 @@ export default function DrivingJournal() {
     } catch (error) {
       console.error('Error analyzing trips:', error);
       alert('Kunde inte analysera resor med AI: ' + error.message);
-      setActiveTab('pending');
+      setActiveTab('journal-pending');
     }
 
     setAnalyzingAI(false);
@@ -300,7 +320,7 @@ export default function DrivingJournal() {
     setAiSuggestions(prev => prev.filter(s => s.entryId !== entryId));
     
     if (aiSuggestions.length <= 1) {
-      setActiveTab('pending');
+      setActiveTab('journal-pending');
     }
   };
 
@@ -333,7 +353,7 @@ export default function DrivingJournal() {
       
       if (response.data.results.suggestions > 0) {
         alert(`${response.data.results.suggestions} resor har fått AI-förslag. Granska dem under "Utkast"-fliken.`);
-        setActiveTab('drafts');
+        setActiveTab('journal-drafts');
       } else {
         alert('Inga nya förslag skapades. Kanske finns det ingen historisk data att basera förslag på.');
       }
@@ -412,14 +432,14 @@ export default function DrivingJournal() {
     if (entry.is_deleted) return false;
 
     const matchesTab = user?.role === 'admin' 
-      ? (activeTab === 'pending' ? (entry.status === 'pending_review' || entry.status === 'submitted') && !entry.suggested_classification :
-         activeTab === 'drafts' ? entry.suggested_classification && entry.status === 'pending_review' :
-         activeTab === 'approved' ? entry.status === 'approved' :
-         activeTab === 'all' ? true : false)
-      : (activeTab === 'pending' ? (entry.status === 'pending_review' || entry.status === 'requires_info') && entry.trip_type === 'väntar' :
-         activeTab === 'drafts' ? entry.suggested_classification && entry.status === 'pending_review' :
-         activeTab === 'submitted' ? entry.status === 'submitted' :
-         activeTab === 'approved' ? entry.status === 'approved' : false);
+      ? (activeTab === 'journal-pending' ? (entry.status === 'pending_review' || entry.status === 'submitted') && !entry.suggested_classification :
+         activeTab === 'journal-drafts' ? entry.suggested_classification && entry.status === 'pending_review' :
+         activeTab === 'journal-approved' ? entry.status === 'approved' :
+         activeTab === 'journal-all' ? true : false)
+      : (activeTab === 'journal-pending' ? (entry.status === 'pending_review' || entry.status === 'requires_info') && entry.trip_type === 'väntar' :
+         activeTab === 'journal-drafts' ? entry.suggested_classification && entry.status === 'pending_review' :
+         activeTab === 'journal-submitted' ? entry.status === 'submitted' :
+         activeTab === 'journal-approved' ? entry.status === 'approved' : false);
     
     const matchesDriver = user?.role === 'admin' || entry.driver_email === user?.email;
     const matchesVehicle = selectedVehicle === 'all' || entry.vehicle_id === selectedVehicle;
@@ -723,41 +743,124 @@ export default function DrivingJournal() {
               </CardContent>
               </Card>
 
-              {/* Tabs */}
+              {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-            <TabsList className="w-full bg-white shadow-sm grid grid-cols-5">
+            <TabsList className="w-full bg-white shadow-sm grid grid-cols-3">
+              <TabsTrigger value="live">
+                Live Spårning
+              </TabsTrigger>
+              <TabsTrigger value="register">
+                Registrera Resor
+              </TabsTrigger>
+              <TabsTrigger value="journal">
+                Körjournal
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Live Tracking Tab */}
+            <TabsContent value="live">
+              {devicesLoading ? (
+                <div className="text-center py-12">
+                  <Loader2 className="h-12 w-12 animate-spin text-slate-400 mx-auto" />
+                </div>
+              ) : gpsDevices.length === 0 ? (
+                <Card className="border-0 shadow-sm">
+                  <CardContent className="p-12 text-center">
+                    <Car className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Inga GPS-enheter</h3>
+                    <p className="text-slate-500 text-sm">
+                      Inga fordon med GPS-enheter hittades
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {gpsDevices.map(device => {
+                    const vehicle = vehicles.find(v => v.gps_device_id === device.id);
+                    return (
+                      <Card key={device.id} className="border-0 shadow-sm">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h3 className="font-semibold text-slate-900">{vehicle?.registration_number}</h3>
+                              <p className="text-xs text-slate-500">{vehicle?.make} {vehicle?.model}</p>
+                            </div>
+                            <Badge className={device.isOnline ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}>
+                              {device.isOnline ? 'Online' : 'Offline'}
+                            </Badge>
+                          </div>
+                          {device.lastPosition && (
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-slate-400" />
+                                <span className="text-slate-600">{device.lastPosition.address || 'Okänd plats'}</span>
+                              </div>
+                              <div className="flex items-center gap-4 text-xs text-slate-500">
+                                <span>Hastighet: {device.lastPosition.speed || 0} km/h</span>
+                                <span>Senast: {format(new Date(device.lastPosition.timestamp), 'HH:mm', { locale: sv })}</span>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Register Tab */}
+            <TabsContent value="register">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Registrera oregistrerade GPS-resor</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Här visas GPS-resor som inte finns i körjournalen än
+                  </p>
+                  <Button onClick={() => setShowManualModal(true)} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Lägg till resa manuellt
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Journal Tab */}
+            <TabsContent value="journal">
+              <Tabs value={activeTab.startsWith('journal-') ? activeTab : 'journal-pending'} onValueChange={setActiveTab} className="mb-4">
+                <TabsList className="w-full bg-white shadow-sm grid grid-cols-5">
               {user?.role === 'admin' ? (
                 <>
-                  <TabsTrigger value="pending" className="flex-col gap-1 py-3">
+                  <TabsTrigger value="journal-pending" className="flex-col gap-1 py-3">
                     <span>Väntande</span>
                     {stats.pending > 0 && (
                       <Badge className="bg-amber-500 text-white text-xs px-2 py-0 h-5">{stats.pending}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="drafts">
+                  <TabsTrigger value="journal-drafts">
                     Utkast
                     {draftEntries.length > 0 && (
                       <Badge className="ml-1 bg-indigo-500 text-xs">{draftEntries.length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="suggestions">
+                  <TabsTrigger value="journal-suggestions">
                     AI-analys
                     {aiSuggestions.length > 0 && (
                       <Badge className="ml-1 bg-purple-500 text-xs">{aiSuggestions.length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="approved" className="flex-col gap-1 py-3">
+                  <TabsTrigger value="journal-approved" className="flex-col gap-1 py-3">
                     <span>Godkända</span>
                     <Badge className="bg-emerald-500 text-white text-xs px-2 py-0 h-5">{stats.approved}</Badge>
                   </TabsTrigger>
-                  <TabsTrigger value="all" className="flex-col gap-1 py-3">
+                  <TabsTrigger value="journal-all" className="flex-col gap-1 py-3">
                     <span>Alla</span>
                     <Badge className="bg-slate-500 text-white text-xs px-2 py-0 h-5">{stats.total}</Badge>
                   </TabsTrigger>
                 </>
               ) : (
                 <>
-                  <TabsTrigger value="pending">
+                  <TabsTrigger value="journal-pending">
                     Att fylla i
                     {entries.filter(e => (e.status === 'pending_review' || e.status === 'requires_info') && e.driver_email === user?.email && e.trip_type === 'väntar').length > 0 && (
                       <Badge className="ml-1 bg-amber-500 text-xs">
@@ -765,27 +868,27 @@ export default function DrivingJournal() {
                       </Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="drafts">
+                  <TabsTrigger value="journal-drafts">
                     Utkast
                     {draftEntries.length > 0 && (
                       <Badge className="ml-1 bg-indigo-500 text-xs">{draftEntries.length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="suggestions">
+                  <TabsTrigger value="journal-suggestions">
                     AI-analys
                     {aiSuggestions.length > 0 && (
                       <Badge className="ml-1 bg-purple-500 text-xs">{aiSuggestions.length}</Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="submitted">Inskickade</TabsTrigger>
-                  <TabsTrigger value="approved">Godkända</TabsTrigger>
+                  <TabsTrigger value="journal-submitted">Inskickade</TabsTrigger>
+                  <TabsTrigger value="journal-approved">Godkända</TabsTrigger>
                 </>
               )}
             </TabsList>
           </Tabs>
 
-          {/* Drafts Tab */}
-          {activeTab === 'drafts' ? (
+          {/* Journal Content */}
+          {activeTab === 'journal-drafts' ? (
             <>
               {/* Process Drafts Button */}
               <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
@@ -848,7 +951,7 @@ export default function DrivingJournal() {
                 </div>
               )}
             </>
-          ) : activeTab === 'suggestions' ? (
+          ) : activeTab === 'journal-suggestions' ? (
             <SuggestionsView
               suggestions={aiSuggestions}
               onAccept={handleAcceptSuggestion}
@@ -859,7 +962,7 @@ export default function DrivingJournal() {
           ) : (
             <>
               {/* AI Analyze Button */}
-              {activeTab === 'pending' && filteredEntries.some(e => e.trip_type === 'väntar') && (
+              {activeTab === 'journal-pending' && filteredEntries.some(e => e.trip_type === 'väntar') && (
                 <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-indigo-50 to-purple-50">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -909,7 +1012,7 @@ export default function DrivingJournal() {
                 <p className="text-slate-500 text-sm mb-4">
                   {entries.length === 0 
                     ? 'Inga körjournalsposter finns i systemet ännu.' 
-                    : activeTab === 'pending' 
+                    : activeTab === 'journal-pending' 
                     ? 'Inga väntande körjournaler just nu' 
                     : 'Inga resor hittades för denna period'}
                 </p>
@@ -1066,6 +1169,9 @@ export default function DrivingJournal() {
           )}
             </>
           )}
+              </Tabs>
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </div>
 
