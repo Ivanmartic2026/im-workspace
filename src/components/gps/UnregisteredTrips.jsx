@@ -148,93 +148,87 @@ export default function UnregisteredTrips({ vehicles }) {
     };
   }).filter(v => v.trips.length > 0);
 
-  if (tripsLoading) {
-    return (
-      <div className="p-8 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto" />
-        <p className="text-sm text-slate-500 mt-2">Hämtar resor...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-3">
-      {/* Period selector */}
-      <div className="grid grid-cols-3 gap-2">
-        <button
-          onClick={() => setPeriod('day')}
-          className={`px-3 py-2 rounded-lg text-sm font-medium ${
-            period === 'day' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'
-          }`}
-        >
-          Idag
-        </button>
-        <button
-          onClick={() => setPeriod('week')}
-          className={`px-3 py-2 rounded-lg text-sm font-medium ${
-            period === 'week' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'
-          }`}
-        >
-          Vecka
-        </button>
-        <button
-          onClick={() => setPeriod('month')}
-          className={`px-3 py-2 rounded-lg text-sm font-medium ${
-            period === 'month' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'
-          }`}
-        >
-          Månad
-        </button>
+      {/* Datum och period */}
+      <div className="bg-white p-3 rounded-lg border">
+        <p className="text-sm font-medium text-slate-900 mb-2">
+          {format(new Date(), 'EEEE d MMMM yyyy', { locale: sv })}
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => setPeriod('day')}
+            className={`px-3 py-2 rounded text-sm font-medium ${
+              period === 'day' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
+            }`}
+          >
+            1 dag
+          </button>
+          <button
+            onClick={() => setPeriod('week')}
+            className={`px-3 py-2 rounded text-sm font-medium ${
+              period === 'week' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
+            }`}
+          >
+            7 dagar
+          </button>
+          <button
+            onClick={() => setPeriod('month')}
+            className={`px-3 py-2 rounded text-sm font-medium ${
+              period === 'month' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
+            }`}
+          >
+            Månad
+          </button>
+        </div>
       </div>
 
-      {/* Fordon & Resor */}
-      {filteredVehicleData?.map((vehicleData) => {
+      {tripsLoading && (
+        <div className="p-8 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto" />
+        </div>
+      )}
+
+      {!tripsLoading && filteredVehicleData?.map((vehicleData) => {
         const { vehicle, trips } = vehicleData;
         
         return (
           <div key={vehicle.id} className="bg-white rounded-lg border p-4">
-            {/* Fordon header */}
             <div className="flex items-center justify-between mb-3 pb-3 border-b">
               <div className="flex items-center gap-2">
                 <Car className="h-5 w-5 text-slate-600" />
                 <div>
-                  <h3 className="font-semibold text-slate-900">{vehicle.registration_number}</h3>
+                  <h3 className="font-semibold">{vehicle.registration_number}</h3>
                   <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
                 </div>
               </div>
-              <Badge className="bg-slate-900 text-white">{trips.length} resor</Badge>
+              <Badge>{trips.length} resor</Badge>
             </div>
 
-            {/* Resor lista */}
             <div className="space-y-2">
-              {trips
-                .sort((a, b) => b.begintime - a.begintime)
-                .map((trip, idx) => (
-                  <div key={idx} className={`p-3 rounded-lg ${
-                    trip.isRegistered ? 'bg-green-50 border border-green-200' : 'bg-slate-50'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-slate-900">
-                          {format(new Date(trip.begintime * 1000), 'EEE d MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
-                        </div>
-                        <div className="text-sm text-slate-600 mt-1">
-                          {(trip.mileage || 0).toFixed(1)} km • {Math.round((trip.endtime - trip.begintime) / 60)} min
-                        </div>
+              {trips.sort((a, b) => b.begintime - a.begintime).map((trip, idx) => (
+                <div key={idx} className={`p-3 rounded ${
+                  trip.isRegistered ? 'bg-green-50 border border-green-200' : 'bg-slate-50'
+                }`}>
+                  <div className="flex justify-between">
+                    <div>
+                      <div className="font-medium text-sm">
+                        {format(new Date(trip.begintime * 1000), 'EEE d MMM, HH:mm', { locale: sv })} - {format(new Date(trip.endtime * 1000), 'HH:mm', { locale: sv })}
                       </div>
-                      {trip.isRegistered && (
-                        <Badge className="bg-green-600 text-white text-xs">✓</Badge>
-                      )}
+                      <div className="text-sm text-slate-600">
+                        {(trip.mileage || 0).toFixed(1)} km • {Math.round((trip.endtime - trip.begintime) / 60)} min
+                      </div>
                     </div>
+                    {trip.isRegistered && <Badge className="bg-green-600">✓</Badge>}
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
 
-            {/* Registrera knapp */}
             {trips.filter(t => !t.isRegistered).length > 0 && (
               <Button
                 onClick={() => handleRegisterTrips(vehicle, trips.filter(t => !t.isRegistered))}
-                className="w-full bg-slate-900 hover:bg-slate-800 mt-3"
+                className="w-full bg-slate-900 mt-3"
               >
                 Registrera {trips.filter(t => !t.isRegistered).length} resor
               </Button>
@@ -242,13 +236,6 @@ export default function UnregisteredTrips({ vehicles }) {
           </div>
         );
       })}
-
-      {filteredVehicleData?.length === 0 && (
-        <div className="p-8 text-center bg-green-50 rounded-lg">
-          <CheckCircle2 className="h-10 w-10 text-green-600 mx-auto mb-2" />
-          <p className="text-sm text-green-700">Alla resor registrerade!</p>
-        </div>
-      )}
 
       {/* Register Modal */}
       {selectedVehicle && (
