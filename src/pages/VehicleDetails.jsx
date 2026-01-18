@@ -98,6 +98,18 @@ export default function VehicleDetails() {
   const activeIssues = issues.filter(i => !['klar', 'avbruten'].includes(i.status));
   const recentFuelLogs = fuelLogs.slice(0, 5);
 
+  // Gruppera resor per dag
+  const tripsByDay = trips.reduce((acc, trip) => {
+    const dayKey = format(new Date(trip.start_time), 'yyyy-MM-dd');
+    if (!acc[dayKey]) {
+      acc[dayKey] = [];
+    }
+    acc[dayKey].push(trip);
+    return acc;
+  }, {});
+
+  const sortedDays = Object.keys(tripsByDay).sort((a, b) => new Date(b) - new Date(a));
+
   const handleDelete = async () => {
     try {
       await base44.entities.Vehicle.delete(vehicleId);
