@@ -10,7 +10,7 @@ import {
   Users, Clock, TrendingUp, CheckCircle2, AlertCircle, 
   Calendar, DollarSign, BarChart3, Plus, User, Navigation
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import TaskList from './TaskList';
 import ProjectTimeline from './ProjectTimeline';
@@ -236,6 +236,40 @@ export default function ProjectDetailView({ project, onClose }) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          {/* Registrerade dagar */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Registrerade dagar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const registeredDays = timeEntries
+                  .map(entry => ({
+                    date: startOfDay(parseISO(entry.date)),
+                    rawDate: entry.date
+                  }))
+                  .filter((item, index, self) => 
+                    self.findIndex(d => isSameDay(d.date, item.date)) === index
+                  )
+                  .sort((a, b) => b.date - a.date);
+
+                if (registeredDays.length === 0) {
+                  return <p className="text-sm text-slate-500 text-center py-4">Ingen tid registrerad än</p>;
+                }
+
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    {registeredDays.map((item, idx) => (
+                      <div key={idx} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium">
+                        {format(item.date, 'd MMM yyyy', { locale: sv })}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ActiveClockIns projectId={project.id} />
             <ProjectExpenses project={project} timeEntries={timeEntries} />

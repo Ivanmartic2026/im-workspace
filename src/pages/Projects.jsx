@@ -357,8 +357,8 @@ export default function Projects() {
 
                         const budgetProgress = project.budget_hours ? (projectHours / project.budget_hours) * 100 : 0;
 
-                        // Hitta alla unika dagar med registrerad tid
-                        const registeredDays = timeEntries
+                        // Senaste registrerade tid
+                        const latestEntry = timeEntries
                           .filter(entry => {
                             if (entry.project_id === project.id) return true;
                             if (entry.project_allocations?.length > 0) {
@@ -366,33 +366,21 @@ export default function Projects() {
                             }
                             return false;
                           })
-                          .map(entry => startOfDay(parseISO(entry.date)))
-                          .filter((date, index, self) => 
-                            self.findIndex(d => isSameDay(d, date)) === index
-                          )
-                          .sort((a, b) => b - a);
+                          .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
                         return (
                           <div className="space-y-3">
-                            {/* Registrerade dagar */}
-                            {registeredDays.length > 0 && (
+                            {/* Senaste registrering */}
+                            {latestEntry && (
                               <div className="bg-indigo-50 rounded-lg p-3">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Calendar className="h-4 w-4 text-indigo-600" />
-                                  <span className="text-xs font-medium text-indigo-900">Registrerade dagar</span>
-                                  <span className="text-xs text-indigo-600">({registeredDays.length})</span>
-                                </div>
-                                <div className="flex flex-wrap gap-1">
-                                  {registeredDays.slice(0, 5).map((date, idx) => (
-                                    <span key={idx} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs">
-                                      {format(date, 'd MMM', { locale: sv })}
-                                    </span>
-                                  ))}
-                                  {registeredDays.length > 5 && (
-                                    <span className="px-2 py-0.5 text-indigo-600 text-xs">
-                                      +{registeredDays.length - 5} till
-                                    </span>
-                                  )}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-indigo-600" />
+                                    <span className="text-xs font-medium text-indigo-900">Senaste registrering</span>
+                                  </div>
+                                  <span className="text-xs text-indigo-700 font-medium">
+                                    {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
+                                  </span>
                                 </div>
                               </div>
                             )}
