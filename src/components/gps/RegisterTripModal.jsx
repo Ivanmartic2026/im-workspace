@@ -33,7 +33,8 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
         trip,
         project_id: '',
         purpose: '',
-        driver_email: ''
+        driver_email: '',
+        project_km: trip.mileage || 0
       }));
       setTripData(initial);
     }
@@ -84,7 +85,12 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
           project_id: item.project_id || null,
           project_code: selectedProject?.project_code || null,
           customer: selectedProject?.customer || null,
-          status: 'submitted'
+          status: 'submitted',
+          project_allocations: item.project_id ? [{
+            project_id: item.project_id,
+            project_name: selectedProject?.name,
+            distance_km: item.project_km || 0
+          }] : []
         };
 
         await base44.entities.DrivingJournalEntry.create(journalEntry);
@@ -164,6 +170,18 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs">Antal km till projekt</Label>
+                    <Input
+                      className="h-9"
+                      type="number"
+                      step="0.1"
+                      value={item.project_km}
+                      onChange={(e) => updateTrip(idx, 'project_km', parseFloat(e.target.value) || 0)}
+                      placeholder="0.0"
+                    />
                   </div>
 
                   <div>
