@@ -24,7 +24,7 @@ export default function UnregisteredTrips({ vehicles }) {
     staleTime: 10000
   });
 
-  // Hämta GPS-resor direkt från API
+  // Hämta och spara GPS-resor automatiskt
   const { data: allTripsData, isLoading: tripsLoading, error } = useQuery({
     queryKey: ['gps-trips', period],
     queryFn: async () => {
@@ -45,6 +45,7 @@ export default function UnregisteredTrips({ vehicles }) {
       
       for (const vehicle of vehiclesWithGPS) {
         try {
+          // Hämta resor från GPS
           const response = await base44.functions.invoke('gpsTracking', {
             action: 'getTrips',
             params: {
@@ -56,28 +57,29 @@ export default function UnregisteredTrips({ vehicles }) {
 
           const trips = response.data?.totaltrips || [];
           
-          // Filtrera bort resor som redan är registrerade
-          const unregisteredTrips = trips.filter(trip => {
-            if (!trip.tripid) return false;
-            return !allJournalEntries.some(e => 
-              e.gps_trip_id === trip.tripid.toString() && 
-              e.vehicle_id === vehicle.id &&
-              e.trip_type !== 'väntar'
+          // Spara nya resor automatiskt i databasen
+          for (const trip of trips) {
+            if (!trip.begintime || !trip.endtime || !trip.tripid) continue;
+            
+            const exists = allJournalEntries.some(e => 
+              e.gps_trip_id === trip.tripid.toString() && e.vehicle_id === vehicle.id
             );
-          });
-
-          if (unregisteredTrips.length > 0) {
-            results.push({
-              vehicle,
-              trips: unregisteredTrips.map(trip => ({
-                tripid: trip.tripid,
-                begintime: trip.begintime,
-                endtime: trip.endtime,
-                mileage: trip.mileage || 0,
-                beginaddress: trip.beginaddress,
-                endaddress: trip.endaddress
-              })).sort((a, b) => b.begintime - a.begintime)
-            });
+            
+            if (!exists) {
+              await base44.entities.DrivingJournalEntry.create({
+                vehicle_id: vehicle.id,
+                registration_number: vehicle.registration_number,
+                gps_trip_id: trip.tripid.toString(),
+                start_time: new Date(trip.begintime * 1000).toISOString(),
+                end_time: new Date(trip.endtime * 1000).toISOString(),
+                distance_km: trip.mileage || 0,
+                duration_minutes: Math.round((trip.endtime - trip.begintime) / 60),
+                trip_type: 'väntar',
+                status: 'pending_review',
+                start_location: trip.beginaddress ? { address: trip.beginaddress } : {},
+                end_location: trip.endaddress ? { address: trip.endaddress } : {}
+              });
+            }
           }
 
           await new Promise(resolve => setTimeout(resolve, 300));
@@ -87,11 +89,39 @@ export default function UnregisteredTrips({ vehicles }) {
         }
       }
       
+      // Uppdatera cache
+      await queryClient.invalidateQueries(['all-journal-entries']);
+      
+      // Hämta oregistrerade resor från databasen (snabbt!)
+      const freshEntries = await base44.entities.DrivingJournalEntry.list();
+      
+      for (const vehicle of vehiclesWithGPS) {
+        const unregisteredEntries = freshEntries.filter(e => {
+          if (e.vehicle_id !== vehicle.id) return false;
+          if (e.trip_type !== 'väntar') return false;
+          const entryStart = new Date(e.start_time);
+          return entryStart >= startDate && entryStart <= now;
+        });
+
+        if (unregisteredEntries.length > 0) {
+          results.push({
+            vehicle,
+            trips: unregisteredEntries.map(entry => ({
+              tripid: entry.gps_trip_id,
+              begintime: Math.floor(new Date(entry.start_time).getTime() / 1000),
+              endtime: Math.floor(new Date(entry.end_time).getTime() / 1000),
+              mileage: entry.distance_km,
+              beginaddress: entry.start_location?.address,
+              endaddress: entry.end_location?.address
+            })).sort((a, b) => b.begintime - a.begintime)
+          });
+        }
+      }
+      
       return results;
     },
     enabled: vehiclesWithGPS.length > 0,
-    staleTime: 0,
-    cacheTime: 0
+    staleTime: 60000
   });
 
   const handleRegisterTrips = (vehicle, trips) => {
