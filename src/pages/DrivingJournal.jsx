@@ -16,7 +16,7 @@ import GeofenceManager, { GeofenceOverlay } from '@/components/gps/GeofenceManag
 import GeofenceNotifications from '@/components/gps/GeofenceNotifications';
 import 'leaflet/dist/leaflet.css';
 import LeafletLib from 'leaflet';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
