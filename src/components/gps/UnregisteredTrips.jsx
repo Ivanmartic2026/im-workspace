@@ -19,7 +19,7 @@ export default function UnregisteredTrips({ vehicles }) {
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
 
   // Hämta oregistrerade resor direkt från databasen (SNABBT!)
-  const { data: allTripsData, isLoading: tripsLoading, error } = useQuery({
+  const { data: allTripsData, isLoading: tripsLoading, error, refetch } = useQuery({
     queryKey: ['unregistered-trips-from-db', period],
     queryFn: async () => {
       if (vehiclesWithGPS.length === 0) return [];
@@ -37,6 +37,8 @@ export default function UnregisteredTrips({ vehicles }) {
 
       // Hämta alla resor från databasen
       const allEntries = await base44.entities.DrivingJournalEntry.list();
+      console.log('Alla körjournalposter:', allEntries.length);
+      
       const results = [];
       
       for (const vehicle of vehiclesWithGPS) {
@@ -44,14 +46,18 @@ export default function UnregisteredTrips({ vehicles }) {
           if (e.vehicle_id !== vehicle.id) return false;
           // Visa alla resor som väntar på registrering ELLER saknar syfte
           if (e.trip_type !== 'väntar' && e.purpose) return false;
+          if (e.is_deleted) return false;
           const entryStart = new Date(e.start_time);
           return entryStart >= startDate && entryStart <= now;
         });
+
+        console.log(`${vehicle.registration_number}: ${unregisteredEntries.length} oregistrerade resor`);
 
         if (unregisteredEntries.length > 0) {
           results.push({
             vehicle,
             trips: unregisteredEntries.map(entry => ({
+              id: entry.id,
               tripid: entry.gps_trip_id,
               begintime: Math.floor(new Date(entry.start_time).getTime() / 1000),
               endtime: Math.floor(new Date(entry.end_time).getTime() / 1000),
@@ -63,10 +69,11 @@ export default function UnregisteredTrips({ vehicles }) {
         }
       }
       
+      console.log('Resultat:', results);
       return results;
     },
     enabled: vehiclesWithGPS.length > 0,
-    staleTime: 30000
+    staleTime: 10000
   });
 
   // Synka nya resor från GPS
@@ -84,18 +91,29 @@ export default function UnregisteredTrips({ vehicles }) {
         startDate = subDays(now, 30);
       }
 
+      console.log('Synkar från', startDate, 'till', now);
+      console.log('Antal fordon med GPS:', vehiclesWithGPS.length);
+
+      let totalSynced = 0;
       for (const vehicle of vehiclesWithGPS) {
-        await base44.functions.invoke('syncGPSTrips', {
+        console.log(`Synkar ${vehicle.registration_number} (${vehicle.gps_device_id})...`);
+        const result = await base44.functions.invoke('syncGPSTrips', {
           vehicleId: vehicle.id,
           startDate: startDate.toISOString(),
           endDate: now.toISOString()
         });
+        console.log('Synkresultat:', result.data);
+        totalSynced += (result.data?.synced || 0);
       }
 
+      console.log(`Totalt synkade: ${totalSynced} resor`);
+
       // Uppdatera listan
-      queryClient.invalidateQueries(['unregistered-trips-from-db']);
+      await queryClient.invalidateQueries(['unregistered-trips-from-db']);
+      await refetch();
     } catch (error) {
       console.error('Synkroniseringsfel:', error);
+      alert('Fel vid synkning: ' + error.message);
     } finally {
       setIsSyncing(false);
     }
@@ -181,6 +199,14 @@ export default function UnregisteredTrips({ vehicles }) {
         <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
           <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
           <p className="text-sm text-red-700">Kunde inte hämta resor från GPS</p>
+        </div>
+      )}
+
+      {!tripsLoading && !isSyncing && allTripsData?.length === 0 && (
+        <div className="p-6 text-center bg-slate-50 rounded-lg border">
+          <Car className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+          <p className="text-sm text-slate-600">Inga oregistrerade resor hittades</p>
+          <p className="text-xs text-slate-500 mt-1">Klicka på "Synka nya resor från GPS" för att hämta resor</p>
         </div>
       )}
 
