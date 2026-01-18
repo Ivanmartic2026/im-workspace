@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Car, AlertCircle } from "lucide-react";
+import { Loader2, Car, AlertCircle, RefreshCw } from "lucide-react";
 import { format, subDays, startOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import RegisterTripModal from './RegisterTripModal';
@@ -13,20 +13,14 @@ export default function UnregisteredTrips({ vehicles }) {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedTrips, setSelectedTrips] = useState([]);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const queryClient = useQueryClient();
 
   const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
 
-  // Hämta alla körjournalposter
-  const { data: allJournalEntries = [] } = useQuery({
-    queryKey: ['all-journal-entries'],
-    queryFn: () => base44.entities.DrivingJournalEntry.list(),
-    staleTime: 10000
-  });
-
-  // Hämta och spara GPS-resor automatiskt
+  // Hämta oregistrerade resor direkt från databasen (SNABBT!)
   const { data: allTripsData, isLoading: tripsLoading, error } = useQuery({
-    queryKey: ['gps-trips', period],
+    queryKey: ['unregistered-trips-from-db', period],
     queryFn: async () => {
       if (vehiclesWithGPS.length === 0) return [];
 
@@ -41,92 +35,14 @@ export default function UnregisteredTrips({ vehicles }) {
         startDate = subDays(now, 30);
       }
 
+      // Hämta alla resor från databasen
+      const allEntries = await base44.entities.DrivingJournalEntry.list();
       const results = [];
       
       for (const vehicle of vehiclesWithGPS) {
-        try {
-          // Hämta resor från GPS
-          const response = await base44.functions.invoke('gpsTracking', {
-            action: 'getTrips',
-            params: {
-              deviceId: vehicle.gps_device_id,
-              begintime: Math.floor(startDate.getTime() / 1000),
-              endtime: Math.floor(now.getTime() / 1000)
-            }
-          });
-
-          const trips = response.data?.totaltrips || [];
-          
-          // Spara nya resor automatiskt i databasen
-          for (const trip of trips) {
-            if (!trip.begintime || !trip.endtime || !trip.tripid) continue;
-            
-            // Kolla både GPS trip ID och tidsmatchning
-            const tripStart = trip.begintime * 1000;
-            const exists = allJournalEntries.some(e => {
-              if (e.vehicle_id !== vehicle.id) return false;
-              if (e.gps_trip_id === trip.tripid.toString()) return true;
-              // Tidsmatchning inom 2 minuter
-              const entryStart = new Date(e.start_time).getTime();
-              return Math.abs(entryStart - tripStart) < 2 * 60 * 1000;
-            });
-            
-            if (!exists) {
-              const newEntry = {
-                vehicle_id: vehicle.id,
-                registration_number: vehicle.registration_number,
-                gps_trip_id: trip.tripid.toString(),
-                start_time: new Date(trip.begintime * 1000).toISOString(),
-                end_time: new Date(trip.endtime * 1000).toISOString(),
-                distance_km: parseFloat((trip.mileage || 0).toFixed(2)),
-                duration_minutes: Math.round((trip.endtime - trip.begintime) / 60),
-                trip_type: 'väntar',
-                status: 'pending_review'
-              };
-
-              // Lägg till platsinformation om tillgänglig
-              if (trip.beginaddress || trip.beginlocation) {
-                newEntry.start_location = {
-                  address: trip.beginaddress,
-                  latitude: trip.beginlocation?.latitude,
-                  longitude: trip.beginlocation?.longitude
-                };
-              }
-              
-              if (trip.endaddress || trip.endlocation) {
-                newEntry.end_location = {
-                  address: trip.endaddress,
-                  latitude: trip.endlocation?.latitude,
-                  longitude: trip.endlocation?.longitude
-                };
-              }
-
-              // Lägg till förarinfo om tillgänglig
-              if (vehicle.assigned_driver) {
-                newEntry.driver_email = vehicle.assigned_driver;
-              }
-
-              await base44.entities.DrivingJournalEntry.create(newEntry);
-            }
-          }
-
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-        } catch (error) {
-          console.error(`Fel för ${vehicle.registration_number}:`, error);
-        }
-      }
-      
-      // Uppdatera cache
-      await queryClient.invalidateQueries(['all-journal-entries']);
-      
-      // Hämta oregistrerade resor från databasen (snabbt!)
-      const freshEntries = await base44.entities.DrivingJournalEntry.list();
-      
-      for (const vehicle of vehiclesWithGPS) {
-        const unregisteredEntries = freshEntries.filter(e => {
+        const unregisteredEntries = allEntries.filter(e => {
           if (e.vehicle_id !== vehicle.id) return false;
-          // Visa alla resor som väntar på registrering ELLER saknar syfte (även om klassificerade)
+          // Visa alla resor som väntar på registrering ELLER saknar syfte
           if (e.trip_type !== 'väntar' && e.purpose) return false;
           const entryStart = new Date(e.start_time);
           return entryStart >= startDate && entryStart <= now;
@@ -150,8 +66,40 @@ export default function UnregisteredTrips({ vehicles }) {
       return results;
     },
     enabled: vehiclesWithGPS.length > 0,
-    staleTime: 60000
+    staleTime: 30000
   });
+
+  // Synka nya resor från GPS
+  const syncTripsFromGPS = async () => {
+    setIsSyncing(true);
+    try {
+      const now = new Date();
+      let startDate;
+      
+      if (period === 'day') {
+        startDate = startOfDay(now);
+      } else if (period === 'week') {
+        startDate = subDays(now, 7);
+      } else {
+        startDate = subDays(now, 30);
+      }
+
+      for (const vehicle of vehiclesWithGPS) {
+        await base44.functions.invoke('syncGPSTrips', {
+          vehicleId: vehicle.id,
+          startDate: startDate.toISOString(),
+          endDate: now.toISOString()
+        });
+      }
+
+      // Uppdatera listan
+      queryClient.invalidateQueries(['unregistered-trips-from-db']);
+    } catch (error) {
+      console.error('Synkroniseringsfel:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleRegisterTrips = (vehicle, trips) => {
     setSelectedVehicle(vehicle);
@@ -176,7 +124,7 @@ export default function UnregisteredTrips({ vehicles }) {
         <p className="text-sm font-medium text-slate-900 mb-2">
           {format(new Date(), 'EEEE d MMMM yyyy', { locale: sv })}
         </p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           <button
             onClick={() => setPeriod('day')}
             className={`px-3 py-2 rounded text-sm font-medium ${
@@ -202,6 +150,24 @@ export default function UnregisteredTrips({ vehicles }) {
             Månad
           </button>
         </div>
+        <Button 
+          onClick={syncTripsFromGPS} 
+          disabled={isSyncing}
+          className="w-full bg-blue-600 hover:bg-blue-700"
+          size="sm"
+        >
+          {isSyncing ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Synkar nya resor...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Synka nya resor från GPS
+            </>
+          )}
+        </Button>
       </div>
 
       {tripsLoading && (
