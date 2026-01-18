@@ -80,6 +80,12 @@ export default function VehicleDetails() {
     queryFn: () => base44.entities.Employee.list(),
   });
 
+  const { data: trips = [], isLoading: tripsLoading } = useQuery({
+    queryKey: ['vehicle-trips', vehicleId],
+    queryFn: () => base44.entities.DrivingJournalEntry.filter({ vehicle_id: vehicleId }, '-start_time', 100),
+    enabled: !!vehicleId,
+  });
+
   if (isLoading || !vehicle) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
