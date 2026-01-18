@@ -236,9 +236,12 @@ export default function VehicleDetails() {
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="mt-6">
-          <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-3">
+          <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-4">
             <TabsTrigger value="overview" className="rounded-xl data-[state=active]:shadow-sm">
               Översikt
+            </TabsTrigger>
+            <TabsTrigger value="trips" className="rounded-xl data-[state=active]:shadow-sm">
+              Resor
             </TabsTrigger>
             <TabsTrigger value="fuel" className="rounded-xl data-[state=active]:shadow-sm">
               Tankningar
