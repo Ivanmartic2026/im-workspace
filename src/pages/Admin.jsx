@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Settings, Users, Car, FileText, Clock, Database, 
   AlertCircle, CheckCircle2, Loader2, TrendingUp, 
-  Shield, Bell, Calendar, BarChart3, Wrench, BookOpen, MapPin
+  Shield, Bell, Calendar, BarChart3, Wrench, BookOpen, MapPin, Radio
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
@@ -24,6 +24,7 @@ import NotificationSettings from '@/components/admin/NotificationSettings';
 import PushNotificationTest from '@/components/admin/PushNotificationTest';
 import VehicleManagement from '@/components/admin/VehicleManagement';
 import StaffLocationMap from '@/components/admin/StaffLocationMap';
+import BluetoothDeviceManager from '@/components/admin/BluetoothDeviceManager';
 import BulkNotifications from '@/components/admin/BulkNotifications';
 import AutomationSettings from '@/components/admin/AutomationSettings';
 import RealtimeDashboard from '@/components/admin/RealtimeDashboard';
@@ -102,7 +103,7 @@ export default function Admin() {
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-9 gap-2 mb-8">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-10 gap-2 mb-8">
               <TabsTrigger value="dashboard" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Dashboard
@@ -126,6 +127,10 @@ export default function Admin() {
               <TabsTrigger value="vehicles" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <Car className="h-4 w-4 mr-2" />
                 Fordon
+              </TabsTrigger>
+              <TabsTrigger value="bluetooth" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Radio className="h-4 w-4 mr-2" />
+                Bluetooth
               </TabsTrigger>
               <TabsTrigger value="journal" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <FileText className="h-4 w-4 mr-2" />
@@ -164,6 +169,11 @@ export default function Admin() {
               <h2 className="text-lg font-semibold text-slate-900 mb-4">Fordonshantering</h2>
               <VehicleManagement />
               <StaffLocationMap />
+            </TabsContent>
+
+            {/* Bluetooth Tab */}
+            <TabsContent value="bluetooth" className="space-y-4">
+              <BluetoothDeviceManager />
             </TabsContent>
 
             {/* Overview Tab */}
