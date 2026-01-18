@@ -338,6 +338,69 @@ export default function VehicleDetails() {
             )}
           </TabsContent>
 
+          <TabsContent value="trips" className="mt-6 space-y-3">
+            {tripsLoading ? (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-12 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mx-auto mb-4"></div>
+                  <p className="text-slate-500">Laddar resor...</p>
+                </CardContent>
+              </Card>
+            ) : trips.length === 0 ? (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="py-12 text-center">
+                  <Navigation className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500">Inga resor registrerade</p>
+                </CardContent>
+              </Card>
+            ) : (
+              trips.map((trip) => (
+                <Card key={trip.id} className="border-0 shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          {format(new Date(trip.start_time), "d MMM yyyy 'kl' HH:mm", { locale: sv })}
+                        </p>
+                        {trip.purpose && (
+                          <p className="text-xs text-slate-500 mt-0.5">{trip.purpose}</p>
+                        )}
+                      </div>
+                      <Badge className={
+                        trip.trip_type === 'tjänst' ? 'bg-blue-100 text-blue-700' :
+                        trip.trip_type === 'privat' ? 'bg-purple-100 text-purple-700' :
+                        'bg-amber-100 text-amber-700'
+                      }>
+                        {trip.trip_type}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-slate-500 mb-2">
+                      <span>{trip.distance_km?.toFixed(1)} km</span>
+                      <span>{Math.round(trip.duration_minutes || 0)} min</span>
+                      {trip.driver_name && <span>{trip.driver_name}</span>}
+                    </div>
+                    {(trip.start_location?.address || trip.end_location?.address) && (
+                      <div className="text-xs text-slate-500 space-y-1">
+                        {trip.start_location?.address && (
+                          <div className="flex items-start gap-1">
+                            <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                            <span className="line-clamp-1">{trip.start_location.address}</span>
+                          </div>
+                        )}
+                        {trip.end_location?.address && (
+                          <div className="flex items-start gap-1">
+                            <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                            <span className="line-clamp-1">{trip.end_location.address}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
           <TabsContent value="fuel" className="mt-6 space-y-3">
             {recentFuelLogs.length === 0 ? (
               <Card className="border-0 shadow-sm">
