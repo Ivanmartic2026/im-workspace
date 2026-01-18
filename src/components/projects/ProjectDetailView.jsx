@@ -243,27 +243,57 @@ export default function ProjectDetailView({ project, onClose }) {
             </CardHeader>
             <CardContent>
               {(() => {
-                const registeredDays = timeEntries
-                  .map(entry => ({
-                    date: startOfDay(parseISO(entry.date)),
-                    rawDate: entry.date
-                  }))
-                  .filter((item, index, self) => 
-                    self.findIndex(d => isSameDay(d.date, item.date)) === index
-                  )
-                  .sort((a, b) => b.date - a.date);
+                // Gruppera entries per dag
+                const dayGroups = timeEntries.reduce((acc, entry) => {
+                  const dayKey = format(parseISO(entry.date), 'yyyy-MM-dd');
+                  if (!acc[dayKey]) {
+                    acc[dayKey] = [];
+                  }
+                  acc[dayKey].push(entry);
+                  return acc;
+                }, {});
 
-                if (registeredDays.length === 0) {
+                const sortedDays = Object.keys(dayGroups).sort((a, b) => new Date(b) - new Date(a));
+
+                if (sortedDays.length === 0) {
                   return <p className="text-sm text-slate-500 text-center py-4">Ingen tid registrerad än</p>;
                 }
 
                 return (
-                  <div className="flex flex-wrap gap-2">
-                    {registeredDays.map((item, idx) => (
-                      <div key={idx} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium">
-                        {format(item.date, 'd MMM yyyy', { locale: sv })}
-                      </div>
-                    ))}
+                  <div className="space-y-2">
+                    {sortedDays.map((dayKey) => {
+                      const dayEntries = dayGroups[dayKey];
+                      const totalHours = dayEntries.reduce((sum, entry) => {
+                        const projectAllocs = entry.project_allocations?.filter(a => a.project_id === project.id) || [];
+                        return sum + projectAllocs.reduce((s, a) => s + (a.hours || 0), 0);
+                      }, 0);
+
+                      // Hitta unika medarbetare för dagen
+                      const employeeEmails = [...new Set(dayEntries.map(e => e.employee_email))];
+                      const employeeNames = employeeEmails.map(email => {
+                        const user = users.find(u => u.email === email);
+                        return user?.full_name || email;
+                      });
+
+                      return (
+                        <div key={dayKey} className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Calendar className="h-4 w-4 text-indigo-600" />
+                            <div>
+                              <p className="text-sm font-medium text-indigo-900">
+                                {format(parseISO(dayKey), 'd MMM yyyy', { locale: sv })}
+                              </p>
+                              <p className="text-xs text-indigo-600">
+                                {employeeNames.join(', ')}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-indigo-900">{totalHours.toFixed(1)}h</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })()}
