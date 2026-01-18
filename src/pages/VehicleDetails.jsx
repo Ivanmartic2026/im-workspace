@@ -9,7 +9,7 @@ import {
   ArrowLeft, Car, Fuel, Wrench, AlertCircle, Calendar, 
   FileText, User, MapPin, Hash, Zap, CreditCard, Edit, Trash2, Navigation 
 } from "lucide-react";
-import { format, isValid, parseISO } from "date-fns";
+import { format, isValid, parseISO, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
