@@ -21,12 +21,19 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
     initialData: []
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+    initialData: []
+  });
+
   useEffect(() => {
     if (open && trips.length > 0) {
       const initial = trips.map(trip => ({
         trip,
         project_id: '',
-        purpose: ''
+        purpose: '',
+        driver_email: ''
       }));
       setTripData(initial);
     }
@@ -46,14 +53,18 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
 
       for (const item of tripData) {
         const selectedProject = projects.find(p => p.id === item.project_id);
+        const selectedEmployee = employees.find(e => e.user_email === item.driver_email);
         const trip = item.trip;
+
+        const driverEmail = item.driver_email || user.email;
+        const driverName = selectedEmployee ? selectedEmployee.user_email : user.full_name;
 
         const journalEntry = {
           vehicle_id: vehicleId,
           registration_number: vehicleReg,
           gps_trip_id: trip.tripid?.toString(),
-          driver_email: user.email,
-          driver_name: user.full_name,
+          driver_email: driverEmail,
+          driver_name: driverName,
           start_time: new Date(trip.begintime * 1000).toISOString(),
           end_time: new Date(trip.endtime * 1000).toISOString(),
           start_location: {
@@ -117,6 +128,25 @@ export default function RegisterTripModal({ open, onClose, trips = [], vehicleId
 
               {!item.trip.isRegistered && (
                 <div className="space-y-2 mt-3 pt-3 border-t">
+                  <div>
+                    <Label className="text-xs">Förare</Label>
+                    <Select
+                      value={item.driver_email}
+                      onValueChange={(value) => updateTrip(idx, 'driver_email', value)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Välj förare" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employees.map(employee => (
+                          <SelectItem key={employee.id} value={employee.user_email}>
+                            {employee.user_email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div>
                     <Label className="text-xs">Projekt</Label>
                     <Select
