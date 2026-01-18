@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, Filter, Navigation } from "lucide-react";
+import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, Filter, Navigation, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
-import { format } from "date-fns";
+import { format, parseISO, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import ProjectDetailView from '../components/projects/ProjectDetailView';
 
@@ -357,8 +357,46 @@ export default function Projects() {
 
                         const budgetProgress = project.budget_hours ? (projectHours / project.budget_hours) * 100 : 0;
 
+                        // Hitta alla unika dagar med registrerad tid
+                        const registeredDays = timeEntries
+                          .filter(entry => {
+                            if (entry.project_id === project.id) return true;
+                            if (entry.project_allocations?.length > 0) {
+                              return entry.project_allocations.some(alloc => alloc.project_id === project.id);
+                            }
+                            return false;
+                          })
+                          .map(entry => startOfDay(parseISO(entry.date)))
+                          .filter((date, index, self) => 
+                            self.findIndex(d => isSameDay(d, date)) === index
+                          )
+                          .sort((a, b) => b - a);
+
                         return (
                           <div className="space-y-3">
+                            {/* Registrerade dagar */}
+                            {registeredDays.length > 0 && (
+                              <div className="bg-indigo-50 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Calendar className="h-4 w-4 text-indigo-600" />
+                                  <span className="text-xs font-medium text-indigo-900">Registrerade dagar</span>
+                                  <span className="text-xs text-indigo-600">({registeredDays.length})</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {registeredDays.slice(0, 5).map((date, idx) => (
+                                    <span key={idx} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs">
+                                      {format(date, 'd MMM', { locale: sv })}
+                                    </span>
+                                  ))}
+                                  {registeredDays.length > 5 && (
+                                    <span className="px-2 py-0.5 text-indigo-600 text-xs">
+                                      +{registeredDays.length - 5} till
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
                             {/* Timmar */}
                             <div className="bg-blue-50 rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
