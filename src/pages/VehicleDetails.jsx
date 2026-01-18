@@ -350,7 +350,7 @@ export default function VehicleDetails() {
             )}
           </TabsContent>
 
-          <TabsContent value="trips" className="mt-6 space-y-3">
+          <TabsContent value="trips" className="mt-6 space-y-4">
             {tripsLoading ? (
               <Card className="border-0 shadow-sm">
                 <CardContent className="py-12 text-center">
@@ -366,50 +366,69 @@ export default function VehicleDetails() {
                 </CardContent>
               </Card>
             ) : (
-              trips.map((trip) => (
-                <Card key={trip.id} className="border-0 shadow-sm">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">
-                          {format(new Date(trip.start_time), "d MMM yyyy 'kl' HH:mm", { locale: sv })}
-                        </p>
-                        {trip.purpose && (
-                          <p className="text-xs text-slate-500 mt-0.5">{trip.purpose}</p>
-                        )}
-                      </div>
-                      <Badge className={
-                        trip.trip_type === 'tjänst' ? 'bg-blue-100 text-blue-700' :
-                        trip.trip_type === 'privat' ? 'bg-purple-100 text-purple-700' :
-                        'bg-amber-100 text-amber-700'
-                      }>
-                        {trip.trip_type}
-                      </Badge>
+              sortedDays.map((dayKey) => {
+                const dayTrips = tripsByDay[dayKey];
+                const totalKm = dayTrips.reduce((sum, t) => sum + (t.distance_km || 0), 0);
+                const isToday = isSameDay(new Date(dayKey), new Date());
+                
+                return (
+                  <div key={dayKey} className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <h3 className="text-sm font-semibold text-slate-900">
+                        {isToday ? 'Idag' : format(new Date(dayKey), 'EEEE d MMMM', { locale: sv })}
+                      </h3>
+                      <span className="text-xs text-slate-500">
+                        {dayTrips.length} resor • {totalKm.toFixed(1)} km
+                      </span>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-slate-500 mb-2">
-                      <span>{trip.distance_km?.toFixed(1)} km</span>
-                      <span>{Math.round(trip.duration_minutes || 0)} min</span>
-                      {trip.driver_name && <span>{trip.driver_name}</span>}
-                    </div>
-                    {(trip.start_location?.address || trip.end_location?.address) && (
-                      <div className="text-xs text-slate-500 space-y-1">
-                        {trip.start_location?.address && (
-                          <div className="flex items-start gap-1">
-                            <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                            <span className="line-clamp-1">{trip.start_location.address}</span>
+                    
+                    {dayTrips.map((trip) => (
+                      <Card key={trip.id} className="border-0 shadow-sm">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="text-sm font-medium text-slate-900">
+                                {format(new Date(trip.start_time), 'HH:mm', { locale: sv })} - {format(new Date(trip.end_time), 'HH:mm', { locale: sv })}
+                              </p>
+                              {trip.purpose && (
+                                <p className="text-xs text-slate-500 mt-0.5">{trip.purpose}</p>
+                              )}
+                            </div>
+                            <Badge className={
+                              trip.trip_type === 'tjänst' ? 'bg-blue-100 text-blue-700' :
+                              trip.trip_type === 'privat' ? 'bg-purple-100 text-purple-700' :
+                              'bg-amber-100 text-amber-700'
+                            }>
+                              {trip.trip_type}
+                            </Badge>
                           </div>
-                        )}
-                        {trip.end_location?.address && (
-                          <div className="flex items-start gap-1">
-                            <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                            <span className="line-clamp-1">{trip.end_location.address}</span>
+                          <div className="flex items-center gap-4 text-xs text-slate-500 mb-2">
+                            <span>{trip.distance_km?.toFixed(1)} km</span>
+                            <span>{Math.round(trip.duration_minutes || 0)} min</span>
+                            {trip.driver_name && <span>{trip.driver_name}</span>}
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
+                          {(trip.start_location?.address || trip.end_location?.address) && (
+                            <div className="text-xs text-slate-500 space-y-1">
+                              {trip.start_location?.address && (
+                                <div className="flex items-start gap-1">
+                                  <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  <span className="line-clamp-1">{trip.start_location.address}</span>
+                                </div>
+                              )}
+                              {trip.end_location?.address && (
+                                <div className="flex items-start gap-1">
+                                  <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  <span className="line-clamp-1">{trip.end_location.address}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                );
+              })
             )}
           </TabsContent>
 
