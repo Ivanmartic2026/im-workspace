@@ -726,6 +726,120 @@ export default function DrivingJournal() {
 
           {/* Register Tab */}
           <TabsContent value="register">
+            {/* Månadsöversikt */}
+            <Card className="border-0 shadow-sm mb-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Oregistrerade resor per månad</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  // Gruppera oregistrerade resor per månad
+                  const unregisteredTrips = entries.filter(e => e.trip_type === 'väntar' && !e.is_deleted);
+                  
+                  const tripsByMonth = unregisteredTrips.reduce((acc, trip) => {
+                    const monthKey = format(new Date(trip.start_time), 'yyyy-MM');
+                    if (!acc[monthKey]) {
+                      acc[monthKey] = [];
+                    }
+                    acc[monthKey].push(trip);
+                    return acc;
+                  }, {});
+                  
+                  const sortedMonths = Object.keys(tripsByMonth).sort((a, b) => new Date(b) - new Date(a));
+                  
+                  if (sortedMonths.length === 0) {
+                    return (
+                      <div className="text-center py-8">
+                        <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                        <p className="text-slate-600">Alla resor är registrerade!</p>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div className="space-y-4">
+                      {sortedMonths.map(monthKey => {
+                        const monthTrips = tripsByMonth[monthKey];
+                        const totalKm = monthTrips.reduce((sum, t) => sum + (t.distance_km || 0), 0);
+                        const monthDate = new Date(monthKey + '-01');
+                        
+                        // Gruppera resor per dag inom månaden
+                        const tripsByDay = monthTrips.reduce((acc, trip) => {
+                          const dayKey = format(new Date(trip.start_time), 'yyyy-MM-dd');
+                          if (!acc[dayKey]) {
+                            acc[dayKey] = [];
+                          }
+                          acc[dayKey].push(trip);
+                          return acc;
+                        }, {});
+                        
+                        const sortedDays = Object.keys(tripsByDay).sort((a, b) => new Date(b) - new Date(a));
+                        
+                        return (
+                          <div key={monthKey} className="border rounded-lg p-4 bg-slate-50">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="font-semibold text-slate-900">
+                                {format(monthDate, 'MMMM yyyy', { locale: sv })}
+                              </h3>
+                              <Badge className="bg-amber-500">
+                                {monthTrips.length} resor • {totalKm.toFixed(1)} km
+                              </Badge>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              {sortedDays.map(dayKey => {
+                                const dayTrips = tripsByDay[dayKey];
+                                const dayTotalKm = dayTrips.reduce((sum, t) => sum + (t.distance_km || 0), 0);
+                                const isToday = isSameDay(new Date(dayKey), new Date());
+                                
+                                return (
+                                  <div key={dayKey} className="bg-white rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-sm font-medium text-slate-700">
+                                        {isToday ? 'Idag' : format(new Date(dayKey), 'EEEE d MMMM', { locale: sv })}
+                                      </span>
+                                      <span className="text-xs text-slate-500">
+                                        {dayTrips.length} resor • {dayTotalKm.toFixed(1)} km
+                                      </span>
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                      {dayTrips.map(trip => (
+                                        <div key={trip.id} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
+                                          <div className="flex items-center gap-2">
+                                            <Car className="h-3 w-3 text-slate-400" />
+                                            <span className="font-medium">{trip.registration_number}</span>
+                                            <span className="text-slate-500">
+                                              {format(new Date(trip.start_time), 'HH:mm')} - {format(new Date(trip.end_time), 'HH:mm')}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-slate-600">{trip.distance_km?.toFixed(1)} km</span>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-6 px-2 text-xs"
+                                              onClick={() => handleEditEntry(trip)}
+                                            >
+                                              Fyll i
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
             <UnregisteredTrips vehicles={vehicles} />
           </TabsContent>
 
