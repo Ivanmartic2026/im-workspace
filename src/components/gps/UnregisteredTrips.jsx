@@ -90,25 +90,29 @@ export default function UnregisteredTrips({ vehicles }) {
             }
           }
 
-          // Hämta alla resor för detta fordon från databasen för vald period
+          // Hämta ENDAST oregistrerade resor för detta fordon från databasen för vald period
           const periodEntries = allJournalEntries.filter(e => {
             if (e.vehicle_id !== vehicle.id) return false;
+            if (e.trip_type !== 'väntar') return false; // Visa bara oregistrerade
             const entryStart = new Date(e.start_time);
             return entryStart >= startDate && entryStart <= now;
           });
 
-          results.push({
-            vehicle,
-            trips: periodEntries.map(entry => ({
-              tripid: entry.gps_trip_id,
-              begintime: Math.floor(new Date(entry.start_time).getTime() / 1000),
-              endtime: Math.floor(new Date(entry.end_time).getTime() / 1000),
-              mileage: entry.distance_km,
-              beginaddress: entry.start_location?.address,
-              endaddress: entry.end_location?.address,
-              isRegistered: entry.trip_type !== 'väntar'
-            })).sort((a, b) => b.begintime - a.begintime)
-          });
+          // Lägg bara till fordon som har oregistrerade resor
+          if (periodEntries.length > 0) {
+            results.push({
+              vehicle,
+              trips: periodEntries.map(entry => ({
+                tripid: entry.gps_trip_id,
+                begintime: Math.floor(new Date(entry.start_time).getTime() / 1000),
+                endtime: Math.floor(new Date(entry.end_time).getTime() / 1000),
+                mileage: entry.distance_km,
+                beginaddress: entry.start_location?.address,
+                endaddress: entry.end_location?.address,
+                isRegistered: false
+              })).sort((a, b) => b.begintime - a.begintime)
+            });
+          }
 
           await new Promise(resolve => setTimeout(resolve, 300));
           
@@ -208,10 +212,8 @@ export default function UnregisteredTrips({ vehicles }) {
             </div>
 
             <div className="space-y-2">
-              {trips.sort((a, b) => b.begintime - a.begintime).map((trip, idx) => (
-                <div key={idx} className={`p-3 rounded ${
-                  trip.isRegistered ? 'bg-green-50 border border-green-200' : 'bg-slate-50'
-                }`}>
+              {trips.map((trip, idx) => (
+                <div key={idx} className="p-3 rounded bg-slate-50">
                   <div className="flex justify-between">
                     <div>
                       <div className="font-medium text-sm">
@@ -221,20 +223,17 @@ export default function UnregisteredTrips({ vehicles }) {
                         {(trip.mileage || 0).toFixed(1)} km • {Math.round((trip.endtime - trip.begintime) / 60)} min
                       </div>
                     </div>
-                    {trip.isRegistered && <Badge className="bg-green-600">✓</Badge>}
                   </div>
                 </div>
               ))}
             </div>
 
-            {trips.filter(t => !t.isRegistered).length > 0 && (
-              <Button
-                onClick={() => handleRegisterTrips(vehicle, trips.filter(t => !t.isRegistered))}
-                className="w-full bg-slate-900 mt-3"
-              >
-                Registrera {trips.filter(t => !t.isRegistered).length} resor
-              </Button>
-            )}
+            <Button
+              onClick={() => handleRegisterTrips(vehicle, trips)}
+              className="w-full bg-slate-900 mt-3"
+            >
+              Registrera {trips.length} resor
+            </Button>
           </div>
         );
       })}
