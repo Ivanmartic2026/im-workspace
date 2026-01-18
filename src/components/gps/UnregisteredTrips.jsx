@@ -61,24 +61,52 @@ export default function UnregisteredTrips({ vehicles }) {
           for (const trip of trips) {
             if (!trip.begintime || !trip.endtime || !trip.tripid) continue;
             
-            const exists = allJournalEntries.some(e => 
-              e.gps_trip_id === trip.tripid.toString() && e.vehicle_id === vehicle.id
-            );
+            // Kolla både GPS trip ID och tidsmatchning
+            const tripStart = trip.begintime * 1000;
+            const exists = allJournalEntries.some(e => {
+              if (e.vehicle_id !== vehicle.id) return false;
+              if (e.gps_trip_id === trip.tripid.toString()) return true;
+              // Tidsmatchning inom 2 minuter
+              const entryStart = new Date(e.start_time).getTime();
+              return Math.abs(entryStart - tripStart) < 2 * 60 * 1000;
+            });
             
             if (!exists) {
-              await base44.entities.DrivingJournalEntry.create({
+              const newEntry = {
                 vehicle_id: vehicle.id,
                 registration_number: vehicle.registration_number,
                 gps_trip_id: trip.tripid.toString(),
                 start_time: new Date(trip.begintime * 1000).toISOString(),
                 end_time: new Date(trip.endtime * 1000).toISOString(),
-                distance_km: trip.mileage || 0,
+                distance_km: parseFloat((trip.mileage || 0).toFixed(2)),
                 duration_minutes: Math.round((trip.endtime - trip.begintime) / 60),
                 trip_type: 'väntar',
-                status: 'pending_review',
-                start_location: trip.beginaddress ? { address: trip.beginaddress } : {},
-                end_location: trip.endaddress ? { address: trip.endaddress } : {}
-              });
+                status: 'pending_review'
+              };
+
+              // Lägg till platsinformation om tillgänglig
+              if (trip.beginaddress || trip.beginlocation) {
+                newEntry.start_location = {
+                  address: trip.beginaddress,
+                  latitude: trip.beginlocation?.latitude,
+                  longitude: trip.beginlocation?.longitude
+                };
+              }
+              
+              if (trip.endaddress || trip.endlocation) {
+                newEntry.end_location = {
+                  address: trip.endaddress,
+                  latitude: trip.endlocation?.latitude,
+                  longitude: trip.endlocation?.longitude
+                };
+              }
+
+              // Lägg till förarinfo om tillgänglig
+              if (vehicle.assigned_driver) {
+                newEntry.driver_email = vehicle.assigned_driver;
+              }
+
+              await base44.entities.DrivingJournalEntry.create(newEntry);
             }
           }
 
@@ -98,7 +126,8 @@ export default function UnregisteredTrips({ vehicles }) {
       for (const vehicle of vehiclesWithGPS) {
         const unregisteredEntries = freshEntries.filter(e => {
           if (e.vehicle_id !== vehicle.id) return false;
-          if (e.trip_type !== 'väntar') return false;
+          // Visa alla resor som väntar på registrering ELLER saknar syfte (även om klassificerade)
+          if (e.trip_type !== 'väntar' && e.purpose) return false;
           const entryStart = new Date(e.start_time);
           return entryStart >= startDate && entryStart <= now;
         });
