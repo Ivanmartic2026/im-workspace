@@ -27,8 +27,8 @@ Deno.serve(async (req) => {
       action: 'getTrips',
       params: {
         deviceId: vehicleData.gps_device_id,
-        begintime: new Date(startDate).getTime() / 1000,
-        endtime: new Date(endDate).getTime() / 1000
+        begintime: Math.floor(new Date(startDate).getTime() / 1000),
+        endtime: Math.floor(new Date(endDate).getTime() / 1000)
       }
     });
 
