@@ -41,7 +41,7 @@ LeafletLib.Icon.Default.mergeOptions({
 
 export default function DrivingJournal() {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('journal');
+  const [activeTab, setActiveTab] = useState('register');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -600,8 +600,9 @@ export default function DrivingJournal() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-white shadow-sm mb-4">
-            <TabsTrigger value="journal" className="w-full">Körjournal</TabsTrigger>
+          <TabsList className="w-full bg-white shadow-sm grid grid-cols-2 mb-4">
+            <TabsTrigger value="register">Registrera Resor</TabsTrigger>
+            <TabsTrigger value="journal">Körjournal</TabsTrigger>
           </TabsList>
 
           {/* Live Tracking Tab */}
