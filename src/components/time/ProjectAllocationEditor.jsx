@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Plus, X, Save, Clock, Coffee } from "lucide-react";
+import { Plus, X, Save, Clock, Coffee, Sparkles, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 
@@ -22,27 +22,62 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
   const lunchDeducted = rawTotalHours >= 8;
   const totalHours = lunchDeducted ? rawTotalHours - 1 : rawTotalHours;
   
-  const [allocations, setAllocations] = useState(
-    timeEntry.project_allocations?.length > 0
-      ? timeEntry.project_allocations
-      : timeEntry.project_id
-      ? [{
-          project_id: timeEntry.project_id,
-          hours: totalHours,
-          category: timeEntry.category || 'support_service',
-          notes: ''
-        }]
-      : [{
-          project_id: '',
-          hours: totalHours,
-          category: 'support_service',
-          notes: ''
-        }]
-  );
+  const [allocations, setAllocations] = useState([]);
+  const [useDropdown, setUseDropdown] = useState([]);
+  const [loadingDraft, setLoadingDraft] = useState(false);
+  const [draftSummary, setDraftSummary] = useState('');
 
-  const [useDropdown, setUseDropdown] = useState(
-    allocations.map(() => true)
-  );
+  useEffect(() => {
+    if (timeEntry.project_allocations?.length > 0) {
+      setAllocations(timeEntry.project_allocations);
+      setUseDropdown(timeEntry.project_allocations.map(() => true));
+    } else {
+      generateAIDraft();
+    }
+  }, [timeEntry]);
+
+  const generateAIDraft = async () => {
+    setLoadingDraft(true);
+    try {
+      const response = await base44.functions.invoke('generateDraftTimeReport', {
+        timeEntryId: timeEntry.id
+      });
+      
+      if (response.data?.draft && response.data.draft.length > 0) {
+        setAllocations(response.data.draft);
+        setDraftSummary(response.data.summary || '');
+        setUseDropdown(response.data.draft.map(() => true));
+      } else {
+        const fallback = timeEntry.project_id
+          ? [{
+              project_id: timeEntry.project_id,
+              hours: totalHours,
+              category: timeEntry.category || 'support_service',
+              notes: ''
+            }]
+          : [{
+              project_id: '',
+              hours: totalHours,
+              category: 'support_service',
+              notes: ''
+            }];
+        setAllocations(fallback);
+        setUseDropdown(fallback.map(() => true));
+      }
+    } catch (error) {
+      console.error('Error generating AI draft:', error);
+      const fallback = [{
+        project_id: '',
+        hours: totalHours,
+        category: 'support_service',
+        notes: ''
+      }];
+      setAllocations(fallback);
+      setUseDropdown([true]);
+    } finally {
+      setLoadingDraft(false);
+    }
+  };
 
   const allocatedHours = allocations.reduce((sum, a) => sum + (Number(a.hours) || 0), 0);
   const remainingHours = totalHours - allocatedHours;
@@ -122,6 +157,20 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
     }
   };
 
+  if (loadingDraft) {
+    return (
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-12 text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-indigo-500 mx-auto" />
+          <div>
+            <p className="text-slate-900 font-semibold">AI genererar utkast...</p>
+            <p className="text-sm text-slate-500 mt-1">Analyserar din historik och dagens aktiviteter</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-0 shadow-sm">
       <CardContent className="p-6 space-y-4">
@@ -137,6 +186,17 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
             <p className="text-xs text-slate-500">att fördela</p>
           </div>
         </div>
+
+        {draftSummary && (
+          <div className="p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+            <div className="flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-indigo-900">
+                <span className="font-semibold">AI-förslag:</span> {draftSummary}
+              </div>
+            </div>
+          </div>
+        )}
 
         {lunchDeducted && (
           <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-2">
