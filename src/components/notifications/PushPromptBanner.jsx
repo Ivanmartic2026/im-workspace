@@ -185,7 +185,7 @@ export default function PushPromptBanner({ user }) {
   }
 
   return (
-    <Dialog open={!isDismissed} onOpenChange={handleDismiss}>
+    <Dialog open={!isDismissed && isSupported && !isSubscribed && user && isMobile} onOpenChange={handleDismiss}>
       <DialogContent className="sm:max-w-sm rounded-2xl border-0 shadow-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
         <DialogHeader>
           <div className="flex flex-col items-center text-center gap-4">
