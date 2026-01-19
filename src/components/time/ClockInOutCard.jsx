@@ -522,39 +522,96 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
           ) : (
           <div className="space-y-4">
             {!showNewProjectForm ? (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-700">Välj projekt</Label>
-                <Select onValueChange={setSelectedProjectId} value={selectedProjectId || ""}>
-                  <SelectTrigger className="w-full h-12 rounded-xl text-base">
-                    <SelectValue placeholder="Välj projekt (valfritt)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map(project => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name} ({project.project_code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedProjectId && (
-                  <p className="text-xs text-emerald-600 flex items-center gap-1">
-                    ✓ Tid kommer registreras på valt projekt
-                  </p>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowNewProjectForm(true)}
-                  className="w-full h-10 rounded-xl text-sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Skapa nytt projekt
-                </Button>
-              </div>
+              <>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold text-slate-900">Välj projekt</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowNewProjectForm(true)}
+                      className="h-8 text-xs text-indigo-600"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Nytt
+                    </Button>
+                  </div>
+                  
+                  {projects.length === 0 ? (
+                    <div className="p-4 bg-slate-50 rounded-xl text-center">
+                      <p className="text-sm text-slate-600 mb-2">Inga projekt ännu</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowNewProjectForm(true)}
+                        className="h-9"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Skapa projekt
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 max-h-64 overflow-y-auto">
+                      {projects.map(project => (
+                        <motion.button
+                          key={project.id}
+                          onClick={() => setSelectedProjectId(project.id === selectedProjectId ? null : project.id)}
+                          className={`p-4 rounded-xl border-2 text-left transition-all ${
+                            selectedProjectId === project.id
+                              ? 'border-emerald-500 bg-emerald-50'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-900 mb-1">{project.name}</p>
+                              <p className="text-sm text-slate-500">{project.project_code}</p>
+                              {project.customer && (
+                                <p className="text-xs text-slate-400 mt-1">{project.customer}</p>
+                              )}
+                            </div>
+                            {selectedProjectId === project.id && (
+                              <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedProjectId && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 bg-emerald-50 rounded-xl border border-emerald-200"
+                    >
+                      <p className="text-sm text-emerald-800 flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Tid registreras på {projects.find(p => p.id === selectedProjectId)?.name}
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {!selectedProjectId && projects.length > 0 && (
+                    <p className="text-xs text-center text-slate-500 py-2">
+                      Du kan stämpla in utan projekt och välja senare
+                    </p>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-slate-700">Nytt projekt</Label>
+                  <Label className="text-base font-semibold text-slate-900">Nytt projekt</Label>
                   <Button
                     type="button"
                     variant="ghost"
@@ -572,18 +629,18 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                   placeholder="Projektnamn"
                   value={newProjectData.name}
                   onChange={(e) => setNewProjectData(prev => ({ ...prev, name: e.target.value }))}
-                  className="h-11"
+                  className="h-12 text-base"
                 />
                 <Input
                   placeholder="Projektkod (t.ex. PRJ001)"
                   value={newProjectData.project_code}
                   onChange={(e) => setNewProjectData(prev => ({ ...prev, project_code: e.target.value }))}
-                  className="h-11"
+                  className="h-12 text-base"
                 />
                 <Button
                   onClick={handleCreateProject}
                   disabled={loading || !newProjectData.name || !newProjectData.project_code}
-                  className="w-full h-11 rounded-xl"
+                  className="w-full h-12 rounded-xl"
                 >
                   {loading ? (
                     <>
@@ -599,10 +656,11 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                 </Button>
               </div>
             )}
+            
             <Button
               onClick={handleClockIn}
               disabled={loading}
-              className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-medium disabled:opacity-50"
+              className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-lg font-semibold disabled:opacity-50 shadow-lg"
             >
               {loading ? (
                 <>
@@ -611,7 +669,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                 </>
               ) : (
                 <>
-                  <LogIn className="w-5 h-5 mr-2" />
+                  <LogIn className="w-6 h-6 mr-2" />
                   Stämpla in
                 </>
               )}
