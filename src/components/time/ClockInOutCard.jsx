@@ -632,9 +632,9 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
 
                   {aiSuggestions.length > 0 && !selectedProjectId && (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-indigo-500" />
-                        <Label className="text-sm font-medium text-indigo-900">AI-förslag för dig</Label>
+                      <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
+                        <Sparkles className="w-5 h-5 text-indigo-600" />
+                        <Label className="text-base font-semibold text-slate-900">Förslag för dig</Label>
                       </div>
                       <div className="grid gap-2">
                         {aiSuggestions.slice(0, 3).map((suggestion, idx) => (
