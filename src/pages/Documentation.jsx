@@ -15,19 +15,158 @@ export default function Documentation() {
     setTimeout(() => setCopied(''), 2000);
   };
 
-  const envExample = `# Base44 Platform Configuration
-# Dessa sätts automatiskt av Base44
-# BASE44_APP_ID=auto-set-by-platform
-# BASE44_API_URL=auto-set-by-platform
+  const frontendEnv = `# ============================================
+# FRONTEND .env.example (Endast lokal development)
+# ============================================
+# Dessa används när du kör "npm run dev" lokalt
+# I produktion hanteras dessa automatiskt av Base44
 
-# GalaGPS API Configuration (Sätt i Base44 Dashboard → Settings → Environment Variables)
+# Base44 Platform Connection
+VITE_BASE44_APP_ID=your-app-id-from-dashboard
+VITE_BASE44_API_URL=https://api.base44.com
+
+# ============================================
+# OBS: Backend functions körs ALLTID på Base44
+# Du kan inte köra functions lokalt utan Base44
+# ============================================`;
+
+  const backendEnv = `# ============================================
+# BACKEND .env (Deno Deploy Functions)
+# ============================================
+# Sätt dessa i Base44 Dashboard → Settings → Environment Variables
+# Dessa är SECRETS och ska aldrig commitas
+
+# ===== OBLIGATORISKA SECRETS =====
+
+# GalaGPS API Integration (GPS-spårning)
 GALAGPS_USERNAME=your-galagps-username
 GALAGPS_PASSWORD=your-galagps-password
 GALAGPS_URL=https://api.galagps.com
 
-# Frontend Environment (endast för lokal development)
-# VITE_BASE44_APP_ID=your-app-id
-# VITE_BASE44_API_URL=https://api.base44.com`;
+# ===== AUTO-HANTERADE AV BASE44 =====
+# Dessa sätts automatiskt, du behöver INTE sätta dem manuellt
+
+# BASE44_APP_ID=auto-generated-app-id
+# BASE44_API_URL=https://api.base44.com
+
+# Web Push Notifications (VAPID)
+# VAPID_PUBLIC_KEY=auto-generated-by-base44
+# VAPID_PRIVATE_KEY=auto-generated-by-base44
+
+# ===== OPTIONAL (via Base44 Integrations) =====
+# OpenAI används via base44.integrations.Core.InvokeLLM
+# ingen separat API key behövs - hanteras av Base44
+# OPENAI_API_KEY=handled-by-base44-integrations`;
+
+  const externalEndpoints = `# ============================================
+# EXTERNA API ENDPOINTS & BEROENDEN
+# ============================================
+
+# === Base44 Platform ===
+Base URL: https://api.base44.com
+Auth: JWT Bearer token (auto-hanterad av SDK)
+SDK: @base44/sdk@0.8.3
+
+Endpoints som används:
+  - /auth/login
+  - /auth/me
+  - /entities/{EntityName}
+  - /functions/{functionName}
+  - /integrations/{integration}/{endpoint}
+  - WebSocket: wss://api.base44.com/ws
+
+# === GalaGPS API ===
+Base URL: ${'{'}GALAGPS_URL{'}'} (sätts via secret)
+Auth: Token-based (via username/password)
+Rate Limit: Okänd, respekterar 1s delay i kod
+
+Endpoints som används:
+  - POST /auth/login
+  - GET /devices/list
+  - GET /devices/position
+  - GET /track/history
+  - GET /reports/trips
+  - GET /reports/mileage
+  - GET /reports/fuel
+
+# === OpenAI API ===
+Används VIA Base44 Integrations
+Integration: base44.integrations.Core.InvokeLLM
+Model: gpt-4o-mini (default i Base44)
+Auth: Hanterad av Base44 (ingen egen key behövs)
+
+Användningsområden:
+  - AI-klassificering av körjournalsposter
+  - Tidrapport-draft generation
+  - Projektförslag baserat på historik
+  - AI-analys av resemönster
+
+# === OpenStreetMap Nominatim ===
+Base URL: https://nominatim.openstreetmap.org
+Auth: Ingen (public API)
+Rate Limit: 1 request/sekund (implementerad i kod)
+
+Används för:
+  - Reverse geocoding (GPS → adress)
+  - Används i gpsTracking.js
+
+# === Web Push Protocol ===
+VAPID Keys: Auto-genererade av Base44
+Public Key: Används i frontend för push subscription
+Private Key: Används i backend för att skicka notifikationer
+
+Endpoints:
+  - /functions/getVapidPublicKey (hämta public key)
+  - /functions/sendWebPushNotification (skicka push)
+  
+Browser APIs:
+  - ServiceWorkerRegistration.pushManager
+  - Notification API
+
+# === Leaflet / OpenStreetMap Tiles ===
+Tile Server: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+Auth: Ingen (public)
+Attribution: © OpenStreetMap contributors
+
+# === Browser APIs (inga externa anrop) ===
+  - Geolocation API (navigator.geolocation)
+  - Web Bluetooth API (navigator.bluetooth)
+  - IndexedDB (lokal cache)
+  - LocalStorage (token, preferences)`;
+
+  const secretsGuide = `# ============================================
+# GUIDE: HANTERA SECRETS
+# ============================================
+
+## Nuvarande Secrets (redan satta):
+✅ GALAGPS_USERNAME
+✅ GALAGPS_PASSWORD
+✅ GALAGPS_URL
+
+## Så här sätter du nya secrets:
+
+1. Gå till Base44 Dashboard
+2. Välj ditt projekt
+3. Settings → Environment Variables
+4. Klicka "Add Secret"
+5. Ange namn och värde
+6. Spara
+
+## Security Best Practices:
+
+❌ ALDRIG committa secrets till Git
+❌ ALDRIG logga secrets i console
+❌ ALDRIG skicka secrets till frontend
+✅ Använd secrets ENDAST i backend functions
+✅ Validera att secret finns innan användning:
+   const apiKey = Deno.env.get("SECRET_NAME");
+   if (!apiKey) throw new Error("Missing SECRET_NAME");
+
+## Testing lokalt:
+
+Du kan INTE köra Deno functions lokalt utan Base44.
+Backend functions måste alltid köras på Base44-plattformen.
+Frontend kan köras lokalt med VITE_* variabler.`;
 
   const packageJson = `{
   "name": "gps-time-tracking",
@@ -300,42 +439,139 @@ exportAll();`;
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />
-                  Miljövariabler
+                  Frontend Miljövariabler
                 </CardTitle>
-                <CardDescription>Konfiguration som krävs för deployment</CardDescription>
+                <CardDescription>Endast för lokal development (npm run dev)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">ENV.example</h3>
+                    <h3 className="font-semibold">.env.example (Frontend)</h3>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(envExample, 'ENV')}
+                      onClick={() => copyToClipboard(frontendEnv, 'Frontend ENV')}
                     >
                       <Copy className="h-4 w-4 mr-2" />
-                      {copied === 'ENV' ? 'Kopierad!' : 'Kopiera'}
+                      {copied === 'Frontend ENV' ? 'Kopierad!' : 'Kopiera'}
                     </Button>
                   </div>
                   <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-xs">
-                    {envExample}
+                    {frontendEnv}
                   </pre>
                 </div>
 
-                <div className="bg-green-50 p-4 rounded-lg space-y-2">
-                  <p className="text-sm font-semibold text-green-900">✅ Redan konfigurerade secrets:</p>
-                  <ul className="list-disc list-inside text-sm text-green-800">
-                    <li>GALAGPS_USERNAME</li>
-                    <li>GALAGPS_PASSWORD</li>
-                    <li>GALAGPS_URL</li>
-                  </ul>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-blue-900">
+                    <strong>ℹ️ Info:</strong> I produktion sätts dessa automatiskt av Base44-plattformen. 
+                    Du behöver endast dessa för lokal development av frontend.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Backend Secrets (Deno Functions)
+                </CardTitle>
+                <CardDescription>Sätt i Base44 Dashboard → Settings → Environment Variables</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">.env (Backend/Functions)</h3>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(backendEnv, 'Backend ENV')}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      {copied === 'Backend ENV' ? 'Kopierad!' : 'Kopiera'}
+                    </Button>
+                  </div>
+                  <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-xs">
+                    {backendEnv}
+                  </pre>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-green-900 mb-2">✅ Redan satta:</p>
+                    <ul className="text-xs space-y-1 text-green-800">
+                      <li>• GALAGPS_USERNAME</li>
+                      <li>• GALAGPS_PASSWORD</li>
+                      <li>• GALAGPS_URL</li>
+                    </ul>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-slate-900 mb-2">🤖 Auto-hanterade:</p>
+                    <ul className="text-xs space-y-1 text-slate-600">
+                      <li>• BASE44_APP_ID</li>
+                      <li>• VAPID_PUBLIC_KEY</li>
+                      <li>• VAPID_PRIVATE_KEY</li>
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="bg-amber-50 p-4 rounded-lg">
                   <p className="text-sm text-amber-900">
-                    <strong>📝 Obs:</strong> Secrets sätts i Base44 Dashboard → Settings → Environment Variables.
-                    För lokal development, skapa .env.local med VITE_* prefixade variabler.
+                    <strong>⚠️ Viktigt:</strong> Backend functions kan INTE köras lokalt. 
+                    De körs alltid på Base44 Deno Deploy. Secrets nås via Deno.env.get().
                   </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Code className="h-5 w-5" />
+                  Externa API Endpoints
+                </CardTitle>
+                <CardDescription>Alla externa beroenden och endpoints</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">API Endpoints & Integration</h3>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(externalEndpoints, 'Endpoints')}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      {copied === 'Endpoints' ? 'Kopierad!' : 'Kopiera'}
+                    </Button>
+                  </div>
+                  <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-xs max-h-96">
+                    {externalEndpoints}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>🔐 Secrets Management Guide</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-sm">Hantera Secrets säkert</h3>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(secretsGuide, 'Secrets Guide')}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      {copied === 'Secrets Guide' ? 'Kopierad!' : 'Kopiera'}
+                    </Button>
+                  </div>
+                  <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-xs">
+                    {secretsGuide}
+                  </pre>
                 </div>
               </CardContent>
             </Card>
