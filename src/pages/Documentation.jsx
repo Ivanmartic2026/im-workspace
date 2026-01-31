@@ -167,26 +167,120 @@ exportAll();`;
                 </div>
 
                 <div>
-                  <h3 className="font-semibold mb-2">🔧 Tech Stack</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium">Frontend:</p>
-                      <ul className="list-disc list-inside text-slate-600">
-                        <li>React 18 + Vite</li>
-                        <li>TailwindCSS + shadcn/ui</li>
-                        <li>React Query</li>
-                        <li>Leaflet (maps)</li>
-                        <li>Framer Motion</li>
-                      </ul>
+                  <h3 className="font-semibold mb-2">🔧 Tech Stack (Fullständig)</h3>
+                  <div className="space-y-4">
+                    <div className="bg-slate-50 p-4 rounded-lg">
+                      <p className="font-semibold text-sm mb-2">Frontend</p>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">Core:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>React 18.2.0</li>
+                            <li>React DOM 18.2.0</li>
+                            <li>Vite (build tool)</li>
+                            <li>TypeScript (JSX)</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">Routing & State:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>React Router DOM 6.26.0</li>
+                            <li>TanStack React Query 5.84.1</li>
+                            <li>React Hook Form 7.54.2</li>
+                            <li>Zod (validation)</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">UI & Styling:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>TailwindCSS + tailwind-merge</li>
+                            <li>shadcn/ui (40+ komponenter)</li>
+                            <li>Radix UI primitives</li>
+                            <li>Lucide React (icons)</li>
+                            <li>Framer Motion 11.16.4</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">Specialized:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>React Leaflet 4.2.1 (maps)</li>
+                            <li>Recharts 2.15.4 (charts)</li>
+                            <li>React Markdown 9.0.1</li>
+                            <li>React Quill 2.0.0 (editor)</li>
+                            <li>Three.js 0.171.0 (3D)</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">Utilities:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>date-fns 3.6.0</li>
+                            <li>moment 2.30.1</li>
+                            <li>lodash 4.17.21</li>
+                            <li>jspdf 2.5.2</li>
+                            <li>canvas-confetti 1.9.4</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">Notifications:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>Sonner 2.0.1 (toast)</li>
+                            <li>React Hot Toast 2.6.0</li>
+                            <li>Web Push API</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">Backend:</p>
-                      <ul className="list-disc list-inside text-slate-600">
-                        <li>Base44 Platform</li>
-                        <li>Deno Deploy (functions)</li>
-                        <li>PostgreSQL</li>
-                        <li>WebSocket (real-time)</li>
-                      </ul>
+
+                    <div className="bg-slate-50 p-4 rounded-lg">
+                      <p className="font-semibold text-sm mb-2">Backend</p>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">Platform:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>Base44 Platform (BaaS)</li>
+                            <li>@base44/sdk 0.8.3</li>
+                            <li>Deno Deploy (serverless)</li>
+                            <li>PostgreSQL (managed)</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">Features:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>JWT Authentication</li>
+                            <li>WebSocket (real-time)</li>
+                            <li>File Storage</li>
+                            <li>CRUD API (auto-generated)</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-lg">
+                      <p className="font-semibold text-sm mb-2">Integrationer</p>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">GPS & Tracking:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>GalaGPS API</li>
+                            <li>OpenStreetMap Nominatim</li>
+                            <li>Geolocation API</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700 mb-1">AI & Notifications:</p>
+                          <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                            <li>OpenAI GPT-4</li>
+                            <li>Web Push Protocol</li>
+                            <li>Service Workers</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-xs text-blue-900">
+                        <strong>📦 Total bundle size:</strong> ~2.5MB optimerad för produktion med code-splitting
+                      </p>
                     </div>
                   </div>
                 </div>
