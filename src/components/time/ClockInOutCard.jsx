@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Clock, MapPin, Loader2, LogIn, LogOut, Coffee, Plus, Sparkles } from "lucide-react";
+import { Clock, MapPin, Loader2, LogIn, LogOut, Coffee, Plus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -23,8 +23,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
   const [newProjectData, setNewProjectData] = useState({ name: '', project_code: '' });
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const { data: projects = [], refetch: refetchProjects } = useQuery({
     queryKey: ['projects'],
@@ -35,32 +33,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
     initialData: []
   });
 
-  // Hämta AI-förslag när komponenten laddas
-  useEffect(() => {
-    if (userEmail && !activeEntry && projects.length > 0 && aiSuggestions.length === 0) {
-      fetchAISuggestions();
-    }
-  }, [userEmail, activeEntry, projects]);
 
-  const fetchAISuggestions = async () => {
-    if (!userEmail) return;
-    
-    setLoadingSuggestions(true);
-    try {
-      const response = await base44.functions.invoke('suggestProjects', {
-        userEmail,
-        currentTime: new Date().toISOString()
-      });
-      
-      if (response.data?.suggestions) {
-        setAiSuggestions(response.data.suggestions);
-      }
-    } catch (error) {
-      console.error('Error fetching AI suggestions:', error);
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  };
 
   const handleCreateProject = async () => {
     if (!newProjectData.name || !newProjectData.project_code) {
@@ -628,34 +601,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                         Tid registreras på {projects.find(p => p.id === selectedProjectId)?.name}
                       </p>
                     </motion.div>
-                  )}
-
-                  {aiSuggestions.length > 0 && !selectedProjectId && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
-                        <Sparkles className="w-5 h-5 text-indigo-600" />
-                        <Label className="text-base font-semibold text-slate-900">Förslag för dig</Label>
-                      </div>
-                      <div className="grid gap-2">
-                        {aiSuggestions.slice(0, 3).map((suggestion, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setSelectedProjectId(suggestion.project_id)}
-                            className="p-3 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-left transition-all"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <p className="font-medium text-indigo-900 text-sm">{suggestion.project_name}</p>
-                                <p className="text-xs text-indigo-600 mt-0.5">{suggestion.reason}</p>
-                              </div>
-                              <span className="text-xs font-semibold text-indigo-500 bg-white px-2 py-1 rounded">
-                                {Math.round(suggestion.confidence * 100)}%
-                              </span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   )}
 
                   {!selectedProjectId && projects.length > 0 && (
