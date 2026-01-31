@@ -555,37 +555,25 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                       </Button>
                     </div>
                   ) : (
-                    <div className="grid gap-2 max-h-64 overflow-y-auto">
-                      {projects.map(project => (
-                        <motion.button
-                          key={project.id}
-                          onClick={() => setSelectedProjectId(project.id === selectedProjectId ? null : project.id)}
-                          className={`p-4 rounded-xl border-2 text-left transition-all ${
-                            selectedProjectId === project.id
-                              ? 'border-emerald-500 bg-emerald-50'
-                              : 'border-slate-200 bg-white hover:border-slate-300'
-                          }`}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <p className="font-semibold text-slate-900 mb-1">{project.name}</p>
-                              <p className="text-sm text-slate-500">{project.project_code}</p>
-                              {project.customer && (
-                                <p className="text-xs text-slate-400 mt-1">{project.customer}</p>
-                              )}
+                    <Select
+                      value={selectedProjectId || ""}
+                      onValueChange={(value) => setSelectedProjectId(value || null)}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Välj ett projekt (valfritt)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Inget projekt</SelectItem>
+                        {projects.map(project => (
+                          <SelectItem key={project.id} value={project.id}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{project.name}</span>
+                              <span className="text-xs text-slate-500">{project.project_code}</span>
                             </div>
-                            {selectedProjectId === project.id && (
-                              <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                        </motion.button>
-                      ))}
-                    </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
 
                   {selectedProjectId && (
