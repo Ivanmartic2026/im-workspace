@@ -12,6 +12,7 @@ import ReportIssueModal from "@/components/vehicles/ReportIssueModal";
 import ReportIncidentModal from "@/components/vehicles/ReportIncidentModal";
 import BookServiceModal from "@/components/vehicles/BookServiceModal";
 import MyFuelLogs from "@/components/vehicles/MyFuelLogs";
+import MyIssues from "@/components/vehicles/MyIssues";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
@@ -160,14 +161,18 @@ export default function Vehicles() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className="grid w-full grid-cols-2 h-11">
+            <TabsList className="grid w-full grid-cols-3 h-11">
               <TabsTrigger value="fordon" className="gap-2">
                 <Car className="h-4 w-4" />
                 Fordon
               </TabsTrigger>
               <TabsTrigger value="tankningar" className="gap-2">
                 <Fuel className="h-4 w-4" />
-                Mina tankningar
+                Tanklog
+              </TabsTrigger>
+              <TabsTrigger value="rapporter" className="gap-2">
+                📋
+                Rapporter
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -216,6 +221,8 @@ export default function Vehicles() {
         {/* Content based on active tab */}
         {activeTab === 'tankningar' ? (
           <MyFuelLogs userEmail={user?.email} />
+        ) : activeTab === 'rapporter' ? (
+          <MyIssues userEmail={user?.email} />
         ) : (
           /* Vehicle List */
         <div className="space-y-3">
