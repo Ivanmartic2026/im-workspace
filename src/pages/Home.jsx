@@ -4,12 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Bell, Sparkles } from "lucide-react";
+import { Plus, Search, Bell, Sparkles, Clock as ClockIcon } from "lucide-react";
 import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
-import ClockInOutCard from "@/components/time/ClockInOutCard";
+import TimeOverview from "@/components/home/TimeOverview";
+import QuickTimeActions from "@/components/home/QuickTimeActions";
 import PushPromptBanner from "@/components/notifications/PushPromptBanner";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -34,30 +36,23 @@ export default function Home() {
     queryKey: ['timeEntries', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Use list() to get ALL fields for each entry
       const allEntries = await base44.entities.TimeEntry.list();
-      const userEntries = allEntries.filter(e => e.employee_email === user.email);
-      console.log('Fetched time entries:', userEntries.length, 'entries');
-      return userEntries;
+      return allEntries.filter(e => e.employee_email === user.email);
+    },
+    enabled: !!user?.email
+  });
+
+  const { data: employee } = useQuery({
+    queryKey: ['employee', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const employees = await base44.entities.Employee.filter({ user_email: user.email });
+      return employees[0] || null;
     },
     enabled: !!user?.email
   });
 
   const activeTimeEntry = timeEntries.find(entry => entry.status === 'active');
-  
-  useEffect(() => {
-    if (activeTimeEntry) {
-      console.log('Active time entry with ALL fields:', {
-        id: activeTimeEntry.id,
-        employee_email: activeTimeEntry.employee_email,
-        date: activeTimeEntry.date,
-        category: activeTimeEntry.category,
-        clock_in_time: activeTimeEntry.clock_in_time,
-        status: activeTimeEntry.status,
-        allKeys: Object.keys(activeTimeEntry)
-      });
-    }
-  }, [activeTimeEntry]);
 
   const updatePostMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.NewsPost.update(id, data),
@@ -170,18 +165,51 @@ export default function Home() {
           {/* Push Notification Prompt */}
           <PushPromptBanner user={user} />
 
-          {/* Clock In/Out Card */}
-          <div className="mb-6">
-            <ClockInOutCard 
-              userEmail={user?.email}
-              activeEntry={activeTimeEntry}
-              onUpdate={() => {
-                refetchTimeEntries();
-                queryClient.invalidateQueries({ queryKey: ['employees'] });
-              }}
-            />
-          </div>
+          {/* Time Overview */}
+          <TimeOverview timeEntries={timeEntries} employee={employee} />
 
+          {/* Clock In Button */}
+          <Card className="border-0 shadow-sm mb-6">
+            <CardContent className="p-0">
+              <Button
+                onClick={async () => {
+                  if (activeTimeEntry) {
+                    // Clock out
+                    const now = new Date();
+                    const clockInTime = new Date(activeTimeEntry.clock_in_time);
+                    const totalHours = (now - clockInTime) / (1000 * 60 * 60);
+                    
+                    await base44.entities.TimeEntry.update(activeTimeEntry.id, {
+                      clock_out_time: now.toISOString(),
+                      total_hours: totalHours,
+                      status: 'completed'
+                    });
+                  } else {
+                    // Clock in
+                    await base44.entities.TimeEntry.create({
+                      employee_email: user.email,
+                      date: new Date().toISOString().split('T')[0],
+                      clock_in_time: new Date().toISOString(),
+                      category: 'support_service',
+                      status: 'active'
+                    });
+                  }
+                  refetchTimeEntries();
+                }}
+                className={`w-full h-16 text-lg font-semibold ${
+                  activeTimeEntry 
+                    ? 'bg-rose-600 hover:bg-rose-700' 
+                    : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
+              >
+                <ClockIcon className="h-5 w-5 mr-2" />
+                {activeTimeEntry ? 'Stämpla ut' : 'Stämpla in'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <QuickTimeActions user={user} employee={employee} />
 
         </motion.div>
 
