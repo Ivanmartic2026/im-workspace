@@ -225,6 +225,7 @@ export default function TimeTracking() {
             <MonthlyTimeView 
               timeEntries={timeEntries}
               employee={employee}
+              userEmail={user?.email}
             />
           </TabsContent>
 
