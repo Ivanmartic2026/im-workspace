@@ -269,6 +269,9 @@ export default function Home() {
             />
           )}
 
+          {/* Clock In / Out Section */}
+          <h2 className="text-sm font-semibold text-slate-700 mb-3">Checka in på projekt/kostnadsställe</h2>
+
           {/* Clock In Button */}
           <Card className="border-0 shadow-sm mb-6">
             <CardContent className="p-0">
