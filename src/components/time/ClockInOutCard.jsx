@@ -574,11 +574,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                         }
                       }}
                     >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Välj ett projekt (valfritt)" />
+                      <SelectTrigger className="h-12 border-2">
+                        <SelectValue placeholder="Välj projekt *" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>Inget projekt</SelectItem>
                         {projects.map(project => (
                           <SelectItem key={project.id} value={project.id}>
                             <div className="flex flex-col">
