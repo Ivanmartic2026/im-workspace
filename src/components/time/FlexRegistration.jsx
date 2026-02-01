@@ -99,8 +99,14 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
   };
 
   return (
-    <Card className="border-0 shadow-sm">
-      <CardContent className="p-0">
+    <Card className="border-2 border-indigo-200 bg-indigo-50/30 shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold text-indigo-900 flex items-center gap-2">
+          <Clock className="w-5 h-5" />
+          Registrera flex
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Typ av registrering</Label>
@@ -124,6 +130,7 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
               <div className="space-y-2">
@@ -134,29 +141,53 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
                   onChange={(e) => setEndDate(e.target.value)}
                   min={startDate}
                   required
+                  className="h-11"
                 />
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <Label>Antal timmar</Label>
-              <Input
-                type="number"
-                step="0.5"
-                min="0"
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-                placeholder="T.ex. 8 eller 4.5"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Datum</Label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setEndDate(e.target.value);
+                  }}
+                  required
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Antal timmar</Label>
+                <Input
+                  type="number"
+                  step="0.5"
+                  min="0.5"
+                  value={hours}
+                  onChange={(e) => setHours(e.target.value)}
+                  placeholder="T.ex. 4.5"
+                  required
+                  className="h-11"
+                />
+              </div>
             </div>
           )}
 
           {registrationType === 'dag' && startDate && endDate && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-900">
-                <strong>{calculateDays()}</strong> {calculateDays() === 1 ? 'dag' : 'dagar'} = 
-                <strong> {calculateDays() * (employee?.normal_work_hours_per_day || 8)}</strong> timmar
+            <div className="bg-indigo-100 border border-indigo-300 rounded-lg p-3">
+              <p className="text-sm text-indigo-900 font-medium">
+                {calculateDays()} {calculateDays() === 1 ? 'dag' : 'dagar'} = {calculateDays() * (employee?.normal_work_hours_per_day || 8)} timmar
+              </p>
+            </div>
+          )}
+          
+          {registrationType === 'timmar' && hours && (
+            <div className="bg-indigo-100 border border-indigo-300 rounded-lg p-3">
+              <p className="text-sm text-indigo-900 font-medium">
+                {hours} timmar flex tas ut
               </p>
             </div>
           )}
@@ -174,7 +205,7 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
 
           <Button 
             type="submit" 
-            className="w-full"
+            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700"
             disabled={createFlexMutation.isPending}
           >
             {createFlexMutation.isPending ? (

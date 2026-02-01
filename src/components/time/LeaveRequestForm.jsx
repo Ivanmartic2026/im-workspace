@@ -78,8 +78,14 @@ export default function LeaveRequestForm({ userEmail, userName, employee, defaul
     : 0;
 
   return (
-    <Card className="border-0 shadow-sm">
-      <CardContent className="p-0">
+    <Card className="border-2 border-emerald-200 bg-emerald-50/30 shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold text-emerald-900 flex items-center gap-2">
+          <Calendar className="w-5 h-5" />
+          Ansök om ledighet
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Typ av ledighet</Label>
@@ -105,6 +111,7 @@ export default function LeaveRequestForm({ userEmail, userName, employee, defaul
                 value={formData.start_date}
                 onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
                 required
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
@@ -115,14 +122,16 @@ export default function LeaveRequestForm({ userEmail, userName, employee, defaul
                 onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
                 min={formData.start_date}
                 required
+                className="h-11"
               />
             </div>
           </div>
 
           {calculatedDays > 0 && (
-            <div className="p-3 bg-slate-50 rounded-lg text-sm">
-              <Calendar className="h-4 w-4 inline mr-2 text-slate-500" />
-              <span className="font-medium">{calculatedDays} dag{calculatedDays !== 1 ? 'ar' : ''}</span>
+            <div className="p-3 bg-emerald-100 border border-emerald-300 rounded-lg">
+              <p className="text-sm text-emerald-900 font-medium">
+                {calculatedDays} dag{calculatedDays !== 1 ? 'ar' : ''}
+              </p>
             </div>
           )}
 
@@ -140,7 +149,7 @@ export default function LeaveRequestForm({ userEmail, userName, employee, defaul
           <Button 
             type="submit" 
             disabled={createMutation.isPending}
-            className="w-full"
+            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
           >
             {createMutation.isPending ? (
               <>
