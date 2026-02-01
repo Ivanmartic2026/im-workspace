@@ -58,6 +58,7 @@ export default function ReportIncidentModal({ open, onClose, onSuccess, vehicles
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['issues']);
+      queryClient.invalidateQueries(['myIssues']);
       queryClient.invalidateQueries(['vehicles']);
       queryClient.invalidateQueries(['news']);
       onSuccess();

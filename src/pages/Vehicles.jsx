@@ -172,7 +172,7 @@ export default function Vehicles() {
               </TabsTrigger>
               <TabsTrigger value="rapporter" className="gap-2">
                 📋
-                Rapporter
+                Fordonsrapportering
               </TabsTrigger>
             </TabsList>
           </Tabs>

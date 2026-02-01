@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Camera, X } from "lucide-react";
+import { useQueryClient } from '@tanstack/react-query';
 
 const issueTypes = [
   { value: 'fel', label: 'Tekniskt fel' },
@@ -92,6 +93,10 @@ export default function ReportIssueModal({ open, onClose, onSuccess, vehicles, s
         image_url: formData.images?.[0] || null
       });
 
+      // Invalidate queries to refresh the list
+      queryClient.invalidateQueries(['myIssues']);
+      queryClient.invalidateQueries(['issues']);
+      
       onSuccess();
       onClose();
       setFormData({
