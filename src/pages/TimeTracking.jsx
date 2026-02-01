@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import ClockInOutCard from "@/components/time/ClockInOutCard.jsx";
+
 import WeeklyTimeView from "@/components/time/WeeklyTimeView.jsx";
 import TimeHistoryCalendar from "@/components/time/TimeHistoryCalendar.jsx";
 import LeaveRequestForm from "@/components/time/LeaveRequestForm.jsx";
@@ -16,7 +16,7 @@ import { sv } from 'date-fns/locale';
 
 export default function TimeTracking() {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('stämpla');
+  const [activeTab, setActiveTab] = useState('vecka');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function TimeTracking() {
     enabled: !!user?.email
   });
 
-  const activeEntry = timeEntries.find(entry => entry.status === 'active' || entry.status === 'paused');
+
 
   // Calculate weekly stats
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -204,25 +204,13 @@ export default function TimeTracking() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10">
-          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-6 gap-1 mb-8">
-            <TabsTrigger value="stämpla" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Stämpla</TabsTrigger>
+          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-5 gap-1 mb-8">
             <TabsTrigger value="vecka" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Vecka</TabsTrigger>
             <TabsTrigger value="kalender" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Kalender</TabsTrigger>
             <TabsTrigger value="ledighet" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Ledighet</TabsTrigger>
             <TabsTrigger value="saldo" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Saldo</TabsTrigger>
             <TabsTrigger value="justera" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Mera</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="stämpla">
-            <ClockInOutCard 
-              userEmail={user?.email}
-              activeEntry={activeEntry}
-              onUpdate={() => {
-                refetchTimeEntries();
-                queryClient.invalidateQueries({ queryKey: ['employees'] });
-              }}
-            />
-          </TabsContent>
 
           <TabsContent value="vecka">
             <WeeklyTimeView 
