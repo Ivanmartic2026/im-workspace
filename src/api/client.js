@@ -123,19 +123,24 @@ const createAuth = () => {
 
   return {
     me: async () => {
-      if (!currentUser) {
-        // I mock-läge, returnera en default-användare
-        if (API_MODE === 'mock') {
-          currentUser = {
-            id: 'user-1',
-            email: 'demo@example.com',
-            full_name: 'Demo Användare',
-            role: 'admin'
-          };
-          localStorage.setItem('app_current_user', JSON.stringify(currentUser));
-        } else {
-          throw new Error('Not authenticated');
+      // Kolla localStorage igen ifall användaren loggat in i en annan flik
+      const storedUser = typeof window !== 'undefined'
+        ? localStorage.getItem('app_current_user')
+        : null;
+
+      if (storedUser && !currentUser) {
+        try {
+          currentUser = JSON.parse(storedUser);
+        } catch (e) {
+          console.error('Failed to parse stored user:', e);
         }
+      }
+
+      if (!currentUser) {
+        // Ingen användare inloggad - kräv inloggning
+        const error = new Error('Not authenticated');
+        error.status = 401;
+        throw error;
       }
       return currentUser;
     },
