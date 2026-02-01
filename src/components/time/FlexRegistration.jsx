@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { format, addDays, startOfDay } from "date-fns";
 import { sv } from "date-fns/locale";
 
-export default function FlexRegistration({ userEmail, userName, employee }) {
+export default function FlexRegistration({ userEmail, userName, employee, onClose }) {
   const [registrationType, setRegistrationType] = useState('dag'); // 'dag' eller 'timmar'
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -51,6 +51,7 @@ export default function FlexRegistration({ userEmail, userName, employee }) {
       toast.success('Flex registrerad');
       setReason('');
       setHours('');
+      if (onClose) onClose();
     },
     onError: (error) => {
       toast.error('Kunde inte registrera flex');
