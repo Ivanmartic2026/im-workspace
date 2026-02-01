@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Bell, Sparkles, Clock as ClockIcon } from "lucide-react";
+import { Plus, Search, Bell, Sparkles } from "lucide-react";
 import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
@@ -13,6 +13,7 @@ import PushPromptBanner from "@/components/notifications/PushPromptBanner";
 import ImportantNewsAlert from "@/components/home/ImportantNewsAlert";
 import ProjectSelector from "@/components/home/ProjectSelector";
 import { Card, CardContent } from "@/components/ui/card";
+import { Clock as ClockIcon, MapPin, Briefcase } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -55,6 +56,15 @@ export default function Home() {
       return employees[0] || null;
     },
     enabled: !!user?.email
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const all = await base44.entities.Project.list('-updated_date');
+      return all.filter(p => p.status === 'pågående');
+    },
+    initialData: []
   });
 
   const activeTimeEntry = timeEntries.find(entry => entry.status === 'active');
@@ -170,11 +180,54 @@ export default function Home() {
           {/* Push Notification Prompt */}
           <PushPromptBanner user={user} />
 
+          {/* Active Clock-In Info */}
+          {activeTimeEntry && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4"
+            >
+              <Card className="border-0 shadow-sm bg-emerald-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <p className="text-sm font-semibold text-emerald-900">Instämplad</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-emerald-800">
+                      <ClockIcon className="w-4 h-4" />
+                      <span className="font-medium">{format(new Date(activeTimeEntry.clock_in_time), 'HH:mm')}</span>
+                    </div>
+                    
+                    {activeTimeEntry.project_allocations && activeTimeEntry.project_allocations.length > 0 && (
+                      <div className="flex items-center gap-2 text-sm text-emerald-800">
+                        <Briefcase className="w-4 h-4" />
+                        <span className="font-medium">
+                          {projects.find(p => p.id === activeTimeEntry.project_allocations[0]?.project_id)?.name || 'Projekt'}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {activeTimeEntry.clock_in_location && (
+                      <div className="flex items-start gap-2 text-sm text-emerald-800">
+                        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span className="line-clamp-2 font-medium">{activeTimeEntry.clock_in_location.address}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
           {/* Project Selector */}
-          <ProjectSelector 
-            selectedProjectId={selectedProjectId}
-            onProjectSelect={setSelectedProjectId}
-          />
+          {!activeTimeEntry && (
+            <ProjectSelector 
+              selectedProjectId={selectedProjectId}
+              onProjectSelect={setSelectedProjectId}
+            />
+          )}
 
           {/* Clock In Button */}
           <Card className="border-0 shadow-sm mb-6">
@@ -223,7 +276,7 @@ export default function Home() {
                   refetchTimeEntries();
                 }}
                 disabled={!activeTimeEntry && !selectedProjectId}
-                className={`w-full h-16 text-lg font-semibold transition-all ${
+                className={`w-full h-16 text-lg font-semibold transition-all rounded-2xl ${
                   activeTimeEntry 
                     ? 'bg-rose-600 hover:bg-rose-700' 
                     : selectedProjectId
