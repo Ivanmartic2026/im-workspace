@@ -2,9 +2,11 @@ import { useEffect } from 'react';
 
 export default function ServiceWorkerManager() {
   useEffect(() => {
-    // Service Worker is not supported in Base44 platform currently
-    // Disabled to prevent console errors
-    return;
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        console.log('Service Worker registration failed:', err);
+      });
+    }
   }, []);
 
   return null;
