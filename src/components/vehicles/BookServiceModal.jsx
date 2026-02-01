@@ -83,6 +83,19 @@ export default function BookServiceModal({ open, onClose, onSuccess, vehicles, s
         }]
       });
 
+      // Create news post
+      const vehicleName = vehicle?.gps_device_id || vehicle?.registration_number || 'Fordon';
+      const dateInfo = formData.workshop_date ? `\n**Datum:** ${formData.workshop_date}` : '';
+      const workshopInfo = formData.workshop ? `\n**Verkstad:** ${formData.workshop}` : '';
+      
+      await base44.entities.NewsPost.create({
+        title: `🔧 Service bokad: ${formData.title}`,
+        content: `**Fordon:** ${vehicleName}${dateInfo}${workshopInfo}\n\n${formData.description}`,
+        category: 'allmänt',
+        is_important: false,
+        image_url: formData.images?.[0] || null
+      });
+
       setFormData({
         vehicle_id: selectedVehicle?.id || '',
         title: '',

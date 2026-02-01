@@ -76,6 +76,22 @@ export default function ReportIssueModal({ open, onClose, onSuccess, vehicles, s
         }]
       });
 
+      // Create news post
+      const vehicleName = vehicle?.gps_device_id || vehicle?.registration_number || 'Fordon';
+      const severityLabels = {
+        kan_köras: 'Kan köras',
+        bör_ej_köras: 'Bör ej köras',
+        måste_stanna: 'Måste stanna'
+      };
+      
+      await base44.entities.NewsPost.create({
+        title: `🛠 Fel rapporterat: ${formData.title}`,
+        content: `**Fordon:** ${vehicleName}\n**Allvarlighetsgrad:** ${severityLabels[formData.severity]}\n\n${formData.description}`,
+        category: 'allmänt',
+        is_important: formData.severity === 'måste_stanna',
+        image_url: formData.images?.[0] || null
+      });
+
       onSuccess();
       onClose();
       setFormData({

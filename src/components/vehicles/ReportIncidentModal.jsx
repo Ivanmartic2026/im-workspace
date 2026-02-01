@@ -40,11 +40,26 @@ export default function ReportIncidentModal({ open, onClose, onSuccess, vehicles
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      return await base44.entities.MaintenanceIssue.create(data);
+      const issue = await base44.entities.MaintenanceIssue.create(data);
+      
+      // Create news post
+      const vehicle = vehicles.find(v => v.id === data.vehicle_id);
+      const vehicleName = vehicle?.gps_device_id || vehicle?.registration_number || 'Fordon';
+      
+      await base44.entities.NewsPost.create({
+        title: `🚨 Fel rapporterat: ${data.title}`,
+        content: `**Fordon:** ${vehicleName}\n**Typ:** ${data.issue_type}\n**Allvarlighetsgrad:** ${data.severity}\n\n${data.description}`,
+        category: 'allmänt',
+        is_important: data.severity === 'måste_stanna',
+        image_url: data.images?.[0] || null
+      });
+      
+      return issue;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['issues']);
       queryClient.invalidateQueries(['vehicles']);
+      queryClient.invalidateQueries(['news']);
       onSuccess();
       resetForm();
     }
