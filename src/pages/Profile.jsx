@@ -172,14 +172,33 @@ export default function Profile() {
           >
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 space-y-5">
-                <div className="space-y-2">
-                  <Label>Fullständigt namn</Label>
-                  <Input
-                    value={formData.full_name ?? user.full_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                    placeholder="För- och efternamn"
-                    className="h-11"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Förnamn</Label>
+                    <Input
+                      value={(formData.full_name ?? user.full_name)?.split(' ')[0] || ''}
+                      onChange={(e) => {
+                        const firstName = e.target.value;
+                        const lastName = (formData.full_name ?? user.full_name)?.split(' ').slice(1).join(' ') || '';
+                        setFormData(prev => ({ ...prev, full_name: `${firstName} ${lastName}`.trim() }));
+                      }}
+                      placeholder="Förnamn"
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Efternamn</Label>
+                    <Input
+                      value={(formData.full_name ?? user.full_name)?.split(' ').slice(1).join(' ') || ''}
+                      onChange={(e) => {
+                        const firstName = (formData.full_name ?? user.full_name)?.split(' ')[0] || '';
+                        const lastName = e.target.value;
+                        setFormData(prev => ({ ...prev, full_name: `${firstName} ${lastName}`.trim() }));
+                      }}
+                      placeholder="Efternamn"
+                      className="h-11"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
