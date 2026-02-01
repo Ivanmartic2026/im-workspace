@@ -23,7 +23,7 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
   const createFlexMutation = useMutation({
     mutationFn: async (flexData) => {
       const currentFlex = employee?.flex_balance || 0;
-      const newFlex = currentFlex + flexData.totalHours;
+      const newFlex = currentFlex - flexData.totalHours; // Subtract when taking flex time off
 
       // Update employee flex balance
       const employees = await base44.entities.Employee.filter({ user_email: userEmail });
@@ -39,7 +39,7 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
         date: flexData.startDate,
         clock_in_time: new Date(flexData.startDate).toISOString(),
         clock_out_time: new Date(flexData.startDate).toISOString(),
-        total_hours: flexData.totalHours,
+        total_hours: -flexData.totalHours, // Negative to show time taken off
         category: 'interntid',
         notes: `Flex: ${flexData.reason}`,
         status: 'completed'
