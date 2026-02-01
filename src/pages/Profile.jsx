@@ -9,13 +9,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Save, Loader2, Mail, Phone, MapPin, Building2, Briefcase, LogOut, Bell } from "lucide-react";
+import { Camera, Save, Loader2, Mail, Phone, MapPin, Building2, Briefcase, LogOut, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import PushNotificationSetup from '@/components/notifications/PushNotificationSetup';
+import SettingsCard from '@/components/profile/SettingsCard';
 
 const departments = ["Ledning", "HR", "Sälj", "Marknad", "IT", "Ekonomi", "Produktion", "Kundtjänst", "Övrigt"];
 
@@ -368,17 +369,8 @@ export default function Profile() {
             {/* Push Notifications */}
             <PushNotificationSetup user={user} />
 
-            {/* Notification Settings */}
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-0">
-                <Link to={createPageUrl('NotificationSettings')} className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Bell className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <span className="font-medium text-slate-900">Notisinställningar</span>
-                </Link>
-              </CardContent>
-            </Card>
+            {/* App Settings */}
+            <SettingsCard user={user} />
 
             {/* Logout */}
             <Card className="border-0 shadow-sm">
