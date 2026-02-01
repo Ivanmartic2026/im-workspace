@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Clock, Coffee, MapPin, CheckCircle, AlertTriangle, XCircle, Edit } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Coffee, MapPin, CheckCircle, AlertTriangle, XCircle, Edit, Flag } from "lucide-react";
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 import ProjectAllocationEditor from "./ProjectAllocationEditor";
+import RequestTimeAdjustmentModal from "./RequestTimeAdjustmentModal";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const statusConfig = {
   completed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Godkänd' },
@@ -21,6 +23,7 @@ const statusConfig = {
 export default function WeeklyTimeView({ timeEntries, employee }) {
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [editingEntry, setEditingEntry] = useState(null);
+  const [adjustmentEntry, setAdjustmentEntry] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: projects = [] } = useQuery({
@@ -45,6 +48,43 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
         project_allocations: allocations
       }
     });
+  };
+
+  const handleSubmitAdjustment = async (adjustmentData) => {
+    if (!adjustmentEntry) return;
+
+    try {
+      // Create an approval request
+      await base44.entities.ApprovalRequest.create({
+        type: 'time_adjustment',
+        requester_email: employee.user_email,
+        requester_name: employee.user_email,
+        related_entity_id: adjustmentEntry.id,
+        related_entity_type: 'TimeEntry',
+        description: `Tidjustering för ${format(new Date(adjustmentEntry.date), 'd MMMM yyyy', { locale: sv })}`,
+        reason: adjustmentData.reason,
+        original_data: adjustmentData.original_data,
+        requested_data: adjustmentData.requested_data,
+        status: 'pending'
+      });
+
+      // Mark the time entry as needing review
+      await base44.entities.TimeEntry.update(adjustmentEntry.id, {
+        status: 'pending_review'
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+      toast.success('Avvikelse rapporterad', {
+        description: 'Din ändring har skickats till admin för granskning'
+      });
+      setAdjustmentEntry(null);
+    } catch (error) {
+      console.error('Error submitting adjustment:', error);
+      toast.error('Kunde inte rapportera avvikelse', {
+        description: error.message
+      });
+      throw error;
+    }
   };
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
@@ -113,6 +153,14 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
         />
       )}
 
+      {/* Time Adjustment Request Modal */}
+      <RequestTimeAdjustmentModal
+        open={!!adjustmentEntry}
+        onClose={() => setAdjustmentEntry(null)}
+        timeEntry={adjustmentEntry}
+        onSubmit={handleSubmitAdjustment}
+      />
+
       {/* Day by Day */}
       {!editingEntry && (
         <div className="space-y-3">
@@ -168,14 +216,26 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
                                 {entry.total_hours?.toFixed(1)}h
                               </span>
                               {entry.status === 'completed' && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setEditingEntry(entry)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingEntry(entry)}
+                                    className="h-6 w-6 p-0"
+                                    title="Fördela tid på projekt"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setAdjustmentEntry(entry)}
+                                    className="h-6 w-6 p-0 text-amber-600 hover:text-amber-700"
+                                    title="Rapportera avvikelse"
+                                  >
+                                    <Flag className="h-3 w-3" />
+                                  </Button>
+                                </>
                               )}
                             </div>
                           </div>
