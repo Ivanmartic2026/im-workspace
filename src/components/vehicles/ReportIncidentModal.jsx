@@ -135,11 +135,18 @@ export default function ReportIncidentModal({ open, onClose, onSuccess, vehicles
                 <SelectValue placeholder="Välj fordon" />
               </SelectTrigger>
               <SelectContent>
-                {vehicles.map(vehicle => (
-                  <SelectItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.registration_number} - {vehicle.make} {vehicle.model}
-                  </SelectItem>
-                ))}
+                {vehicles.map(vehicle => {
+                  const hasGPS = vehicle.gps_device_id && vehicle.gps_device_id !== '';
+                  const displayName = hasGPS 
+                    ? `${vehicle.gps_device_id} - ${vehicle.make || ''} ${vehicle.model || ''}`.trim()
+                    : `${vehicle.registration_number} - ${vehicle.make || ''} ${vehicle.model || ''}`.trim();
+                  
+                  return (
+                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                      {displayName}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
