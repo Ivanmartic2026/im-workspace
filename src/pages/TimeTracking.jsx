@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import WeeklyTimeView from "@/components/time/WeeklyTimeView.jsx";
+import MonthlyTimeView from "@/components/time/MonthlyTimeView.jsx";
 import TimeHistoryCalendar from "@/components/time/TimeHistoryCalendar.jsx";
 import LeaveRequestForm from "@/components/time/LeaveRequestForm.jsx";
 import PersonalBalance from "@/components/time/PersonalBalance.jsx";
@@ -204,10 +205,11 @@ export default function TimeTracking() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10">
-          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-5 gap-1 mb-8">
+          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-6 gap-1 mb-8">
             <TabsTrigger value="vecka" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Vecka</TabsTrigger>
-            <TabsTrigger value="kalender" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Kalender</TabsTrigger>
-            <TabsTrigger value="ledighet" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Ledighet</TabsTrigger>
+            <TabsTrigger value="månad" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Månad</TabsTrigger>
+            <TabsTrigger value="flex" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Flex</TabsTrigger>
+            <TabsTrigger value="ledighet" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Semester</TabsTrigger>
             <TabsTrigger value="saldo" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Saldo</TabsTrigger>
             <TabsTrigger value="justera" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Mera</TabsTrigger>
           </TabsList>
@@ -215,6 +217,21 @@ export default function TimeTracking() {
           <TabsContent value="vecka">
             <WeeklyTimeView 
               timeEntries={timeEntries}
+              employee={employee}
+            />
+          </TabsContent>
+
+          <TabsContent value="månad">
+            <MonthlyTimeView 
+              timeEntries={timeEntries}
+              employee={employee}
+            />
+          </TabsContent>
+
+          <TabsContent value="flex">
+            <FlexRegistration
+              userEmail={user?.email}
+              userName={user?.full_name}
               employee={employee}
             />
           </TabsContent>
@@ -254,18 +271,8 @@ export default function TimeTracking() {
                 employee={employee}
                 timeEntries={timeEntries}
               />
-              <TimeAdjustmentRequest 
-                userEmail={user?.email}
-                userName={user?.full_name}
-                timeEntries={timeEntries}
-              />
             </div>
             <div className="hidden lg:block space-y-4">
-              <FlexRegistration
-                userEmail={user?.email}
-                userName={user?.full_name}
-                employee={employee}
-              />
               <TimeAdjustmentRequest 
                 userEmail={user?.email}
                 userName={user?.full_name}
