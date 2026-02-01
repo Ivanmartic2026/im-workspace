@@ -1,13 +1,13 @@
-import { createClient } from '@base44/sdk';
-import { appParams } from '@/lib/app-params';
+// Re-export från nya API-klienten för bakåtkompatibilitet
+// Alla komponenter som importerar 'base44' kommer nu använda den nya klienten
 
-const { appId, token, functionsVersion } = appParams;
+import { api, base44 } from './client';
+import { initializeAllMockData } from './mockData';
 
-//Create a client with authentication required
-export const base44 = createClient({
-  appId,
-  token,
-  functionsVersion,
-  serverUrl: '',
-  requiresAuth: false
-});
+// Initiera mock-data om vi kör i mock-läge
+if (api.getMode() === 'mock') {
+  initializeAllMockData(api);
+}
+
+export { api, base44 };
+export default api;
