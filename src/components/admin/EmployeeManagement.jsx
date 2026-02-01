@@ -5,14 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit } from "lucide-react";
+import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import EditUserModal from './EditUserModal';
+import EditFeaturesModal from './EditFeaturesModal';
 
 export default function EmployeeManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [editingFeatures, setEditingFeatures] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: employees = [] } = useQuery({
@@ -193,10 +195,25 @@ export default function EmployeeManagement() {
                             <span>Startade {employee.start_date}</span>
                           </div>
                         )}
+
+                        {employee.assigned_features && employee.assigned_features.length > 0 && (
+                          <div className="flex items-center gap-1 mt-2 flex-wrap">
+                            {employee.assigned_features.slice(0, 3).map(feature => (
+                              <span key={feature} className="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700">
+                                {feature}
+                              </span>
+                            ))}
+                            {employee.assigned_features.length > 3 && (
+                              <span className="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">
+                                +{employee.assigned_features.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2">
                       <div className="text-right">
                         <div className="space-y-1">
                           <div>
@@ -218,8 +235,18 @@ export default function EmployeeManagement() {
                       <Button
                         size="icon"
                         variant="ghost"
+                        onClick={() => setEditingFeatures(employee)}
+                        className="h-8 w-8"
+                        title="Hantera funktioner"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => setEditingEmployee(employee)}
                         className="h-8 w-8"
+                        title="Redigera namn"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -237,6 +264,13 @@ export default function EmployeeManagement() {
           employee={editingEmployee}
           users={users}
           onClose={() => setEditingEmployee(null)}
+        />
+      )}
+
+      {editingFeatures && (
+        <EditFeaturesModal
+          employee={editingFeatures}
+          onClose={() => setEditingFeatures(null)}
         />
       )}
     </div>
