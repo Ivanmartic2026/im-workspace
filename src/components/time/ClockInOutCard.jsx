@@ -124,6 +124,11 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockIn = async () => {
+    if (!selectedProjectId) {
+      alert('Du måste välja ett projekt innan du stämplar in');
+      return;
+    }
+
     setLoading(true);
 
     // Vänta på att userEmail blir tillgänglig
@@ -602,8 +607,8 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                   )}
 
                   {!selectedProjectId && projects.length > 0 && (
-                    <p className="text-xs text-center text-slate-500 py-2">
-                      Du kan stämpla in utan projekt och välja senare
+                    <p className="text-xs text-center text-rose-600 py-2 font-medium">
+                      ⚠️ Du måste välja ett projekt innan instämpling
                     </p>
                   )}
                 </div>
