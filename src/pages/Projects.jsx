@@ -35,7 +35,9 @@ export default function Projects() {
     budget_hours: '',
     hourly_rate: '',
     project_manager_email: '',
-    is_billable: true
+    is_billable: true,
+    is_invoiced: false,
+    invoice_number: ''
   });
 
   useEffect(() => {
@@ -122,7 +124,9 @@ export default function Projects() {
       budget_hours: '',
       hourly_rate: '',
       project_manager_email: '',
-      is_billable: true
+      is_billable: true,
+      is_invoiced: false,
+      invoice_number: ''
     });
     setEditingProject(null);
   };
@@ -157,7 +161,9 @@ export default function Projects() {
       budget_hours: project.budget_hours || '',
       hourly_rate: project.hourly_rate || '',
       project_manager_email: project.project_manager_email || '',
-      is_billable: project.is_billable !== false
+      is_billable: project.is_billable !== false,
+      is_invoiced: project.is_invoiced || false,
+      invoice_number: project.invoice_number || ''
     });
     setShowModal(true);
   };
@@ -585,17 +591,47 @@ export default function Projects() {
               </Select>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
-              <input
-                type="checkbox"
-                id="is_billable"
-                checked={formData.is_billable}
-                onChange={(e) => setFormData({...formData, is_billable: e.target.checked})}
-                className="h-4 w-4 rounded border-slate-300"
-              />
-              <Label htmlFor="is_billable" className="cursor-pointer">
-                Fakturerbart projekt
-              </Label>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="is_billable"
+                  checked={formData.is_billable}
+                  onChange={(e) => setFormData({...formData, is_billable: e.target.checked})}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                <Label htmlFor="is_billable" className="cursor-pointer">
+                  Fakturerbart projekt
+                </Label>
+              </div>
+
+              {formData.status === 'avslutat' && (
+                <>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="is_invoiced"
+                      checked={formData.is_invoiced}
+                      onChange={(e) => setFormData({...formData, is_invoiced: e.target.checked})}
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                    <Label htmlFor="is_invoiced" className="cursor-pointer">
+                      Markera som fakturerat
+                    </Label>
+                  </div>
+
+                  {formData.is_invoiced && (
+                    <div className="space-y-2 pl-7">
+                      <Label>Fakturanummer</Label>
+                      <Input
+                        value={formData.invoice_number}
+                        onChange={(e) => setFormData({...formData, invoice_number: e.target.value})}
+                        placeholder="T.ex. FA-2026-001"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="flex gap-3 pt-4">
