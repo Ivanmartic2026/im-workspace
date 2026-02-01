@@ -9,10 +9,9 @@ import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
 import ViewNewsModal from "@/components/news/ViewNewsModal";
-import TimeOverview from "@/components/home/TimeOverview";
-import QuickTimeActions from "@/components/home/QuickTimeActions";
 import PushPromptBanner from "@/components/notifications/PushPromptBanner";
 import ImportantNewsAlert from "@/components/home/ImportantNewsAlert";
+import ProjectSelector from "@/components/home/ProjectSelector";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +23,9 @@ export default function Home() {
   const [viewPost, setViewPost] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('alla');
+  const [selectedProjectId, setSelectedProjectId] = useState(() => {
+    return localStorage.getItem('lastSelectedProjectId') || null;
+  });
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -168,8 +170,11 @@ export default function Home() {
           {/* Push Notification Prompt */}
           <PushPromptBanner user={user} />
 
-          {/* Time Overview */}
-          <TimeOverview timeEntries={timeEntries} employee={employee} />
+          {/* Project Selector */}
+          <ProjectSelector 
+            selectedProjectId={selectedProjectId}
+            onProjectSelect={setSelectedProjectId}
+          />
 
           {/* Clock In Button */}
           <Card className="border-0 shadow-sm mb-6">
@@ -181,38 +186,61 @@ export default function Home() {
                     const now = new Date();
                     const clockInTime = new Date(activeTimeEntry.clock_in_time);
                     const totalHours = (now - clockInTime) / (1000 * 60 * 60);
+                    const totalBreakMinutes = activeTimeEntry.total_break_minutes || 0;
+                    const netHours = totalHours - (totalBreakMinutes / 60);
                     
+                    const updatedAllocations = activeTimeEntry.project_allocations?.map(alloc => ({
+                      ...alloc,
+                      hours: Number(netHours.toFixed(2))
+                    })) || [];
+
                     await base44.entities.TimeEntry.update(activeTimeEntry.id, {
                       clock_out_time: now.toISOString(),
-                      total_hours: totalHours,
-                      status: 'completed'
+                      total_hours: Number(netHours.toFixed(2)),
+                      status: 'completed',
+                      project_allocations: updatedAllocations
                     });
                   } else {
-                    // Clock in
+                    // Clock in - requires project
+                    if (!selectedProjectId) {
+                      alert('Du måste välja ett projekt innan du stämplar in');
+                      return;
+                    }
+
                     await base44.entities.TimeEntry.create({
                       employee_email: user.email,
                       date: new Date().toISOString().split('T')[0],
                       clock_in_time: new Date().toISOString(),
-                      category: 'support_service',
-                      status: 'active'
+                      status: 'active',
+                      breaks: [],
+                      project_allocations: [{
+                        project_id: selectedProjectId,
+                        hours: 0,
+                        category: 'interntid'
+                      }]
                     });
                   }
                   refetchTimeEntries();
                 }}
-                className={`w-full h-16 text-lg font-semibold ${
+                disabled={!activeTimeEntry && !selectedProjectId}
+                className={`w-full h-16 text-lg font-semibold transition-all ${
                   activeTimeEntry 
                     ? 'bg-rose-600 hover:bg-rose-700' 
-                    : 'bg-emerald-600 hover:bg-emerald-700'
+                    : selectedProjectId
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-slate-300 cursor-not-allowed'
                 }`}
               >
                 <ClockIcon className="h-5 w-5 mr-2" />
                 {activeTimeEntry ? 'Stämpla ut' : 'Stämpla in'}
               </Button>
+              {!activeTimeEntry && !selectedProjectId && (
+                <p className="text-xs text-center text-rose-600 py-2 font-medium">
+                  ⚠️ Välj ett projekt först
+                </p>
+              )}
             </CardContent>
           </Card>
-
-          {/* Quick Actions */}
-          <QuickTimeActions user={user} employee={employee} />
 
         </motion.div>
 
