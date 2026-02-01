@@ -4,14 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Bell, Sparkles, Users } from "lucide-react";
+import { Plus, Search, Bell, Sparkles } from "lucide-react";
 import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
 import ClockInOutCard from "@/components/time/ClockInOutCard";
 import PushPromptBanner from "@/components/notifications/PushPromptBanner";
-import EditFeaturesModal from "@/components/admin/EditFeaturesModal";
-import { Card, CardContent } from "@/components/ui/card";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -21,7 +19,6 @@ export default function Home() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('alla');
-  const [editingFeatures, setEditingFeatures] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -61,26 +58,6 @@ export default function Home() {
       });
     }
   }, [activeTimeEntry]);
-
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list(),
-    enabled: user?.role === 'admin'
-  });
-
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: user?.role === 'admin'
-  });
-
-  const enrichedEmployees = employees.map(emp => {
-    const u = users.find(usr => usr.email === emp.user_email);
-    return {
-      ...emp,
-      full_name: u?.full_name || emp.user_email
-    };
-  });
 
   const updatePostMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.NewsPost.update(id, data),
@@ -205,36 +182,6 @@ export default function Home() {
             />
           </div>
 
-          {/* Employees Section - Admin only */}
-          {user?.role === 'admin' && enrichedEmployees.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="h-4 w-4 text-slate-600" />
-                <span className="text-sm font-medium text-slate-700">Anställda</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {enrichedEmployees.slice(0, 6).map(emp => (
-                  <Card 
-                    key={emp.id} 
-                    className="cursor-pointer hover:shadow-md transition-shadow border-0"
-                    onClick={() => setEditingFeatures(emp)}
-                  >
-                    <CardContent className="p-3">
-                      <p className="font-medium text-slate-900 text-sm truncate">{emp.full_name}</p>
-                      <p className="text-xs text-slate-500 truncate">{emp.department || 'Ingen avdelning'}</p>
-                      {emp.assigned_features && emp.assigned_features.length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-50 text-blue-700">
-                            {emp.assigned_features.length} funktioner
-                          </span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
 
         </motion.div>
 
@@ -307,13 +254,6 @@ export default function Home() {
         onAddComment={handleAddComment}
         currentUser={user}
       />
-
-      {editingFeatures && (
-        <EditFeaturesModal
-          employee={editingFeatures}
-          onClose={() => setEditingFeatures(null)}
-        />
-      )}
     </div>
   );
 }
