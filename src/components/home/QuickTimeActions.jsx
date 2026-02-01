@@ -49,6 +49,7 @@ export default function QuickTimeActions({ user, employee }) {
             userEmail={user?.email}
             userName={user?.full_name}
             employee={employee}
+            onClose={() => setActiveModal(null)}
           />
         </DialogContent>
       </Dialog>
@@ -79,6 +80,7 @@ export default function QuickTimeActions({ user, employee }) {
             userName={user?.full_name}
             employee={employee}
             defaultType="sjuk"
+            onClose={() => setActiveModal(null)}
           />
         </DialogContent>
       </Dialog>

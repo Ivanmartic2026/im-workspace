@@ -100,13 +100,7 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
 
   return (
     <Card className="border-0 shadow-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Clock className="h-5 w-5 text-blue-600" />
-          Registrera flex
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Typ av registrering</Label>
@@ -172,7 +166,7 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Beskriv anledningen till flexregistreringen..."
+              placeholder="Beskriv anledningen..."
               rows={3}
               required
             />
@@ -195,19 +189,6 @@ export default function FlexRegistration({ userEmail, userName, employee, onClos
               </>
             )}
           </Button>
-
-          {employee?.flex_balance !== undefined && (
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Nuvarande flexsaldo:</span>
-                <span className={`text-lg font-bold ${
-                  employee.flex_balance >= 0 ? 'text-emerald-600' : 'text-amber-600'
-                }`}>
-                  {employee.flex_balance > 0 ? '+' : ''}{employee.flex_balance.toFixed(1)}h
-                </span>
-              </div>
-            </div>
-          )}
         </form>
       </CardContent>
     </Card>
