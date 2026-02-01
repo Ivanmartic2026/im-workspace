@@ -2,12 +2,25 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar, TrendingUp, TrendingDown } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameDay, isWeekend } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameDay, isWeekend, isWithinInterval } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
-export default function MonthlyTimeView({ timeEntries, employee }) {
+export default function MonthlyTimeView({ timeEntries, employee, userEmail }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // Fetch leave requests for the user
+  const { data: leaveRequests = [] } = useQuery({
+    queryKey: ['leaveRequests', userEmail],
+    queryFn: async () => {
+      if (!userEmail) return [];
+      const requests = await base44.entities.LeaveRequest.filter({ employee_email: userEmail });
+      return requests.filter(r => r.status === 'approved');
+    },
+    enabled: !!userEmail
+  });
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -18,6 +31,23 @@ export default function MonthlyTimeView({ timeEntries, employee }) {
       isSameDay(new Date(entry.date), date) && 
       (entry.status === 'completed' || entry.status === 'approved')
     );
+  };
+
+  const getLeaveForDay = (date) => {
+    return leaveRequests.find(request => {
+      const start = new Date(request.start_date);
+      const end = new Date(request.end_date);
+      return isWithinInterval(date, { start, end });
+    });
+  };
+
+  const leaveTypeConfig = {
+    semester: { label: 'Semester', color: 'bg-blue-100 text-blue-700 border-blue-300', emoji: '🏖️' },
+    vab: { label: 'VAB', color: 'bg-purple-100 text-purple-700 border-purple-300', emoji: '👶' },
+    sjuk: { label: 'Sjuk', color: 'bg-rose-100 text-rose-700 border-rose-300', emoji: '🤒' },
+    tjänstledigt: { label: 'Tjänstledigt', color: 'bg-amber-100 text-amber-700 border-amber-300', emoji: '📋' },
+    föräldraledigt: { label: 'Föräldraledigt', color: 'bg-pink-100 text-pink-700 border-pink-300', emoji: '👨‍👩‍👧' },
+    annat: { label: 'Annat', color: 'bg-slate-100 text-slate-700 border-slate-300', emoji: '📅' }
   };
 
   const calculateDayTotal = (entries) => {
@@ -159,8 +189,11 @@ export default function MonthlyTimeView({ timeEntries, employee }) {
 
                   const entries = getEntriesForDay(day);
                   const dayTotal = calculateDayTotal(entries);
+                  const leave = getLeaveForDay(day);
                   const isToday = isSameDay(day, new Date());
                   const isWeekendDay = isWeekend(day);
+                  
+                  const leaveConfig = leave ? leaveTypeConfig[leave.type] || leaveTypeConfig.annat : null;
 
                   return (
                     <motion.div
@@ -168,21 +201,27 @@ export default function MonthlyTimeView({ timeEntries, employee }) {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: (weekIndex * 7 + dayIndex) * 0.01 }}
-                      className={`aspect-square rounded-lg p-1.5 flex flex-col items-center justify-center text-center ${
+                      className={`aspect-square rounded-lg p-1 flex flex-col items-center justify-center text-center border ${
                         isToday ? 'ring-2 ring-slate-900 bg-slate-50' : 
-                        isWeekendDay ? 'bg-slate-50/50' :
-                        dayTotal > 0 ? 'bg-emerald-50' : 
-                        'bg-white'
+                        leave ? `${leaveConfig.color} border` :
+                        isWeekendDay ? 'bg-slate-50/50 border-transparent' :
+                        dayTotal > 0 ? 'bg-emerald-50 border-transparent' : 
+                        'bg-white border-transparent'
                       }`}
                     >
                       <span className={`text-xs font-medium ${
                         isToday ? 'text-slate-900' :
+                        leave ? leaveConfig.color.split(' ')[1] :
                         dayTotal > 0 ? 'text-emerald-900' : 
                         'text-slate-500'
                       }`}>
                         {format(day, 'd')}
                       </span>
-                      {dayTotal > 0 && (
+                      {leave ? (
+                        <span className="text-[10px] leading-none mt-0.5">
+                          {leaveConfig.emoji}
+                        </span>
+                      ) : dayTotal > 0 && (
                         <span className="text-[10px] font-bold text-emerald-600 mt-0.5">
                           {dayTotal.toFixed(1)}h
                         </span>
