@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function ProjectSelector({ onProjectSelect, selectedProjectId }) {
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
-  const [newProjectData, setNewProjectData] = useState({ name: '', project_code: '' });
+  const [newProjectData, setNewProjectData] = useState({ name: '', category: 'support_service' });
   const [loading, setLoading] = useState(false);
 
   const { data: projects = [], refetch: refetchProjects } = useQuery({
@@ -24,8 +24,8 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
   });
 
   const handleCreateProject = async () => {
-    if (!newProjectData.name || !newProjectData.project_code) {
-      alert('Fyll i både projektnamn och projektkod');
+    if (!newProjectData.name) {
+      alert('Fyll i projektnamn');
       return;
     }
 
@@ -34,8 +34,9 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
       const user = await base44.auth.me();
       const newProject = await base44.entities.Project.create({
         name: newProjectData.name,
-        project_code: newProjectData.project_code,
+        project_code: newProjectData.name,
         status: 'pågående',
+        type: 'externt',
         project_manager_email: user.email
       });
       
@@ -43,7 +44,7 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
       onProjectSelect(newProject.id);
       localStorage.setItem('lastSelectedProjectId', newProject.id);
       setShowNewProjectForm(false);
-      setNewProjectData({ name: '', project_code: '' });
+      setNewProjectData({ name: '', category: 'support_service' });
     } catch (error) {
       console.error('Error creating project:', error);
       alert('Kunde inte skapa projekt: ' + error.message);
@@ -98,25 +99,41 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
               exit={{ opacity: 0, y: -10 }}
               className="space-y-3"
             >
-              <Input
-                placeholder="Projektnamn"
-                value={newProjectData.name}
-                onChange={(e) => setNewProjectData(prev => ({ ...prev, name: e.target.value }))}
-                className="h-11"
-              />
-              <Input
-                placeholder="Projektkod (t.ex. BB-Jan)"
-                value={newProjectData.project_code}
-                onChange={(e) => setNewProjectData(prev => ({ ...prev, project_code: e.target.value }))}
-                className="h-11"
-              />
-              <div className="flex gap-2">
+              <div>
+                <Label className="text-xs text-slate-600 mb-1.5 block">Projektnamn / Projektkod</Label>
+                <Input
+                  placeholder="t.ex. BB-Jan, 1001, Projekt A"
+                  value={newProjectData.name}
+                  onChange={(e) => setNewProjectData(prev => ({ ...prev, name: e.target.value }))}
+                  className="h-11"
+                />
+              </div>
+              
+              <div>
+                <Label className="text-xs text-slate-600 mb-1.5 block">Typ av arbete</Label>
+                <Select
+                  value={newProjectData.category}
+                  onValueChange={(value) => setNewProjectData(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="support_service">Service</SelectItem>
+                    <SelectItem value="install">Install</SelectItem>
+                    <SelectItem value="rental">Rental</SelectItem>
+                    <SelectItem value="interntid">Interntid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex gap-2 pt-1">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => {
                     setShowNewProjectForm(false);
-                    setNewProjectData({ name: '', project_code: '' });
+                    setNewProjectData({ name: '', category: 'support_service' });
                   }}
                   className="flex-1"
                 >
@@ -124,7 +141,7 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                 </Button>
                 <Button
                   onClick={handleCreateProject}
-                  disabled={loading || !newProjectData.name || !newProjectData.project_code}
+                  disabled={loading || !newProjectData.name}
                   className="flex-1 bg-indigo-600 hover:bg-indigo-700"
                 >
                   {loading ? (
@@ -181,9 +198,11 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                               <p className="font-semibold text-slate-900 text-sm">
                                 {project.name}
                               </p>
-                              <p className="text-xs text-slate-500 mt-0.5">
-                                {project.project_code}
-                              </p>
+                              {project.type && (
+                                <p className="text-xs text-slate-500 mt-0.5 capitalize">
+                                  {project.type === 'externt' ? 'Externt projekt' : project.type}
+                                </p>
+                              )}
                             </div>
                           </div>
                           <ChevronRight className="w-5 h-5 text-slate-400" />
