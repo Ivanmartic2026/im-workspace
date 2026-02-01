@@ -8,9 +8,11 @@ import { Plus, Search, Bell, Sparkles, Clock as ClockIcon } from "lucide-react";
 import NewsFeedCard from "@/components/news/NewsFeedCard";
 import CreateNewsModal from "@/components/news/CreateNewsModal";
 import CommentsModal from "@/components/news/CommentsModal";
+import ViewNewsModal from "@/components/news/ViewNewsModal";
 import TimeOverview from "@/components/home/TimeOverview";
 import QuickTimeActions from "@/components/home/QuickTimeActions";
 import PushPromptBanner from "@/components/notifications/PushPromptBanner";
+import ImportantNewsAlert from "@/components/home/ImportantNewsAlert";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,6 +21,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [viewPost, setViewPost] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('alla');
   const queryClient = useQueryClient();
@@ -213,27 +216,13 @@ export default function Home() {
 
         </motion.div>
 
-        {/* Important Posts */}
-        {importantPosts.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Bell className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-medium text-amber-700">Viktiga meddelanden</span>
-            </div>
-            <div className="space-y-4">
-              {importantPosts.map(post => (
-                <NewsFeedCard
-                  key={post.id}
-                  post={post}
-                  onReact={handleReact}
-                  onComment={setSelectedPost}
-                  onAcknowledge={handleAcknowledge}
-                  currentUserEmail={user?.email}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Important News Alert */}
+        <ImportantNewsAlert 
+          posts={importantPosts}
+          onAcknowledge={handleAcknowledge}
+          currentUserEmail={user?.email}
+          onViewPost={setViewPost}
+        />
 
         {/* Regular Posts */}
         <div className="space-y-4">
@@ -281,6 +270,16 @@ export default function Home() {
         post={selectedPost}
         onAddComment={handleAddComment}
         currentUser={user}
+      />
+
+      <ViewNewsModal
+        open={!!viewPost}
+        onClose={() => setViewPost(null)}
+        post={viewPost}
+        onReact={handleReact}
+        onAcknowledge={handleAcknowledge}
+        currentUserEmail={user?.email}
+        onComment={setSelectedPost}
       />
     </div>
   );
