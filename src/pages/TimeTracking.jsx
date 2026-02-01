@@ -10,6 +10,7 @@ import LeaveRequestForm from "@/components/time/LeaveRequestForm.jsx";
 import PersonalBalance from "@/components/time/PersonalBalance.jsx";
 import TimeAdjustmentRequest from "@/components/time/TimeAdjustmentRequest.jsx";
 import FlexRegistration from "@/components/time/FlexRegistration.jsx";
+import ProjectReportView from "@/components/time/ProjectReportView.jsx";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
@@ -205,9 +206,10 @@ export default function TimeTracking() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10">
-          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-3 lg:grid-cols-6 gap-1 mb-8">
+          <TabsList className="w-full h-auto p-1.5 bg-slate-100 rounded-2xl grid grid-cols-4 lg:grid-cols-7 gap-1 mb-8">
             <TabsTrigger value="vecka" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Vecka</TabsTrigger>
             <TabsTrigger value="månad" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Månad</TabsTrigger>
+            <TabsTrigger value="projekt" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900">Projekt</TabsTrigger>
             <TabsTrigger value="flex" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Flex</TabsTrigger>
             <TabsTrigger value="ledighet" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Semester</TabsTrigger>
             <TabsTrigger value="saldo" className="text-xs lg:text-sm font-medium rounded-lg transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[state=inactive]:text-slate-600 hover:text-slate-900 hidden lg:inline-flex">Saldo</TabsTrigger>
@@ -225,6 +227,13 @@ export default function TimeTracking() {
             <MonthlyTimeView 
               timeEntries={timeEntries}
               employee={employee}
+              userEmail={user?.email}
+            />
+          </TabsContent>
+
+          <TabsContent value="projekt">
+            <ProjectReportView 
+              timeEntries={timeEntries}
               userEmail={user?.email}
             />
           </TabsContent>
