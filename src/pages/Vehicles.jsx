@@ -4,16 +4,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Search, Plus, Car, Filter } from "lucide-react";
+import { Search, Plus, Car, Filter, Fuel } from "lucide-react";
 import VehicleCard from "@/components/vehicles/VehicleCard";
 import QuickActionButtons from "@/components/vehicles/QuickActionButtons";
 import FuelLogModal from "@/components/vehicles/FuelLogModal";
 import ReportIssueModal from "@/components/vehicles/ReportIssueModal";
 import ReportIncidentModal from "@/components/vehicles/ReportIncidentModal";
 import BookServiceModal from "@/components/vehicles/BookServiceModal";
+import MyFuelLogs from "@/components/vehicles/MyFuelLogs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function Vehicles() {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ export default function Vehicles() {
   const [categoryFilter, setCategoryFilter] = useState('alla');
   const [activeModal, setActiveModal] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [activeTab, setActiveTab] = useState('fordon');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -155,13 +158,30 @@ export default function Vehicles() {
             </div>
           </div>
 
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList className="grid w-full grid-cols-2 h-11">
+              <TabsTrigger value="fordon" className="gap-2">
+                <Car className="h-4 w-4" />
+                Fordon
+              </TabsTrigger>
+              <TabsTrigger value="tankningar" className="gap-2">
+                <Fuel className="h-4 w-4" />
+                Mina tankningar
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           {/* Quick Actions */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-slate-700 mb-3">Snabbåtgärder</h3>
-            <QuickActionButtons onAction={handleQuickAction} />
-          </div>
+          {activeTab === 'fordon' && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-slate-700 mb-3">Snabbåtgärder</h3>
+              <QuickActionButtons onAction={handleQuickAction} />
+            </div>
+          )}
 
           {/* Category Filter */}
+          {activeTab === 'fordon' && (
           <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
             {['alla', 'personbil', 'lätt lastbil', 'lastbil', 'skåpbil', 'specialfordon'].map(cat => (
               <button
@@ -177,8 +197,10 @@ export default function Vehicles() {
               </button>
             ))}
           </div>
+          )}
 
           {/* Search */}
+          {activeTab === 'fordon' && (
           <div className="relative mb-4">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
@@ -186,11 +208,16 @@ export default function Vehicles() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-11 h-12 rounded-2xl border-0 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-slate-200"
-              />
-              </div>
+            />
+          </div>
+          )}
         </motion.div>
 
-        {/* Vehicle List */}
+        {/* Content based on active tab */}
+        {activeTab === 'tankningar' ? (
+          <MyFuelLogs userEmail={user?.email} />
+        ) : (
+          /* Vehicle List */
         <div className="space-y-3">
           <AnimatePresence mode="popLayout">
             {isLoading ? (
@@ -224,6 +251,7 @@ export default function Vehicles() {
             )}
           </AnimatePresence>
         </div>
+        )}
       </div>
 
       {/* Modals */}
