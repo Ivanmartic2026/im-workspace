@@ -20,7 +20,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   const [onBreak, setOnBreak] = useState(false);
   const [breakStart, setBreakStart] = useState(null);
   const [showProjectAllocation, setShowProjectAllocation] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState(() => {
+    const saved = localStorage.getItem('lastSelectedProjectId');
+    return saved || null;
+  });
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
   const [newProjectData, setNewProjectData] = useState({ name: '', project_code: '' });
 
@@ -53,6 +56,7 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       
       await refetchProjects();
       setSelectedProjectId(newProject.id);
+      localStorage.setItem('lastSelectedProjectId', newProject.id);
       setShowNewProjectForm(false);
       setNewProjectData({ name: '', project_code: '' });
     } catch (error) {
@@ -120,6 +124,11 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockIn = async () => {
+    if (!selectedProjectId) {
+      alert('Du måste välja ett projekt innan du stämplar in');
+      return;
+    }
+
     setLoading(true);
 
     // Vänta på att userEmail blir tillgänglig
@@ -170,7 +179,8 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
       
       await base44.entities.TimeEntry.create(entryData);
       
-      setSelectedProjectId(null);
+      // Spara projekt för nästa gång
+      localStorage.setItem('lastSelectedProjectId', selectedProjectId);
       onUpdate();
     } catch (error) {
       console.error('Error clocking in:', error);
@@ -557,13 +567,17 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                   ) : (
                     <Select
                       value={selectedProjectId || ""}
-                      onValueChange={(value) => setSelectedProjectId(value || null)}
+                      onValueChange={(value) => {
+                        setSelectedProjectId(value || null);
+                        if (value) {
+                          localStorage.setItem('lastSelectedProjectId', value);
+                        }
+                      }}
                     >
                       <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Välj ett projekt (valfritt)" />
+                        <SelectValue placeholder="Välj ett projekt *" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>Inget projekt</SelectItem>
                         {projects.map(project => (
                           <SelectItem key={project.id} value={project.id}>
                             <div className="flex flex-col">
@@ -592,8 +606,8 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                   )}
 
                   {!selectedProjectId && projects.length > 0 && (
-                    <p className="text-xs text-center text-slate-500 py-2">
-                      Du kan stämpla in utan projekt och välja senare
+                    <p className="text-xs text-center text-rose-500 py-2 font-medium">
+                      Du måste välja ett projekt innan du stämplar in
                     </p>
                   )}
                 </div>
