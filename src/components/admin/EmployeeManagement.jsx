@@ -5,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, UserPlus, Mail, Briefcase, Calendar } from "lucide-react";
+import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit } from "lucide-react";
 import { motion } from "framer-motion";
+import EditUserModal from './EditUserModal';
 
 export default function EmployeeManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: employees = [] } = useQuery({
@@ -194,23 +196,33 @@ export default function EmployeeManagement() {
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <div className="space-y-1">
-                        <div>
-                          <p className="text-xs text-slate-500">Arbetstid/dag</p>
-                          <p className="text-sm font-semibold text-slate-900">
-                            {employee.normal_work_hours_per_day || 8}h
-                          </p>
-                        </div>
-                        {employee.vacation_balance !== undefined && (
+                    <div className="flex items-start gap-3">
+                      <div className="text-right">
+                        <div className="space-y-1">
                           <div>
-                            <p className="text-xs text-slate-500">Semester</p>
-                            <p className="text-sm font-semibold text-emerald-600">
-                              {employee.vacation_balance} dagar
+                            <p className="text-xs text-slate-500">Arbetstid/dag</p>
+                            <p className="text-sm font-semibold text-slate-900">
+                              {employee.normal_work_hours_per_day || 8}h
                             </p>
                           </div>
-                        )}
+                          {employee.vacation_balance !== undefined && (
+                            <div>
+                              <p className="text-xs text-slate-500">Semester</p>
+                              <p className="text-sm font-semibold text-emerald-600">
+                                {employee.vacation_balance} dagar
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setEditingEmployee(employee)}
+                        className="h-8 w-8"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -219,6 +231,14 @@ export default function EmployeeManagement() {
           ))
         )}
       </div>
+
+      {editingEmployee && (
+        <EditUserModal
+          employee={editingEmployee}
+          users={users}
+          onClose={() => setEditingEmployee(null)}
+        />
+      )}
     </div>
   );
 }

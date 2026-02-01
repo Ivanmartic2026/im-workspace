@@ -47,14 +47,21 @@ export default function Profile() {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
+      // Update user full_name if it changed
+      if (data.full_name && data.full_name !== user.full_name) {
+        await base44.auth.updateMe({ full_name: data.full_name });
+      }
+      
       if (employee) {
         return base44.entities.Employee.update(employee.id, data);
       } else {
         return base44.entities.Employee.create({ ...data, user_email: user.email });
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['myEmployee'] });
+      const updatedUser = await base44.auth.me();
+      setUser(updatedUser);
       setIsEditing(false);
     },
   });
@@ -162,6 +169,16 @@ export default function Profile() {
           >
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6 space-y-5">
+                <div className="space-y-2">
+                  <Label>Fullständigt namn</Label>
+                  <Input
+                    value={formData.full_name ?? user.full_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                    placeholder="För- och efternamn"
+                    className="h-11"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Telefon</Label>

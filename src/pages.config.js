@@ -52,6 +52,7 @@ import Admin from './pages/Admin';
 import AdminTimeSystem from './pages/AdminTimeSystem';
 import AllVehicles from './pages/AllVehicles';
 import Chat from './pages/Chat';
+import Documentation from './pages/Documentation';
 import Documents from './pages/Documents';
 import DrivingJournal from './pages/DrivingJournal';
 import DrivingJournalReports from './pages/DrivingJournalReports';
@@ -81,7 +82,6 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import Documentation from './pages/Documentation';
 import __Layout from './Layout.jsx';
 
 
@@ -91,6 +91,7 @@ export const PAGES = {
     "AdminTimeSystem": AdminTimeSystem,
     "AllVehicles": AllVehicles,
     "Chat": Chat,
+    "Documentation": Documentation,
     "Documents": Documents,
     "DrivingJournal": DrivingJournal,
     "DrivingJournalReports": DrivingJournalReports,
@@ -120,7 +121,6 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "Documentation": Documentation,
 }
 
 export const pagesConfig = {
