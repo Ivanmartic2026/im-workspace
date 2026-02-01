@@ -25,9 +25,7 @@ export default function Home() {
   const [viewPost, setViewPost] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('alla');
-  const [selectedProjectId, setSelectedProjectId] = useState(() => {
-    return localStorage.getItem('lastSelectedProjectId') || null;
-  });
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
