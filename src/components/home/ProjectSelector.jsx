@@ -53,36 +53,50 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
 
   const selectedProject = projects.find(p => p.id === selectedProjectId);
 
-  return (
-    <Card className="border-0 shadow-sm mb-6">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Briefcase className="w-4 h-4" />
-            Aktuella projekt
-          </Label>
-          {!showNewProjectForm && (
+  if (selectedProject && !showNewProjectForm) {
+    return (
+      <Card className="border-0 shadow-sm mb-4">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Briefcase className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Valt projekt</p>
+                <p className="font-semibold text-slate-900">{selectedProject.name}</p>
+              </div>
+            </div>
             <Button
-              type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setShowNewProjectForm(true)}
-              className="h-8 text-xs text-indigo-600 hover:text-indigo-700"
+              onClick={() => onProjectSelect(null)}
+              className="text-xs text-slate-600"
             >
-              <Plus className="w-3 h-3 mr-1" />
-              Nytt projekt
+              Byt
             </Button>
-          )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-0 shadow-sm mb-4">
+      <CardContent className="p-4">
+        <div className="mb-4">
+          <h3 className="font-semibold text-slate-900 mb-1">Välj projekt</h3>
+          <p className="text-xs text-slate-500">Välj vilket projekt du ska arbeta på</p>
         </div>
 
         <AnimatePresence mode="wait">
           {showNewProjectForm ? (
             <motion.div
               key="form"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-3 overflow-hidden"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-3"
             >
               <Input
                 placeholder="Projektnamn"
@@ -91,7 +105,7 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                 className="h-11"
               />
               <Input
-                placeholder="Projektkod (t.ex. PRJ001)"
+                placeholder="Projektkod (t.ex. BB-Jan)"
                 value={newProjectData.project_code}
                 onChange={(e) => setNewProjectData(prev => ({ ...prev, project_code: e.target.value }))}
                 className="h-11"
@@ -104,14 +118,14 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                     setShowNewProjectForm(false);
                     setNewProjectData({ name: '', project_code: '' });
                   }}
-                  className="flex-1 h-11"
+                  className="flex-1"
                 >
                   Avbryt
                 </Button>
                 <Button
                   onClick={handleCreateProject}
                   disabled={loading || !newProjectData.name || !newProjectData.project_code}
-                  className="flex-1 h-11 bg-indigo-600 hover:bg-indigo-700"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
                 >
                   {loading ? (
                     <>
@@ -119,10 +133,7 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                       Skapar...
                     </>
                   ) : (
-                    <>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Skapa
-                    </>
+                    'Skapa'
                   )}
                 </Button>
               </div>
@@ -133,83 +144,66 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              className="space-y-2"
             >
               {projects.length === 0 ? (
                 <div className="text-center py-8 px-4 bg-slate-50 rounded-xl">
                   <Briefcase className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-sm text-slate-600 mb-3">Inga projekt än</p>
+                  <p className="text-sm text-slate-600 mb-3">Inga projekt ännu</p>
                   <Button
                     onClick={() => setShowNewProjectForm(true)}
                     size="sm"
-                    className="h-9 bg-indigo-600 hover:bg-indigo-700"
+                    className="bg-indigo-600 hover:bg-indigo-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Skapa ditt första projekt
+                    Skapa projekt
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
-                  {projects.map((project) => (
-                    <motion.button
-                      key={project.id}
-                      onClick={() => {
-                        onProjectSelect(project.id);
-                        localStorage.setItem('lastSelectedProjectId', project.id);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl transition-all ${
-                        selectedProjectId === project.id
-                          ? 'bg-indigo-50 border-2 border-indigo-500'
-                          : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'
-                      }`}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className={`font-medium text-sm ${
-                            selectedProjectId === project.id ? 'text-indigo-900' : 'text-slate-900'
-                          }`}>
-                            {project.name}
-                          </p>
-                          <p className={`text-xs mt-0.5 ${
-                            selectedProjectId === project.id ? 'text-indigo-600' : 'text-slate-500'
-                          }`}>
-                            {project.project_code}
-                          </p>
+                <>
+                  <div className="grid grid-cols-1 gap-2 max-h-[280px] overflow-y-auto pr-1">
+                    {projects.map((project) => (
+                      <motion.button
+                        key={project.id}
+                        onClick={() => {
+                          onProjectSelect(project.id);
+                          localStorage.setItem('lastSelectedProjectId', project.id);
+                        }}
+                        className="w-full text-left p-4 rounded-xl bg-white border-2 border-slate-200 hover:border-indigo-400 hover:shadow-sm transition-all"
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                              <Briefcase className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-900 text-sm">
+                                {project.name}
+                              </p>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {project.project_code}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-slate-400" />
                         </div>
-                        {selectedProjectId === project.id && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center"
-                          >
-                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </motion.div>
-                        )}
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNewProjectForm(true)}
+                    className="w-full border-2 border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nytt projekt
+                  </Button>
+                </>
               )}
             </motion.div>
           )}
         </AnimatePresence>
-
-        {selectedProject && !showNewProjectForm && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200"
-          >
-            <p className="text-xs text-emerald-800 font-medium flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Redo att stämpla in på {selectedProject.name}
-            </p>
-          </motion.div>
-        )}
       </CardContent>
     </Card>
   );
