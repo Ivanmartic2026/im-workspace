@@ -52,10 +52,13 @@ export default function Profile() {
         await base44.auth.updateMe({ full_name: data.full_name });
       }
       
+      // Remove full_name from employee data
+      const { full_name, ...employeeData } = data;
+      
       if (employee) {
-        return base44.entities.Employee.update(employee.id, data);
+        return base44.entities.Employee.update(employee.id, employeeData);
       } else {
-        return base44.entities.Employee.create({ ...data, user_email: user.email });
+        return base44.entities.Employee.create({ ...employeeData, user_email: user.email });
       }
     },
     onSuccess: async () => {
