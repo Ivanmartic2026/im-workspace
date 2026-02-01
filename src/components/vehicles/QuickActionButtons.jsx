@@ -23,10 +23,10 @@ export default function QuickActionButtons({ onAction }) {
           >
             <Button
               onClick={() => onAction(action.id)}
-              className={`w-full h-20 ${action.color} text-white border-0 shadow-md hover:shadow-lg transition-all flex flex-col items-center justify-center gap-2 rounded-2xl`}
+              className={`w-full h-20 ${action.color} text-white border-0 shadow-md hover:shadow-lg transition-all flex flex-col items-center justify-center gap-1 rounded-2xl px-2`}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-sm font-medium">{action.label}</span>
+              <Icon className="h-5 w-5 flex-shrink-0" />
+              <span className="text-xs font-medium line-clamp-2 text-center leading-tight">{action.label}</span>
             </Button>
           </motion.div>
         );
