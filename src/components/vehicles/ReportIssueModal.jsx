@@ -22,6 +22,7 @@ const issueTypes = [
 ];
 
 export default function ReportIssueModal({ open, onClose, onSuccess, vehicles, selectedVehicle, userEmail }) {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
