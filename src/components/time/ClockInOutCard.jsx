@@ -124,11 +124,6 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
   };
 
   const handleClockIn = async () => {
-    if (!selectedProjectId) {
-      alert('Du måste välja ett projekt innan du stämplar in');
-      return;
-    }
-
     setLoading(true);
 
     // Vänta på att userEmail blir tillgänglig
@@ -575,9 +570,10 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                       }}
                     >
                       <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Välj ett projekt *" />
+                        <SelectValue placeholder="Välj ett projekt (valfritt)" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value={null}>Inget projekt</SelectItem>
                         {projects.map(project => (
                           <SelectItem key={project.id} value={project.id}>
                             <div className="flex flex-col">
@@ -606,8 +602,8 @@ export default function ClockInOutCard({ userEmail, activeEntry, onUpdate }) {
                   )}
 
                   {!selectedProjectId && projects.length > 0 && (
-                    <p className="text-xs text-center text-rose-500 py-2 font-medium">
-                      Du måste välja ett projekt innan du stämplar in
+                    <p className="text-xs text-center text-slate-500 py-2">
+                      Du kan stämpla in utan projekt och välja senare
                     </p>
                   )}
                 </div>
