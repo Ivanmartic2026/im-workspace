@@ -8,6 +8,7 @@ import TimeHistoryCalendar from "@/components/time/TimeHistoryCalendar.jsx";
 import LeaveRequestForm from "@/components/time/LeaveRequestForm.jsx";
 import PersonalBalance from "@/components/time/PersonalBalance.jsx";
 import TimeAdjustmentRequest from "@/components/time/TimeAdjustmentRequest.jsx";
+import FlexRegistration from "@/components/time/FlexRegistration.jsx";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
@@ -251,6 +252,11 @@ export default function TimeTracking() {
 
           <TabsContent value="justera">
             <div className="lg:hidden space-y-4">
+              <FlexRegistration
+                userEmail={user?.email}
+                userName={user?.full_name}
+                employee={employee}
+              />
               <LeaveRequestForm 
                 userEmail={user?.email}
                 userName={user?.full_name}
@@ -266,7 +272,12 @@ export default function TimeTracking() {
                 timeEntries={timeEntries}
               />
             </div>
-            <div className="hidden lg:block">
+            <div className="hidden lg:block space-y-4">
+              <FlexRegistration
+                userEmail={user?.email}
+                userName={user?.full_name}
+                employee={employee}
+              />
               <TimeAdjustmentRequest 
                 userEmail={user?.email}
                 userName={user?.full_name}
