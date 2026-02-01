@@ -29,6 +29,8 @@ import BulkNotifications from '@/components/admin/BulkNotifications';
 import AutomationSettings from '@/components/admin/AutomationSettings';
 import RealtimeDashboard from '@/components/admin/RealtimeDashboard';
 import DetailedProjectReports from '@/components/admin/DetailedProjectReports';
+import AllVehicleReports from '@/components/admin/AllVehicleReports';
+import AllFuelLogs from '@/components/admin/AllFuelLogs';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -167,8 +169,26 @@ export default function Admin() {
             {/* Vehicles Tab */}
             <TabsContent value="vehicles" className="space-y-4">
               <h2 className="text-lg font-semibold text-slate-900 mb-4">Fordonshantering</h2>
-              <VehicleManagement />
-              <StaffLocationMap />
+              <Tabs defaultValue="management">
+                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1 mb-4">
+                  <TabsTrigger value="management" className="rounded-md">Fordonshantering</TabsTrigger>
+                  <TabsTrigger value="reports" className="rounded-md">Alla rapporter</TabsTrigger>
+                  <TabsTrigger value="fuel" className="rounded-md">Alla tankningar</TabsTrigger>
+                  <TabsTrigger value="location" className="rounded-md">Platskarta</TabsTrigger>
+                </TabsList>
+                <TabsContent value="management">
+                  <VehicleManagement />
+                </TabsContent>
+                <TabsContent value="reports">
+                  <AllVehicleReports />
+                </TabsContent>
+                <TabsContent value="fuel">
+                  <AllFuelLogs />
+                </TabsContent>
+                <TabsContent value="location">
+                  <StaffLocationMap />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             {/* Bluetooth Tab */}
