@@ -13,7 +13,8 @@ import PushPromptBanner from "@/components/notifications/PushPromptBanner";
 import ImportantNewsAlert from "@/components/home/ImportantNewsAlert";
 import ProjectSelector from "@/components/home/ProjectSelector";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock as ClockIcon, MapPin, Briefcase } from "lucide-react";
+import { Clock as ClockIcon, MapPin, Briefcase, Loader2 } from "lucide-react";
+import { format } from "date-fns";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -27,6 +28,7 @@ export default function Home() {
   const [selectedProjectId, setSelectedProjectId] = useState(() => {
     return localStorage.getItem('lastSelectedProjectId') || null;
   });
+  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -150,6 +152,44 @@ export default function Home() {
   const importantPosts = filteredPosts.filter(p => p.is_important);
   const regularPosts = filteredPosts.filter(p => !p.is_important);
 
+  const getLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolokalisering stöds inte'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=sv`
+            );
+            const data = await response.json();
+            
+            resolve({
+              latitude,
+              longitude,
+              address: data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            });
+          } catch (error) {
+            resolve({
+              latitude,
+              longitude,
+              address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            });
+          }
+        },
+        (error) => {
+          reject(error);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
@@ -234,48 +274,84 @@ export default function Home() {
             <CardContent className="p-0">
               <Button
                 onClick={async () => {
-                  if (activeTimeEntry) {
-                    // Clock out
-                    const now = new Date();
-                    const clockInTime = new Date(activeTimeEntry.clock_in_time);
-                    const totalHours = (now - clockInTime) / (1000 * 60 * 60);
-                    const totalBreakMinutes = activeTimeEntry.total_break_minutes || 0;
-                    const netHours = totalHours - (totalBreakMinutes / 60);
-                    
-                    const updatedAllocations = activeTimeEntry.project_allocations?.map(alloc => ({
-                      ...alloc,
-                      hours: Number(netHours.toFixed(2))
-                    })) || [];
+                  setLoading(true);
+                  try {
+                    if (activeTimeEntry) {
+                      // Clock out with location
+                      let location;
+                      try {
+                        location = await getLocation();
+                      } catch (locError) {
+                        console.warn('Could not get location:', locError);
+                        location = null;
+                      }
 
-                    await base44.entities.TimeEntry.update(activeTimeEntry.id, {
-                      clock_out_time: now.toISOString(),
-                      total_hours: Number(netHours.toFixed(2)),
-                      status: 'completed',
-                      project_allocations: updatedAllocations
-                    });
-                  } else {
-                    // Clock in - requires project
-                    if (!selectedProjectId) {
-                      alert('Du måste välja ett projekt innan du stämplar in');
-                      return;
+                      const now = new Date();
+                      const clockInTime = new Date(activeTimeEntry.clock_in_time);
+                      const totalHours = (now - clockInTime) / (1000 * 60 * 60);
+                      const totalBreakMinutes = activeTimeEntry.total_break_minutes || 0;
+                      const netHours = totalHours - (totalBreakMinutes / 60);
+                      
+                      const updatedAllocations = activeTimeEntry.project_allocations?.map(alloc => ({
+                        ...alloc,
+                        hours: Number(netHours.toFixed(2))
+                      })) || [];
+
+                      const updateData = {
+                        clock_out_time: now.toISOString(),
+                        total_hours: Number(netHours.toFixed(2)),
+                        status: 'completed',
+                        project_allocations: updatedAllocations
+                      };
+
+                      if (location) {
+                        updateData.clock_out_location = location;
+                      }
+
+                      await base44.entities.TimeEntry.update(activeTimeEntry.id, updateData);
+                    } else {
+                      // Clock in - requires project and gets location
+                      if (!selectedProjectId) {
+                        alert('Du måste välja ett projekt innan du stämplar in');
+                        setLoading(false);
+                        return;
+                      }
+
+                      let location;
+                      try {
+                        location = await getLocation();
+                      } catch (locError) {
+                        console.warn('Could not get location:', locError);
+                        location = null;
+                      }
+
+                      const entryData = {
+                        employee_email: user.email,
+                        date: new Date().toISOString().split('T')[0],
+                        clock_in_time: new Date().toISOString(),
+                        status: 'active',
+                        breaks: [],
+                        project_allocations: [{
+                          project_id: selectedProjectId,
+                          hours: 0,
+                          category: 'interntid'
+                        }]
+                      };
+
+                      if (location) {
+                        entryData.clock_in_location = location;
+                      }
+
+                      await base44.entities.TimeEntry.create(entryData);
                     }
-
-                    await base44.entities.TimeEntry.create({
-                      employee_email: user.email,
-                      date: new Date().toISOString().split('T')[0],
-                      clock_in_time: new Date().toISOString(),
-                      status: 'active',
-                      breaks: [],
-                      project_allocations: [{
-                        project_id: selectedProjectId,
-                        hours: 0,
-                        category: 'interntid'
-                      }]
-                    });
+                    await refetchTimeEntries();
+                  } catch (error) {
+                    console.error('Error:', error);
+                    alert('Kunde inte slutföra åtgärden: ' + error.message);
                   }
-                  refetchTimeEntries();
+                  setLoading(false);
                 }}
-                disabled={!activeTimeEntry && !selectedProjectId}
+                disabled={(!activeTimeEntry && !selectedProjectId) || loading}
                 className={`w-full h-16 text-lg font-semibold transition-all rounded-2xl ${
                   activeTimeEntry 
                     ? 'bg-rose-600 hover:bg-rose-700' 
@@ -284,8 +360,17 @@ export default function Home() {
                     : 'bg-slate-300 cursor-not-allowed'
                 }`}
               >
-                <ClockIcon className="h-5 w-5 mr-2" />
-                {activeTimeEntry ? 'Stämpla ut' : 'Stämpla in'}
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    {activeTimeEntry ? 'Stämplar ut...' : 'Stämplar in...'}
+                  </>
+                ) : (
+                  <>
+                    <ClockIcon className="h-5 w-5 mr-2" />
+                    {activeTimeEntry ? 'Stämpla ut' : 'Stämpla in'}
+                  </>
+                )}
               </Button>
               {!activeTimeEntry && !selectedProjectId && (
                 <p className="text-xs text-center text-rose-600 py-2 font-medium">
