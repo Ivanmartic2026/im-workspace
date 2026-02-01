@@ -36,11 +36,9 @@ export default function MyIssues({ userEmail }) {
   const { data: issues = [], isLoading } = useQuery({
     queryKey: ['myIssues', userEmail],
     queryFn: async () => {
-      if (!userEmail) return [];
       const allIssues = await base44.entities.MaintenanceIssue.list('-created_date', 100);
-      return allIssues.filter(issue => issue.created_by === userEmail);
-    },
-    enabled: !!userEmail
+      return allIssues;
+    }
   });
 
   const { data: vehicles = [] } = useQuery({
@@ -84,7 +82,7 @@ export default function MyIssues({ userEmail }) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-slate-700 mb-3">Mina rapporteringar</h3>
+      <h3 className="text-sm font-medium text-slate-700 mb-3">Alla rapporteringar</h3>
       {issues.map((issue, index) => {
         const IssueIcon = issueTypeIcons[issue.issue_type] || HelpCircle;
         const status = statusConfig[issue.status] || statusConfig.ny;
