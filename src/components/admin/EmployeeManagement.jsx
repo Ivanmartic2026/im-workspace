@@ -5,16 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit, Settings } from "lucide-react";
+import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit, Settings, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import EditUserModal from './EditUserModal';
 import EditFeaturesModal from './EditFeaturesModal';
+import CreateUserModal from './CreateUserModal';
 
 export default function EmployeeManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editingFeatures, setEditingFeatures] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: employees = [] } = useQuery({
@@ -104,6 +106,15 @@ export default function EmployeeManagement() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add User Button */}
+      <Button
+        onClick={() => setShowCreateModal(true)}
+        className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800"
+      >
+        <Plus className="h-5 w-5 mr-2" />
+        Lägg till ny användare
+      </Button>
 
       {/* Filters */}
       <div className="space-y-3">
@@ -271,6 +282,12 @@ export default function EmployeeManagement() {
         <EditFeaturesModal
           employee={editingFeatures}
           onClose={() => setEditingFeatures(null)}
+        />
+      )}
+
+      {showCreateModal && (
+        <CreateUserModal
+          onClose={() => setShowCreateModal(false)}
         />
       )}
     </div>

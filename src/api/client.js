@@ -146,14 +146,32 @@ const createAuth = () => {
     },
 
     login: async (email, password) => {
-      // I mock-läge, acceptera vilken inloggning som helst
+      // I mock-läge, verifiera mot User-entiteten
       if (API_MODE === 'mock') {
-        currentUser = {
-          id: 'user-1',
-          email: email,
-          full_name: email.split('@')[0],
-          role: 'admin'
-        };
+        const users = mockStorage.get('User') || [];
+        const user = users.find(u => u.email === email);
+
+        if (user) {
+          // Användare finns - verifiera lösenord (i mock-läge är alla lösenord ok)
+          currentUser = {
+            id: user.id,
+            email: user.email,
+            full_name: user.full_name,
+            role: user.role || 'user'
+          };
+        } else {
+          // Ingen användare hittades - skapa en ny demo-användare om det är demo@example.com
+          if (email === 'demo@example.com') {
+            currentUser = {
+              id: 'user-1',
+              email: email,
+              full_name: 'Demo Användare',
+              role: 'admin'
+            };
+          } else {
+            throw new Error('Användaren finns inte. Kontakta administratören.');
+          }
+        }
         localStorage.setItem('app_current_user', JSON.stringify(currentUser));
         return currentUser;
       }
