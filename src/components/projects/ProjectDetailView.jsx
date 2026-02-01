@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Users, Clock, TrendingUp, CheckCircle2, AlertCircle, 
-  Calendar, DollarSign, BarChart3, Plus, User, Navigation
+  Calendar, DollarSign, BarChart3, Plus, User, Navigation, MapPin, ChevronDown
 } from "lucide-react";
 import { format, parseISO, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -21,6 +21,7 @@ import ProjectExpenses from './ProjectExpenses';
 
 export default function ProjectDetailView({ project, onClose }) {
   const [showAddTask, setShowAddTask] = useState(false);
+  const [expandedEntry, setExpandedEntry] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: tasks = [] } = useQuery({
@@ -276,21 +277,61 @@ export default function ProjectDetailView({ project, onClose }) {
                       });
 
                       return (
-                        <div key={dayKey} className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Calendar className="h-4 w-4 text-indigo-600" />
-                            <div>
-                              <p className="text-sm font-medium text-indigo-900">
-                                {format(parseISO(dayKey), 'd MMM yyyy', { locale: sv })}
-                              </p>
-                              <p className="text-xs text-indigo-600">
-                                {employeeNames.join(', ')}
-                              </p>
+                        <div key={dayKey}>
+                          <button
+                            onClick={() => setExpandedEntry(expandedEntry === dayKey ? null : dayKey)}
+                            className="w-full flex items-center justify-between p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Calendar className="h-4 w-4 text-indigo-600" />
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-indigo-900">
+                                  {format(parseISO(dayKey), 'd MMM yyyy', { locale: sv })}
+                                </p>
+                                <p className="text-xs text-indigo-600">
+                                  {employeeNames.join(', ')}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-indigo-900">{totalHours.toFixed(1)}h</p>
-                          </div>
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <p className="text-sm font-bold text-indigo-900">{totalHours.toFixed(1)}h</p>
+                              </div>
+                              <ChevronDown className={`h-4 w-4 text-indigo-600 transition-transform ${expandedEntry === dayKey ? 'rotate-180' : ''}`} />
+                            </div>
+                          </button>
+
+                          {expandedEntry === dayKey && (
+                            <div className="mt-2 space-y-2 pl-3 border-l-2 border-indigo-200">
+                              {dayEntries.map((entry, idx) => (
+                                <div key={idx} className="bg-white p-3 rounded-lg text-xs">
+                                  <p className="font-medium text-slate-900 mb-2">
+                                    {users.find(u => u.email === entry.employee_email)?.full_name || entry.employee_email}
+                                  </p>
+                                  <div className="space-y-1 text-slate-600">
+                                    {entry.clock_in_location && (
+                                      <div className="flex items-start gap-2">
+                                        <MapPin className="h-3 w-3 text-green-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                          <p className="font-medium text-slate-700">Incheckat:</p>
+                                          <p>{entry.clock_in_location.address || `${entry.clock_in_location.latitude?.toFixed(5)}, ${entry.clock_in_location.longitude?.toFixed(5)}`}</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {entry.clock_out_location && (
+                                      <div className="flex items-start gap-2">
+                                        <MapPin className="h-3 w-3 text-red-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                          <p className="font-medium text-slate-700">Utcheckat:</p>
+                                          <p>{entry.clock_out_location.address || `${entry.clock_out_location.latitude?.toFixed(5)}, ${entry.clock_out_location.longitude?.toFixed(5)}`}</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
