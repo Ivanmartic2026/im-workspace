@@ -4,6 +4,8 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Base path för GitHub Pages
+  base: '/im-workspace/',
   logLevel: 'error',
   plugins: [
     react(),
