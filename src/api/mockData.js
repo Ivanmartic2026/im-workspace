@@ -3,6 +3,14 @@
 
 export const mockUsers = [
   {
+    id: 'user-admin',
+    email: 'ivan@imvision.se',
+    full_name: 'Ivan',
+    role: 'admin',
+    password: 'IM2025',
+    created_date: '2024-01-01T08:00:00Z'
+  },
+  {
     id: 'user-1',
     email: 'anna.andersson@example.com',
     full_name: 'Anna Andersson',
@@ -33,6 +41,19 @@ export const mockUsers = [
 ];
 
 export const mockEmployees = [
+  {
+    id: 'emp-admin',
+    user_email: 'ivan@imvision.se',
+    first_name: 'Ivan',
+    last_name: '',
+    department: 'Administration',
+    position: 'Administratör',
+    phone: '',
+    start_date: '2024-01-01',
+    status: 'active',
+    assigned_features: ['TimeTracking', 'Vehicles', 'GPS', 'DrivingJournal', 'Manuals', 'Chat', 'Reports'],
+    created_date: '2024-01-01T08:00:00Z'
+  },
   {
     id: 'emp-1',
     user_email: 'anna.andersson@example.com',
