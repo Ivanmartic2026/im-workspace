@@ -377,7 +377,7 @@ export default function Home() {
               </Button>
               {!activeTimeEntry && !selectedProjectId && (
                 <p className="text-xs text-center text-rose-600 py-2 font-medium">
-                  ⚠️ Välj ett projekt först
+                  ⚠️ Checka in på projekt/kostnadsställe
                 </p>
               )}
             </CardContent>
