@@ -50,6 +50,11 @@ export default function Admin() {
     queryFn: () => base44.entities.Employee.list(),
   });
 
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['time-entries'],
     queryFn: () => base44.entities.TimeEntry.list(),
@@ -90,6 +95,9 @@ export default function Admin() {
   const pendingApprovals = approvalRequests.filter(r => r.status === 'pending').length;
   const pendingJournalEntries = journalEntries.filter(e => e.status === 'pending_review').length;
   const activeVehicles = vehicles.filter(v => v.status === 'aktiv').length;
+  
+  // Räkna totalt antal anställda (employees + users utan employee-post)
+  const totalEmployees = users.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
@@ -213,7 +221,7 @@ export default function Admin() {
                             <Users className="h-5 w-5 text-blue-600" />
                           </div>
                           <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
-                            {employees.length}
+                            {totalEmployees}
                           </Badge>
                         </div>
                         <h3 className="text-base font-semibold text-slate-900 mb-0.5">Personal</h3>
