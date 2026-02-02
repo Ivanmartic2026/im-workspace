@@ -180,27 +180,42 @@ export default function EmployeeManagement() {
               <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                       <h3 className="font-semibold text-slate-900">
-                         {employee.full_name}
-                       </h3>
-                       {!employee.hasEmployeeRecord && (
-                         <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
-                           Ny användare
-                         </span>
-                       )}
-                       {employee.is_manager && (
-                         <span className="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700">
-                           Chef
-                         </span>
-                       )}
-                       {employee.role === 'admin' && (
-                         <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700">
-                           Admin
-                         </span>
-                       )}
-                      </div>
+                   <div className="flex-1">
+                     <div className="flex items-center gap-2 mb-2">
+                      <Input
+                        value={employee.full_name}
+                        onChange={(e) => {
+                          const newName = e.target.value;
+                          const user = users.find(u => u.email === employee.user_email);
+                          if (user?.id) {
+                            base44.asServiceRole.entities.User.update(user.id, {
+                              full_name: newName
+                            }).then(() => {
+                              queryClient.invalidateQueries({ queryKey: ['users'] });
+                              queryClient.invalidateQueries({ queryKey: ['employees'] });
+                            }).catch(err => {
+                              console.error('Failed to update name:', err);
+                            });
+                          }
+                        }}
+                        className="font-semibold text-slate-900 border-slate-200 focus:border-indigo-400 h-9 max-w-xs"
+                      />
+                      {!employee.hasEmployeeRecord && (
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700 whitespace-nowrap">
+                          Ny användare
+                        </span>
+                      )}
+                      {employee.is_manager && (
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700 whitespace-nowrap">
+                          Chef
+                        </span>
+                      )}
+                      {employee.role === 'admin' && (
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700 whitespace-nowrap">
+                          Admin
+                        </span>
+                      )}
+                     </div>
                       
                       <div className="space-y-1 mt-2">
                         <div className="flex items-center gap-2 text-sm text-slate-600">
