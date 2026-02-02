@@ -3,11 +3,19 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Users, Search, Loader2, PlayCircle, PauseCircle, XCircle, MapPin } from "lucide-react";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users, Search, Loader2, PlayCircle, PauseCircle, XCircle, MapPin, AlertTriangle, ArrowUpDown, Calendar } from "lucide-react";
+import { format, differenceInHours } from "date-fns";
+import EmployeePresenceDetailModal from './EmployeePresenceDetailModal';
 
 export default function CurrentPresenceOverview() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [sortBy, setSortBy] = useState('status');
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ['employees'],
@@ -20,11 +28,10 @@ export default function CurrentPresenceOverview() {
   });
 
   const { data: timeEntries = [], isLoading: isLoadingTimeEntries } = useQuery({
-    queryKey: ['timeEntriesToday'],
+    queryKey: ['timeEntriesForDate', selectedDate],
     queryFn: async () => {
-      const today = format(new Date(), 'yyyy-MM-dd');
       const allEntries = await base44.entities.TimeEntry.list();
-      return allEntries.filter(entry => entry.date === today);
+      return allEntries.filter(entry => entry.date === selectedDate);
     },
     refetchInterval: 60000,
   });
@@ -52,6 +59,8 @@ export default function CurrentPresenceOverview() {
     let totalHours = 0;
     let clockInLocation = null;
     let clockOutLocation = null;
+    let hasWarning = false;
+    let warningMessage = '';
 
     if (todayEntry) {
       clockInTime = todayEntry.clock_in_time ? format(new Date(todayEntry.clock_in_time), 'HH:mm') : null;
@@ -62,8 +71,23 @@ export default function CurrentPresenceOverview() {
 
       if (clockInTime && !clockOutTime) {
         status = 'clocked_in';
+        // Check if clocked in for too long
+        const hoursSinceClockIn = differenceInHours(new Date(), new Date(todayEntry.clock_in_time));
+        if (hoursSinceClockIn >= 10) {
+          hasWarning = true;
+          warningMessage = `Instämplad i ${hoursSinceClockIn}h - glömt utstämpling?`;
+        }
       } else if (clockInTime && clockOutTime) {
         status = 'clocked_out';
+      }
+
+      // Check if work outside normal hours
+      if (todayEntry.clock_in_time) {
+        const clockInHour = new Date(todayEntry.clock_in_time).getHours();
+        if (clockInHour < 6 || clockInHour > 22) {
+          hasWarning = true;
+          warningMessage = warningMessage || 'Arbetat utanför normal arbetstid';
+        }
       }
     }
 
@@ -78,29 +102,86 @@ export default function CurrentPresenceOverview() {
       totalHours,
       clockInLocation,
       clockOutLocation,
+      hasWarning,
+      warningMessage,
+      timeEntry: todayEntry,
+      employeeData
     };
-  }).sort((a, b) => {
-    if (a.status === b.status) return a.full_name?.localeCompare(b.full_name || '') || 0;
-    if (a.status === 'clocked_in') return -1;
-    if (b.status === 'clocked_in') return 1;
-    if (a.status === 'clocked_out') return -1;
-    return 1;
   });
 
-  const filteredEmployees = employeeStatus.filter(emp => {
+  // Get unique departments
+  const departments = ['all', ...new Set(employeeStatus.map(e => e.department).filter(Boolean))];
+
+  // Filter employees
+  let filteredEmployees = employeeStatus.filter(emp => {
     const searchLower = searchQuery.toLowerCase();
-    return emp.full_name?.toLowerCase().includes(searchLower) ||
-           emp.email?.toLowerCase().includes(searchLower) ||
-           emp.department?.toLowerCase().includes(searchLower);
+    const matchesSearch = emp.full_name?.toLowerCase().includes(searchLower) ||
+                         emp.email?.toLowerCase().includes(searchLower) ||
+                         emp.department?.toLowerCase().includes(searchLower);
+    const matchesDepartment = selectedDepartment === 'all' || emp.department === selectedDepartment;
+    return matchesSearch && matchesDepartment;
+  });
+
+  // Sort employees
+  filteredEmployees = filteredEmployees.sort((a, b) => {
+    if (sortBy === 'status') {
+      if (a.status === b.status) return a.full_name?.localeCompare(b.full_name || '') || 0;
+      if (a.status === 'clocked_in') return -1;
+      if (b.status === 'clocked_in') return 1;
+      if (a.status === 'clocked_out') return -1;
+      return 1;
+    } else if (sortBy === 'name') {
+      return a.full_name?.localeCompare(b.full_name || '') || 0;
+    } else if (sortBy === 'hours') {
+      return b.totalHours - a.totalHours;
+    } else if (sortBy === 'department') {
+      return a.department?.localeCompare(b.department || '') || 0;
+    }
+    return 0;
   });
 
   const clockedInCount = employeeStatus.filter(e => e.status === 'clocked_in').length;
   const clockedOutCount = employeeStatus.filter(e => e.status === 'clocked_out').length;
   const notLoggedInCount = employeeStatus.filter(e => e.status === 'not_logged').length;
+  const warningsCount = employeeStatus.filter(e => e.hasWarning).length;
+
+  const forgottenClockOuts = employeeStatus.filter(e => 
+    e.status === 'clocked_in' && 
+    e.timeEntry?.clock_in_time &&
+    differenceInHours(new Date(), new Date(e.timeEntry.clock_in_time)) >= 10
+  );
+
+  const handleEmployeeClick = (emp) => {
+    if (emp.timeEntry) {
+      setSelectedEmployee(emp);
+      setDetailModalOpen(true);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* Date Selector */}
+      <div className="flex items-center gap-3 bg-white rounded-lg p-3 border border-slate-200">
+        <Calendar className="h-5 w-5 text-slate-600" />
+        <Input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="flex-1"
+        />
+        {selectedDate !== format(new Date(), 'yyyy-MM-dd') && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedDate(format(new Date(), 'yyyy-MM-dd'))}
+          >
+            Idag
+          </Button>
+        )}
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-emerald-50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -122,7 +203,7 @@ export default function CurrentPresenceOverview() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{clockedOutCount}</p>
-                <p className="text-xs text-slate-600">Utstämplade idag</p>
+                <p className="text-xs text-slate-600">Utstämplade</p>
               </div>
             </div>
           </CardContent>
@@ -140,18 +221,80 @@ export default function CurrentPresenceOverview() {
             </div>
           </CardContent>
         </Card>
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-yellow-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{warningsCount}</p>
+                <p className="text-xs text-slate-600">Varningar</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input
-          placeholder="Sök på namn, email eller avdelning..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      {/* Forgotten Clock-outs Warning */}
+      {forgottenClockOuts.length > 0 && (
+        <Card className="border-0 shadow-sm bg-amber-50 border-l-4 border-l-amber-500">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-900 mb-2">Glömda utstämplingar</h3>
+                <div className="space-y-1">
+                  {forgottenClockOuts.map(emp => (
+                    <p key={emp.id} className="text-sm text-amber-800">
+                      <span className="font-medium">{emp.full_name}</span> - Instämplad i{' '}
+                      {differenceInHours(new Date(), new Date(emp.timeEntry.clock_in_time))}h
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Sök på namn, email eller avdelning..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+          <SelectTrigger>
+            <SelectValue placeholder="Alla avdelningar" />
+          </SelectTrigger>
+          <SelectContent>
+            {departments.map(dept => (
+              <SelectItem key={dept} value={dept}>
+                {dept === 'all' ? 'Alla avdelningar' : dept}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="status">Sortera: Status</SelectItem>
+            <SelectItem value="name">Sortera: Namn</SelectItem>
+            <SelectItem value="hours">Sortera: Timmar</SelectItem>
+            <SelectItem value="department">Sortera: Avdelning</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
+      {/* Employee List */}
       <div className="space-y-2">
         {filteredEmployees.length === 0 ? (
           <Card className="border-0 shadow-sm">
@@ -162,16 +305,33 @@ export default function CurrentPresenceOverview() {
           </Card>
         ) : (
           filteredEmployees.map(employee => (
-            <Card key={employee.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              key={employee.id} 
+              className={`border-0 shadow-sm hover:shadow-md transition-all cursor-pointer ${
+                employee.hasWarning ? 'border-l-4 border-l-amber-500' : ''
+              }`}
+              onClick={() => handleEmployeeClick(employee)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900">{employee.full_name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-slate-900">{employee.full_name}</h3>
+                      {employee.hasWarning && (
+                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      )}
+                    </div>
                     <p className="text-sm text-slate-500">{employee.department}</p>
                     {employee.clockInLocation && (
                       <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
                         <MapPin className="h-3 w-3" />
                         {employee.clockInLocation.address || `${employee.clockInLocation.latitude?.toFixed(4)}, ${employee.clockInLocation.longitude?.toFixed(4)}`}
+                      </p>
+                    )}
+                    {employee.hasWarning && employee.warningMessage && (
+                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {employee.warningMessage}
                       </p>
                     )}
                   </div>
@@ -206,6 +366,17 @@ export default function CurrentPresenceOverview() {
           ))
         )}
       </div>
+
+      {/* Detail Modal */}
+      <EmployeePresenceDetailModal
+        open={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedEmployee(null);
+        }}
+        employee={selectedEmployee}
+        timeEntry={selectedEmployee?.timeEntry}
+      />
     </div>
   );
 }
