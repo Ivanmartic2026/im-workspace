@@ -327,6 +327,15 @@ export default function Admin() {
                 </div>
               </div>
 
+              {/* Current Presence */}
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-slate-600" />
+                  Närvarostatus idag
+                </h2>
+                <CurrentPresenceOverview />
+              </div>
+
               {/* System Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="border-0 shadow-sm">
