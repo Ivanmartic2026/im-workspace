@@ -296,7 +296,11 @@ export default function EmployeeManagement() {
         <EditUserModal
           employee={editingEmployee}
           users={users}
-          onClose={() => setEditingEmployee(null)}
+          onClose={() => {
+            setEditingEmployee(null);
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['employees'] });
+          }}
         />
       )}
 
