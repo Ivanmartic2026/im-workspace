@@ -13,6 +13,7 @@ export default function EmployeeManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [editingFeatures, setEditingFeatures] = useState(null);
+  const [editingNames, setEditingNames] = useState({});
   const queryClient = useQueryClient();
 
   const { data: employees = [], refetch: refetchEmployees } = useQuery({
@@ -181,27 +182,32 @@ export default function EmployeeManagement() {
                    <div className="flex-1">
                      <div className="flex items-center gap-2 mb-2">
                       <Input
-                        value={employee.full_name}
-                        onBlur={(e) => {
+                        value={editingNames[employee.id] !== undefined ? editingNames[employee.id] : employee.full_name}
+                        onChange={(e) => {
+                          setEditingNames(prev => ({
+                            ...prev,
+                            [employee.id]: e.target.value
+                          }));
+                        }}
+                        onBlur={async (e) => {
                           const newName = e.target.value;
                           const user = users.find(u => u.email === employee.user_email);
-                          if (user?.id && user.full_name !== newName) {
-                            base44.entities.User.update(user.id, {
-                              full_name: newName
-                            }).then(() => {
-                              queryClient.invalidateQueries({ queryKey: ['users'] });
-                              queryClient.invalidateQueries({ queryKey: ['employees'] });
-                            }).catch(err => {
+                          if (user?.id && user.full_name !== newName && newName.trim()) {
+                            try {
+                              await base44.entities.User.update(user.id, {
+                                full_name: newName
+                              });
+                              await queryClient.invalidateQueries({ queryKey: ['users'] });
+                              await queryClient.invalidateQueries({ queryKey: ['employees'] });
+                              setEditingNames(prev => {
+                                const updated = { ...prev };
+                                delete updated[employee.id];
+                                return updated;
+                              });
+                            } catch (err) {
                               console.error('Failed to update name:', err);
-                            });
-                          }
-                        }}
-                        onChange={(e) => {
-                          // Update local state immediately for better UX
-                          const allEmps = [...enrichedEmployees, ...usersWithoutEmployee];
-                          const idx = allEmps.findIndex(emp => emp.id === employee.id);
-                          if (idx !== -1) {
-                            allEmps[idx] = { ...allEmps[idx], full_name: e.target.value };
+                              alert('Kunde inte uppdatera namn');
+                            }
                           }
                         }}
                         className="font-semibold text-slate-900 border-slate-200 focus:border-indigo-400 h-9 max-w-xs"
