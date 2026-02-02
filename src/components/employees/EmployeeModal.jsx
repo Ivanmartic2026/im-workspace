@@ -18,7 +18,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
     user_email: '',
     full_name: '',
     phone: '',
-    department: 'Övrigt',
+    department: 'Support & Service',
     job_title: '',
     manager_email: '',
     start_date: '',
@@ -55,7 +55,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         user_email: '',
         full_name: '',
         phone: '',
-        department: 'Övrigt',
+        department: 'Support & Service',
         job_title: '',
         manager_email: '',
         start_date: '',
@@ -172,15 +172,12 @@ export default function EmployeeModal({ open, onClose, employee }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Ledning">Ledning</SelectItem>
-                  <SelectItem value="HR">HR</SelectItem>
-                  <SelectItem value="Sälj">Sälj</SelectItem>
-                  <SelectItem value="Marknad">Marknad</SelectItem>
-                  <SelectItem value="IT">IT</SelectItem>
-                  <SelectItem value="Ekonomi">Ekonomi</SelectItem>
-                  <SelectItem value="Produktion">Produktion</SelectItem>
-                  <SelectItem value="Kundtjänst">Kundtjänst</SelectItem>
-                  <SelectItem value="Övrigt">Övrigt</SelectItem>
+                  <SelectItem value="Support & Service">Support & Service</SelectItem>
+                  <SelectItem value="Installation">Installation</SelectItem>
+                  <SelectItem value="Sales">Sales</SelectItem>
+                  <SelectItem value="Rental">Rental</SelectItem>
+                  <SelectItem value="Warehouse & Production">Warehouse & Production</SelectItem>
+                  <SelectItem value="Management">Management</SelectItem>
                 </SelectContent>
               </Select>
             </div>

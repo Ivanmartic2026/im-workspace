@@ -48,7 +48,7 @@ export default function EmployeeManagement() {
     user_email: user.email,
     full_name: user.full_name,
     role: user.role,
-    department: 'Övrigt',
+    department: 'Support & Service',
     hasEmployeeRecord: false
   }));
 
@@ -182,10 +182,10 @@ export default function EmployeeManagement() {
                      <div className="flex items-center gap-2 mb-2">
                       <Input
                         value={employee.full_name}
-                        onChange={(e) => {
+                        onBlur={(e) => {
                           const newName = e.target.value;
                           const user = users.find(u => u.email === employee.user_email);
-                          if (user?.id) {
+                          if (user?.id && user.full_name !== newName) {
                             base44.entities.User.update(user.id, {
                               full_name: newName
                             }).then(() => {
@@ -194,6 +194,14 @@ export default function EmployeeManagement() {
                             }).catch(err => {
                               console.error('Failed to update name:', err);
                             });
+                          }
+                        }}
+                        onChange={(e) => {
+                          // Update local state immediately for better UX
+                          const allEmps = [...enrichedEmployees, ...usersWithoutEmployee];
+                          const idx = allEmps.findIndex(emp => emp.id === employee.id);
+                          if (idx !== -1) {
+                            allEmps[idx] = { ...allEmps[idx], full_name: e.target.value };
                           }
                         }}
                         className="font-semibold text-slate-900 border-slate-200 focus:border-indigo-400 h-9 max-w-xs"
