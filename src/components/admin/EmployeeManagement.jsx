@@ -27,18 +27,33 @@ export default function EmployeeManagement() {
     queryFn: () => base44.entities.User.list(),
   });
 
-  // Matcha employees med users
+  // Matcha employees med users och lägg till users utan employee-post
   const enrichedEmployees = employees.map(emp => {
     const user = users.find(u => u.email === emp.user_email);
     return {
       ...emp,
       full_name: user?.full_name || emp.user_email,
-      role: user?.role || 'user'
+      role: user?.role || 'user',
+      hasEmployeeRecord: true
     };
   });
 
+  // Lägg till users som inte har employee-post
+  const usersWithoutEmployee = users.filter(user => 
+    !employees.some(emp => emp.user_email === user.email)
+  ).map(user => ({
+    id: user.id,
+    user_email: user.email,
+    full_name: user.full_name,
+    role: user.role,
+    department: 'Övrigt',
+    hasEmployeeRecord: false
+  }));
+
+  const allEmployees = [...enrichedEmployees, ...usersWithoutEmployee];
+
   // Filtrera
-  const filteredEmployees = enrichedEmployees.filter(emp => {
+  const filteredEmployees = allEmployees.filter(emp => {
     const matchesSearch = emp.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.user_email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDepartment = selectedDepartment === 'all' || emp.department === selectedDepartment;
@@ -49,7 +64,7 @@ export default function EmployeeManagement() {
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
 
   // Stats
-  const totalEmployees = employees.length;
+  const totalEmployees = allEmployees.length;
   const byDepartment = {};
   employees.forEach(emp => {
     const dept = emp.department || 'Övrigt';
@@ -154,19 +169,24 @@ export default function EmployeeManagement() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-slate-900">
-                          {employee.full_name}
-                        </h3>
-                        {employee.is_manager && (
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700">
-                            Chef
-                          </span>
-                        )}
-                        {employee.role === 'admin' && (
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700">
-                            Admin
-                          </span>
-                        )}
+                       <h3 className="font-semibold text-slate-900">
+                         {employee.full_name}
+                       </h3>
+                       {!employee.hasEmployeeRecord && (
+                         <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
+                           Ny användare
+                         </span>
+                       )}
+                       {employee.is_manager && (
+                         <span className="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700">
+                           Chef
+                         </span>
+                       )}
+                       {employee.role === 'admin' && (
+                         <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700">
+                           Admin
+                         </span>
+                       )}
                       </div>
                       
                       <div className="space-y-1 mt-2">
