@@ -13,6 +13,7 @@ const SERVICES = ['support_service', 'install', 'rental', 'interntid'];
 const FEATURES = ['TimeTracking', 'Vehicles', 'GPS', 'DrivingJournal', 'Manuals', 'Chat', 'Reports'];
 
 export default function EmployeeModal({ open, onClose, employee }) {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     user_email: '',
     full_name: '',
