@@ -15,6 +15,7 @@ const FEATURES = ['TimeTracking', 'Vehicles', 'GPS', 'DrivingJournal', 'Manuals'
 export default function EmployeeModal({ open, onClose, employee }) {
   const [formData, setFormData] = useState({
     user_email: '',
+    full_name: '',
     phone: '',
     department: 'Övrigt',
     job_title: '',
