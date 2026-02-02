@@ -64,7 +64,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      if (employee) {
+      if (employee && employee.id && !employee.id.startsWith('user-')) {
         return await base44.entities.Employee.update(employee.id, data);
       } else {
         return await base44.entities.Employee.create(data);
@@ -73,6 +73,10 @@ export default function EmployeeModal({ open, onClose, employee }) {
     onSuccess: () => {
       onClose();
     },
+    onError: (error) => {
+      console.error('Sparfel:', error);
+      alert('Kunde inte spara medarbetare: ' + error.message);
+    }
   });
 
   const handleSubmit = (e) => {
