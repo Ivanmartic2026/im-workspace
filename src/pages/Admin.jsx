@@ -239,20 +239,22 @@ export default function Admin() {
                     </Card>
                   </Link>
 
-                  <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50">
-                    <CardContent className="p-5">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                          <AlertCircle className="h-5 w-5 text-amber-600" />
+                  <Link to={createPageUrl('AdminTimeSystem')}>
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                            <AlertCircle className="h-5 w-5 text-amber-600" />
+                          </div>
+                          <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
+                            {pendingApprovals + pendingJournalEntries}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
-                          {pendingApprovals + pendingJournalEntries}
-                        </Badge>
-                      </div>
-                      <h3 className="text-base font-semibold text-slate-900 mb-0.5">Väntande</h3>
-                      <p className="text-xs text-slate-600">Kräver godkännande</p>
-                    </CardContent>
-                  </Card>
+                        <h3 className="text-base font-semibold text-slate-900 mb-0.5">Väntande</h3>
+                        <p className="text-xs text-slate-600">Kräver godkännande</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 </div>
               </div>
 
