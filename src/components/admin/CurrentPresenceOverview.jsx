@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Users, Search, Loader2, PlayCircle, PauseCircle, XCircle } from "lucide-react";
+import { Users, Search, Loader2, PlayCircle, PauseCircle, XCircle, MapPin } from "lucide-react";
 import { format } from "date-fns";
 
 export default function CurrentPresenceOverview() {
@@ -50,11 +50,15 @@ export default function CurrentPresenceOverview() {
     let clockInTime = null;
     let clockOutTime = null;
     let totalHours = 0;
+    let clockInLocation = null;
+    let clockOutLocation = null;
 
     if (todayEntry) {
       clockInTime = todayEntry.clock_in_time ? format(new Date(todayEntry.clock_in_time), 'HH:mm') : null;
       clockOutTime = todayEntry.clock_out_time ? format(new Date(todayEntry.clock_out_time), 'HH:mm') : null;
       totalHours = todayEntry.total_hours || 0;
+      clockInLocation = todayEntry.clock_in_location;
+      clockOutLocation = todayEntry.clock_out_location;
 
       if (clockInTime && !clockOutTime) {
         status = 'clocked_in';
@@ -72,6 +76,8 @@ export default function CurrentPresenceOverview() {
       clockInTime,
       clockOutTime,
       totalHours,
+      clockInLocation,
+      clockOutLocation,
     };
   }).sort((a, b) => {
     if (a.status === b.status) return a.full_name?.localeCompare(b.full_name || '') || 0;
@@ -158,10 +164,16 @@ export default function CurrentPresenceOverview() {
           filteredEmployees.map(employee => (
             <Card key={employee.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="font-semibold text-slate-900">{employee.full_name}</h3>
                     <p className="text-sm text-slate-500">{employee.department}</p>
+                    {employee.clockInLocation && (
+                      <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        {employee.clockInLocation.address || `${employee.clockInLocation.latitude?.toFixed(4)}, ${employee.clockInLocation.longitude?.toFixed(4)}`}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     {employee.status === 'clocked_in' && (
