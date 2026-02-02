@@ -89,6 +89,8 @@ export default function EmployeeModal({ open, onClose, employee }) {
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       onClose();
     },
     onError: (error) => {
