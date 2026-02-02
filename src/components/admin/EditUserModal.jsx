@@ -67,6 +67,7 @@ export default function EditUserModal({ employee, users, onClose }) {
               onChange={(e) => setFullName(e.target.value)}
               placeholder="För- och efternamn"
               className="h-11"
+              autoFocus
             />
           </div>
         </div>
