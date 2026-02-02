@@ -113,7 +113,14 @@ export default function EmployeeModal({ open, onClose, employee }) {
             <Label htmlFor="user_email">Email *</Label>
             <Select
               value={formData.user_email}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, user_email: value }))}
+              onValueChange={(value) => {
+                const user = users.find(u => u.email === value);
+                setFormData(prev => ({ 
+                  ...prev, 
+                  user_email: value,
+                  full_name: user?.full_name || ''
+                }));
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Välj användare" />
@@ -126,6 +133,16 @@ export default function EmployeeModal({ open, onClose, employee }) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Namn</Label>
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+              placeholder="För- och efternamn"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
