@@ -27,10 +27,16 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState('alla');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    base44.auth.me()
+      .then(setUser)
+      .catch(() => {
+        base44.auth.redirectToLogin();
+      })
+      .finally(() => setIsAuthLoading(false));
   }, []);
 
   const { data: posts = [], isLoading } = useQuery({
