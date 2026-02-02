@@ -12,7 +12,6 @@ import EditFeaturesModal from './EditFeaturesModal';
 export default function EmployeeManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
-  const [editingEmployee, setEditingEmployee] = useState(null);
   const [editingFeatures, setEditingFeatures] = useState(null);
   const queryClient = useQueryClient();
 
