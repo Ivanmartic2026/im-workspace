@@ -68,10 +68,23 @@ export default function EmployeeModal({ open, onClose, employee }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
+      // Update user name if changed
+      if (data.full_name && data.user_email) {
+        const user = users.find(u => u.email === data.user_email);
+        if (user && user.full_name !== data.full_name) {
+          await base44.asServiceRole.entities.User.update(user.id, {
+            full_name: data.full_name
+          });
+        }
+      }
+
+      // Remove full_name from employee data
+      const { full_name, ...employeeData } = data;
+
       if (employee && employee.id && !employee.id.startsWith('user-')) {
-        return await base44.entities.Employee.update(employee.id, data);
+        return await base44.entities.Employee.update(employee.id, employeeData);
       } else {
-        return await base44.entities.Employee.create(data);
+        return await base44.entities.Employee.create(employeeData);
       }
     },
     onSuccess: () => {
