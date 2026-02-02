@@ -152,7 +152,10 @@ const createAuth = () => {
         const user = users.find(u => u.email === email);
 
         if (user) {
-          // Användare finns - verifiera lösenord (i mock-läge är alla lösenord ok)
+          // Verifiera lösenord om det finns lagrat
+          if (user.password && user.password !== password) {
+            throw new Error('Fel lösenord. Försök igen.');
+          }
           currentUser = {
             id: user.id,
             email: user.email,
