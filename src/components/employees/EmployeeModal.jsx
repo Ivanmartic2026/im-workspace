@@ -68,11 +68,11 @@ export default function EmployeeModal({ open, onClose, employee }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      // Update user name if changed
+      // Update user name if changed (admin users can update other users)
       if (data.full_name && data.user_email) {
         const user = users.find(u => u.email === data.user_email);
         if (user && user.full_name !== data.full_name) {
-          await base44.asServiceRole.entities.User.update(user.id, {
+          await base44.entities.User.update(user.id, {
             full_name: data.full_name
           });
         }
