@@ -21,6 +21,12 @@ export default function EditUserModal({ employee, users, onClose }) {
 
   const updateMutation = useMutation({
     mutationFn: async () => {
+      // Verify admin access first
+      const currentUser = await base44.auth.me();
+      if (currentUser?.role !== 'admin') {
+        throw new Error('Admin-behörighet krävs');
+      }
+      
       // Update user's full name via service role (admin privilege)
       await base44.asServiceRole.entities.User.update(user.id, {
         full_name: fullName
@@ -30,6 +36,9 @@ export default function EditUserModal({ employee, users, onClose }) {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       onClose();
+    },
+    onError: (error) => {
+      alert('Kunde inte spara: ' + error.message);
     }
   });
 

@@ -28,11 +28,34 @@ export default function Employees() {
     queryFn: () => base44.entities.User.list(),
   });
 
-  const filteredEmployees = employees.filter(emp => {
+  // Matcha employees med users och lägg till users utan employee-post
+  const enrichedEmployees = employees.map(emp => {
     const user = users.find(u => u.email === emp.user_email);
+    return {
+      ...emp,
+      full_name: user?.full_name || emp.user_email,
+      hasEmployeeRecord: true
+    };
+  });
+
+  // Lägg till users som inte har employee-post
+  const usersWithoutEmployee = users.filter(user => 
+    !employees.some(emp => emp.user_email === user.email)
+  ).map(user => ({
+    id: `user-${user.id}`,
+    user_email: user.email,
+    full_name: user.full_name,
+    department: 'Övrigt',
+    job_title: 'Ingen titel',
+    hasEmployeeRecord: false
+  }));
+
+  const allEmployees = [...enrichedEmployees, ...usersWithoutEmployee];
+
+  const filteredEmployees = allEmployees.filter(emp => {
     return (
       emp.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.job_title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
@@ -71,7 +94,7 @@ export default function Employees() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Medarbetare</h1>
-              <p className="text-sm text-slate-500 mt-1">{employees.length} medarbetare</p>
+              <p className="text-sm text-slate-500 mt-1">{allEmployees.length} medarbetare</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -119,7 +142,6 @@ export default function Employees() {
                 </Card>
               ) : (
                 filteredEmployees.map((employee, idx) => {
-                  const user = users.find(u => u.email === employee.user_email);
                   return (
                     <motion.div
                       key={employee.id}
@@ -128,58 +150,97 @@ export default function Employees() {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ delay: idx * 0.05 }}
                     >
-                      <Link to={`${createPageUrl('EmployeeDetails')}?id=${employee.id}`}>
-                        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                      {employee.hasEmployeeRecord ? (
+                        <Link to={`${createPageUrl('EmployeeDetails')}?id=${employee.id}`}>
+                          <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                            <CardContent className="p-5">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0">
+                                    <span className="text-lg font-semibold text-slate-600">
+                                      {employee.full_name?.charAt(0) || employee.user_email?.charAt(0)}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-slate-900 truncate">
+                                      {employee.full_name || employee.user_email}
+                                    </h3>
+                                    <p className="text-sm text-slate-500 truncate">{employee.job_title || 'Ingen titel'}</p>
+                                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                                      <span>{employee.department || 'Ingen avdelning'}</span>
+                                      {employee.phone && <span>•</span>}
+                                      {employee.phone && <span>{employee.phone}</span>}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-1 flex-shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleEditEmployee(employee);
+                                    }}
+                                    className="h-8 w-8"
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleDeleteEmployee(employee);
+                                    }}
+                                    disabled={deleteEmployeeMutation.isPending}
+                                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                  <ChevronRight className="h-8 w-8 text-slate-400 p-2" />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ) : (
+                        <Card className="border-0 shadow-sm bg-amber-50">
                           <CardContent className="p-5">
                             <div className="flex items-start justify-between">
                               <div className="flex items-start gap-3 flex-1">
-                                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-lg font-semibold text-slate-600">
-                                    {user?.full_name?.charAt(0) || employee.user_email?.charAt(0)}
+                                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-lg font-semibold text-amber-600">
+                                    {employee.full_name?.charAt(0) || employee.user_email?.charAt(0)}
                                   </span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="font-semibold text-slate-900 truncate">
-                                    {user?.full_name || employee.user_email}
-                                  </h3>
-                                  <p className="text-sm text-slate-500 truncate">{employee.job_title || 'Ingen titel'}</p>
-                                  <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                                    <span>{employee.department || 'Ingen avdelning'}</span>
-                                    {employee.phone && <span>•</span>}
-                                    {employee.phone && <span>{employee.phone}</span>}
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-semibold text-slate-900 truncate">
+                                      {employee.full_name || employee.user_email}
+                                    </h3>
+                                    <span className="px-2 py-0.5 rounded-full text-xs bg-amber-200 text-amber-800 font-medium">
+                                      Ny användare
+                                    </span>
                                   </div>
+                                  <p className="text-sm text-slate-600">{employee.user_email}</p>
+                                  <p className="text-xs text-slate-500 mt-2">Klicka "Lägg till" för att skapa medarbetarprofil</p>
                                 </div>
                               </div>
-                              <div className="flex gap-1 flex-shrink-0">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleEditEmployee(employee);
-                                  }}
-                                  className="h-8 w-8"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleDeleteEmployee(employee);
-                                  }}
-                                  disabled={deleteEmployeeMutation.isPending}
-                                  className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                                <ChevronRight className="h-8 w-8 text-slate-400 p-2" />
-                              </div>
+                              <Button
+                                onClick={() => {
+                                  setEditingEmployee({ user_email: employee.user_email });
+                                  setShowEmployeeModal(true);
+                                }}
+                                size="sm"
+                                className="flex-shrink-0 rounded-full"
+                              >
+                                <UserPlus className="h-4 w-4 mr-1" />
+                                Lägg till
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
-                      </Link>
+                      )}
                     </motion.div>
                   );
                 })
