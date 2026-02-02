@@ -19,6 +19,7 @@ import AIJournalReports from '@/components/admin/AIJournalReports';
 import ProjectTimeReport from '@/components/admin/ProjectTimeReport';
 import EmployeeManagement from '@/components/admin/EmployeeManagement';
 import EmployeeTimeOverview from '@/components/admin/EmployeeTimeOverview';
+import CurrentPresenceOverview from '@/components/admin/CurrentPresenceOverview';
 import PayrollExport from '@/components/admin/PayrollExport';
 import NotificationSettings from '@/components/admin/NotificationSettings';
 import PushNotificationTest from '@/components/admin/PushNotificationTest';
@@ -402,6 +403,7 @@ export default function Admin() {
                   <TabsTrigger value="policies" className="rounded-md">Arbetspolicies</TabsTrigger>
                   <TabsTrigger value="reports" className="rounded-md">Rapporter</TabsTrigger>
                   <TabsTrigger value="employees" className="rounded-md">Personal</TabsTrigger>
+                  <TabsTrigger value="presence" className="rounded-md">Närvaro</TabsTrigger>
                   <TabsTrigger value="payroll" className="rounded-md">Lönexport</TabsTrigger>
                 </TabsList>
                 <TabsContent value="policies">
@@ -412,6 +414,9 @@ export default function Admin() {
                 </TabsContent>
                 <TabsContent value="employees">
                   <EmployeeManagement />
+                </TabsContent>
+                <TabsContent value="presence">
+                  <CurrentPresenceOverview />
                 </TabsContent>
                 <TabsContent value="payroll">
                   <PayrollExport />
