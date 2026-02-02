@@ -289,15 +289,6 @@ export default function EmployeeManagement() {
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setEditingEmployee(employee)}
-                        className="h-8 w-8"
-                        title="Redigera namn"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 </CardContent>
