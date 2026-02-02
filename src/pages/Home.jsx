@@ -336,8 +336,9 @@ export default function Home() {
                       try {
                         location = await getLocation();
                       } catch (locError) {
-                        console.warn('Could not get location:', locError);
-                        location = null;
+                        alert('Din plats måste registreras för instämpling. Tillåt platsåtkomst i webbläsaren och försök igen.');
+                        setLoading(false);
+                        return;
                       }
 
                       const entryData = {
@@ -346,16 +347,13 @@ export default function Home() {
                         clock_in_time: new Date().toISOString(),
                         status: 'active',
                         breaks: [],
+                        clock_in_location: location,
                         project_allocations: [{
                           project_id: selectedProjectId,
                           hours: 0,
                           category: 'interntid'
                         }]
                       };
-
-                      if (location) {
-                        entryData.clock_in_location = location;
-                      }
 
                       await base44.entities.TimeEntry.create(entryData);
                     }
