@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit, Settings, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-import EditUserModal from './EditUserModal';
 import EditFeaturesModal from './EditFeaturesModal';
 
 export default function EmployeeManagement() {
