@@ -17,8 +17,10 @@ import { Clock as ClockIcon, MapPin, Briefcase, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function Home() {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -213,7 +215,7 @@ export default function Home() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Welcome to IM Workspace</h1>
+              <h1 className="text-2xl font-bold text-slate-900">{t('welcome_title')}</h1>
               <p className="text-sm text-slate-500 mt-1">
                 {user?.full_name || ''}
               </p>
@@ -224,7 +226,7 @@ export default function Home() {
                 className="rounded-full h-11 px-5 shadow-md hover:shadow-lg transition-all"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Ny nyhet
+                {t('new_news')}
               </Button>
             )}
           </div>
@@ -243,7 +245,7 @@ export default function Home() {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <p className="text-sm font-semibold text-emerald-900">Instämplad</p>
+                    <p className="text-sm font-semibold text-emerald-900">{t('clocked_in')}</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -256,7 +258,7 @@ export default function Home() {
                       <div className="flex items-center gap-2 text-sm text-emerald-800">
                         <Briefcase className="w-4 h-4" />
                         <span className="font-medium">
-                          {projects.find(p => p.id === activeTimeEntry.project_allocations[0]?.project_id)?.name || 'Projekt'}
+                          {projects.find(p => p.id === activeTimeEntry.project_allocations[0]?.project_id)?.name || t('project')}
                         </span>
                       </div>
                     )}
@@ -282,7 +284,7 @@ export default function Home() {
           )}
 
           {/* Clock In / Out Section */}
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">Checka in på projekt/kostnadsställe</h2>
+          <h2 className="text-sm font-semibold text-slate-700 mb-3">{t('select_project')}</h2>
 
           {/* Clock In Button */}
           <Card className="border-0 shadow-sm mb-6">
@@ -327,7 +329,7 @@ export default function Home() {
                     } else {
                       // Clock in - requires project and gets location
                       if (!selectedProjectId) {
-                        alert('Du måste välja ett projekt innan du stämplar in');
+                        alert(t('select_project_before'));
                         setLoading(false);
                         return;
                       }
@@ -336,7 +338,7 @@ export default function Home() {
                       try {
                         location = await getLocation();
                       } catch (locError) {
-                        alert('Din plats måste registreras för instämpling. Tillåt platsåtkomst i webbläsaren och försök igen.');
+                        alert(t('location_required'));
                         setLoading(false);
                         return;
                       }
@@ -376,18 +378,18 @@ export default function Home() {
                 {loading ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    {activeTimeEntry ? 'Stämplar ut...' : 'Stämplar in...'}
+                    {activeTimeEntry ? t('clocking_out') : t('clocking_in')}
                   </>
                 ) : (
                   <>
                     <ClockIcon className="h-5 w-5 mr-2" />
-                    {activeTimeEntry ? 'Stämpla ut' : 'Stämpla in'}
+                    {activeTimeEntry ? t('clock_out') : t('clock_in')}
                   </>
                 )}
               </Button>
               {!activeTimeEntry && !selectedProjectId && (
                 <p className="text-xs text-center text-rose-600 py-2 font-medium">
-                  ⚠️ Checka in på projekt/kostnadsställe
+                  {t('must_select_project')}
                 </p>
               )}
             </CardContent>
@@ -419,7 +421,7 @@ export default function Home() {
                 className="text-center py-16"
               >
                 <Sparkles className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">Inga nyheter att visa</p>
+                <p className="text-slate-500">{t('no_news')}</p>
               </motion.div>
             ) : (
               regularPosts.map(post => (

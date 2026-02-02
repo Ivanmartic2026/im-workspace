@@ -6,24 +6,28 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import NotificationBell from './components/notifications/NotificationBell';
 import ServiceWorkerManager from './components/notifications/ServiceWorkerManager';
+import { LanguageProvider, useLanguage } from './components/contexts/LanguageContext';
+import LanguageSwitcher from './components/settings/LanguageSwitcher';
 
-const navItems = [
-  { name: 'Home', label: 'Hem', icon: Home },
-  { name: 'TimeTracking', label: 'Tid', icon: Clock },
-  { name: 'Vehicles', label: 'Fordon', icon: Car },
-  { name: 'DrivingJournal', label: 'Körjournal', icon: FileText },
-  { name: 'Manuals', label: 'Manualer', icon: BookOpen },
-  { name: 'Chat', label: 'Chat', icon: MessageCircle },
-  { name: 'Profile', label: 'Profil', icon: User },
-];
+function LayoutContent({ children, currentPageName }) {
+  const { t } = useLanguage();
+  
+  const navItems = [
+    { name: 'Home', label: t('nav_home'), icon: Home },
+    { name: 'TimeTracking', label: t('nav_time'), icon: Clock },
+    { name: 'Vehicles', label: t('nav_vehicles'), icon: Car },
+    { name: 'DrivingJournal', label: t('nav_journal'), icon: FileText },
+    { name: 'Manuals', label: t('nav_manuals'), icon: BookOpen },
+    { name: 'Chat', label: t('nav_chat'), icon: MessageCircle },
+    { name: 'Profile', label: t('nav_profile'), icon: User },
+  ];
 
-const adminNavItems = [
-  ...navItems,
-  { name: 'Projects', label: 'Projekt', icon: BarChart3 },
-  { name: 'Admin', label: 'Admin', icon: BarChart3 }
-];
+  const adminNavItems = [
+    ...navItems,
+    { name: 'Projects', label: t('nav_projects'), icon: BarChart3 },
+    { name: 'Admin', label: t('nav_admin'), icon: BarChart3 }
+  ];
 
-export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [employee, setEmployee] = useState(null);
 
@@ -100,8 +104,9 @@ export default function Layout({ children, currentPageName }) {
         }
       `}</style>
 
-      {/* Notification Bell - Fixed Top Right */}
-      <div className="fixed top-3 right-3 z-50">
+      {/* Notification Bell and Language Switcher - Fixed Top Right */}
+      <div className="fixed top-3 right-3 z-50 flex gap-2">
+        <LanguageSwitcher />
         <NotificationBell user={user} />
       </div>
       
@@ -165,5 +170,13 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </nav>
     </div>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <LanguageProvider>
+      <LayoutContent children={children} currentPageName={currentPageName} />
+    </LanguageProvider>
   );
 }
