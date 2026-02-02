@@ -186,7 +186,7 @@ export default function EmployeeManagement() {
                           const newName = e.target.value;
                           const user = users.find(u => u.email === employee.user_email);
                           if (user?.id) {
-                            base44.asServiceRole.entities.User.update(user.id, {
+                            base44.entities.User.update(user.id, {
                               full_name: newName
                             }).then(() => {
                               queryClient.invalidateQueries({ queryKey: ['users'] });
