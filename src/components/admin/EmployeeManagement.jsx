@@ -296,18 +296,6 @@ export default function EmployeeManagement() {
         )}
       </div>
 
-      {editingEmployee && (
-        <EditUserModal
-          employee={editingEmployee}
-          users={users}
-          onClose={() => {
-            setEditingEmployee(null);
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-            queryClient.invalidateQueries({ queryKey: ['employees'] });
-          }}
-        />
-      )}
-
       {editingFeatures && (
         <EditFeaturesModal
           employee={editingFeatures}
