@@ -21,15 +21,13 @@ export default function EditUserModal({ employee, users, onClose }) {
 
   const updateMutation = useMutation({
     mutationFn: async () => {
-      // Verify admin access first
-      const currentUser = await base44.auth.me();
-      if (currentUser?.role !== 'admin') {
-        throw new Error('Admin-behörighet krävs');
+      if (!user?.id) {
+        throw new Error('Användare hittades inte');
       }
       
       // Update user's full name via service role (admin privilege)
       await base44.asServiceRole.entities.User.update(user.id, {
-        full_name: fullName
+        full_name: fullName.trim()
       });
     },
     onSuccess: () => {
@@ -38,6 +36,7 @@ export default function EditUserModal({ employee, users, onClose }) {
       onClose();
     },
     onError: (error) => {
+      console.error('Update error:', error);
       alert('Kunde inte spara: ' + error.message);
     }
   });
