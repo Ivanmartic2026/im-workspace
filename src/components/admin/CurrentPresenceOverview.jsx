@@ -5,8 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, Loader2, PlayCircle, PauseCircle, XCircle, MapPin, AlertTriangle, ArrowUpDown, Calendar } from "lucide-react";
-import { format, differenceInHours } from "date-fns";
+import { Users, Search, Loader2, PlayCircle, PauseCircle, XCircle, MapPin, AlertTriangle, ArrowUpDown, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, differenceInHours, addDays, subDays } from "date-fns";
+import { sv } from "date-fns/locale";
 import EmployeePresenceDetailModal from './EmployeePresenceDetailModal';
 
 export default function CurrentPresenceOverview() {
@@ -158,27 +159,72 @@ export default function CurrentPresenceOverview() {
     }
   };
 
+  const goToPreviousDay = () => {
+    const prevDay = subDays(new Date(selectedDate), 1);
+    setSelectedDate(format(prevDay, 'yyyy-MM-dd'));
+  };
+
+  const goToNextDay = () => {
+    const nextDay = addDays(new Date(selectedDate), 1);
+    setSelectedDate(format(nextDay, 'yyyy-MM-dd'));
+  };
+
+  const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');
+  const displayDate = format(new Date(selectedDate), 'EEEE d MMMM yyyy', { locale: sv });
+
   return (
     <div className="space-y-6">
       {/* Date Selector */}
-      <div className="flex items-center gap-3 bg-white rounded-lg p-3 border border-slate-200">
-        <Calendar className="h-5 w-5 text-slate-600" />
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="flex-1"
-        />
-        {selectedDate !== format(new Date(), 'yyyy-MM-dd') && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSelectedDate(format(new Date(), 'yyyy-MM-dd'))}
-          >
-            Idag
-          </Button>
-        )}
-      </div>
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-slate-50 to-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={goToPreviousDay}
+              className="h-9 w-9"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Calendar className="h-4 w-4 text-slate-600" />
+                <h3 className="font-semibold text-slate-900 capitalize">{displayDate}</h3>
+              </div>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="text-center"
+              />
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={goToNextDay}
+              className="h-9 w-9"
+              disabled={isToday}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {!isToday && (
+            <div className="mt-3 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedDate(format(new Date(), 'yyyy-MM-dd'))}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              >
+                Hoppa till idag
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
