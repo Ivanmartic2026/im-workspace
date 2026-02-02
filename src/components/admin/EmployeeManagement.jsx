@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit, Settings } from "lucide-react";
+import { Users, Search, UserPlus, Mail, Briefcase, Calendar, Edit, Settings, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import EditUserModal from './EditUserModal';
 import EditFeaturesModal from './EditFeaturesModal';
@@ -17,15 +17,19 @@ export default function EmployeeManagement() {
   const [editingFeatures, setEditingFeatures] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: employees = [] } = useQuery({
+  const { data: employees = [], refetch: refetchEmployees } = useQuery({
     queryKey: ['employees'],
     queryFn: () => base44.entities.Employee.list(),
   });
 
-  const { data: users = [] } = useQuery({
+  const { data: users = [], refetch: refetchUsers } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
   });
+
+  const handleRefresh = async () => {
+    await Promise.all([refetchEmployees(), refetchUsers()]);
+  };
 
   // Matcha employees med users och lägg till users utan employee-post
   const enrichedEmployees = employees.map(emp => {
@@ -122,14 +126,23 @@ export default function EmployeeManagement() {
 
       {/* Filters */}
       <div className="space-y-3">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Sök anställda..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-11 h-12 rounded-2xl border-0 bg-white shadow-sm"
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Sök anställda..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-11 h-12 rounded-2xl border-0 bg-white shadow-sm"
+            />
+          </div>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="h-12 px-4 rounded-2xl"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
 
         <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
