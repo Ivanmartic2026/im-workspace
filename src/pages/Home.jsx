@@ -249,11 +249,6 @@ export default function Home() {
                   </div>
                   
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-emerald-800">
-                      <ClockIcon className="w-4 h-4" />
-                      <span className="font-medium">{format(new Date(activeTimeEntry.clock_in_time), 'HH:mm')}</span>
-                    </div>
-                    
                     {activeTimeEntry.project_allocations && activeTimeEntry.project_allocations.length > 0 && (
                       <div className="flex items-center gap-2 text-sm text-emerald-800">
                         <Briefcase className="w-4 h-4" />
