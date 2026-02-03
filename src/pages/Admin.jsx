@@ -248,7 +248,7 @@ export default function Admin() {
                     </Card>
                   </Link>
 
-                  <Link to={createPageUrl('AdminTimeSystem')}>
+                  <Link to={createPageUrl('PendingApprovals')}>
                     <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-3">
