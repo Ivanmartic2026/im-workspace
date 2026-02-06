@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import UploadManualModal from '@/components/manuals/UploadManualModal';
 import ManualCard from '@/components/manuals/ManualCard';
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 const categoryLabels = {
   produkt_teknik: 'Produkt & Teknik',
@@ -34,10 +35,14 @@ export default function Manuals() {
     base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
-  const { data: manuals = [], isLoading } = useQuery({
+  const { data: manuals = [], isLoading, refetch: refetchManuals } = useQuery({
     queryKey: ['manuals'],
     queryFn: () => base44.entities.Manual.list('-created_date', 200),
   });
+
+  const handleRefresh = async () => {
+    await refetchManuals();
+  };
 
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
@@ -106,8 +111,9 @@ export default function Manuals() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pb-24">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 pb-24">
+        <div className="max-w-7xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -347,6 +353,7 @@ export default function Manuals() {
           setShowUploadModal(false);
         }}
       />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

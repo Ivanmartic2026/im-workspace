@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay, startOfMonth, endOfMonth, format } from "date-fns";
 import { sv } from 'date-fns/locale';
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function TimeTracking() {
   const [user, setUser] = useState(null);
@@ -46,6 +47,10 @@ export default function TimeTracking() {
     },
     enabled: !!user?.email
   });
+
+  const handleRefresh = async () => {
+    await refetchTimeEntries();
+  };
 
 
 
@@ -99,8 +104,9 @@ export default function TimeTracking() {
   const differenceMonth = workedHoursMonth - expectedHoursMonth;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
+        <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -207,6 +213,7 @@ export default function TimeTracking() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

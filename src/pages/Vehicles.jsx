@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function Vehicles() {
   const navigate = useNavigate();
@@ -50,10 +51,14 @@ export default function Vehicles() {
     fetchUserAndEmployee();
   }, []);
 
-  const { data: vehicles = [], isLoading } = useQuery({
+  const { data: vehicles = [], isLoading, refetch: refetchVehicles } = useQuery({
     queryKey: ['vehicles'],
     queryFn: () => base44.entities.Vehicle.list('registration_number', 100),
   });
+
+  const handleRefresh = async () => {
+    await refetchVehicles();
+  };
 
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
@@ -124,8 +129,9 @@ export default function Vehicles() {
   const defaultVehicle = myVehicles.length === 1 ? myVehicles[0] : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
+        <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -288,6 +294,7 @@ export default function Vehicles() {
         selectedVehicle={selectedVehicle || defaultVehicle}
         userEmail={user?.email}
       />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

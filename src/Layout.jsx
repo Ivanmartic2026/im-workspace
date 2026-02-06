@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen, MessageCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import NotificationBell from './components/notifications/NotificationBell';
 import ServiceWorkerManager from './components/notifications/ServiceWorkerManager';
@@ -87,8 +87,11 @@ function LayoutContent({ children, currentPageName }) {
 
   const items = getVisibleItems();
 
+  // Detect direction for page transitions
+  const direction = location.state?.direction || 'forward';
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <ServiceWorkerManager />
       <style>{`
         :root {
@@ -135,9 +138,32 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </div>
       
-      {/* Main Content */}
-      <main className="pb-20 pt-14">
-        {children}
+      {/* Main Content with Page Transitions */}
+      <main className="pb-20 pt-14 overflow-hidden">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={currentPageName}
+            initial={{ 
+              x: direction === 'back' ? '-100%' : '100%',
+              opacity: 0 
+            }}
+            animate={{ 
+              x: 0,
+              opacity: 1 
+            }}
+            exit={{ 
+              x: direction === 'back' ? '100%' : '-100%',
+              opacity: 0 
+            }}
+            transition={{ 
+              type: 'tween',
+              duration: 0.3,
+              ease: [0.32, 0.72, 0, 1]
+            }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Bottom Navigation */}
@@ -165,26 +191,34 @@ function LayoutContent({ children, currentPageName }) {
                 <Link
                   key={name}
                   to={createPageUrl(name)}
+                  onClick={(e) => {
+                    // If clicking active tab, reset to root URL
+                    if (isActive && window.history.state?.idx > 0) {
+                      e.preventDefault();
+                      window.history.pushState({ direction: 'back' }, '', createPageUrl(name));
+                      window.location.reload();
+                    }
+                  }}
                   className="relative flex flex-col items-center py-1.5 px-3 min-w-[56px] flex-shrink-0"
                 >
                   <div className={`relative p-2 rounded-xl transition-all duration-200 ${
                     isActive 
-                      ? 'bg-slate-900' 
-                      : 'hover:bg-slate-100'
+                      ? 'bg-slate-900 dark:bg-white' 
+                      : 'hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}>
                     <Icon className={`h-5 w-5 transition-colors ${
-                      isActive ? 'text-white' : 'text-slate-500'
+                      isActive ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400'
                     }`} />
                     {isActive && (
                       <motion.div
                         layoutId="nav-indicator"
-                        className="absolute inset-0 bg-slate-900 rounded-xl -z-10"
+                        className="absolute inset-0 bg-slate-900 dark:bg-white rounded-xl -z-10"
                         transition={{ type: "spring", stiffness: 500, damping: 35 }}
                       />
                     )}
                   </div>
                   <span className={`text-[10px] mt-1 font-medium transition-colors whitespace-nowrap ${
-                    isActive ? 'text-slate-900' : 'text-slate-400'
+                    isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'
                   }`}>
                     {label}
                   </span>
