@@ -485,8 +485,32 @@ export default function DetailedProjectReports() {
                 <Clock className="h-5 w-5 text-blue-600" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900">{totalHours.toFixed(1)}</h3>
-            <p className="text-sm text-slate-600">Timmar arbetad tid</p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-2xl font-bold text-slate-900">{totalHours.toFixed(1)}</h3>
+              {selectedProject?.budget_hours && (
+                <span className="text-sm text-slate-500">/ {selectedProject.budget_hours}h</span>
+              )}
+            </div>
+            <p className="text-sm text-slate-600">Spenderad tid</p>
+            {selectedProject?.budget_hours && (
+              <div className="mt-3">
+                <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all ${
+                      totalHours > selectedProject.budget_hours 
+                        ? 'bg-red-500' 
+                        : totalHours > selectedProject.budget_hours * 0.8 
+                        ? 'bg-amber-500' 
+                        : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${Math.min((totalHours / selectedProject.budget_hours) * 100, 100)}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {((totalHours / selectedProject.budget_hours) * 100).toFixed(0)}% förbrukat
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -522,8 +546,36 @@ export default function DetailedProjectReports() {
                   <DollarSign className="h-5 w-5 text-amber-600" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900">{projectCost.toFixed(0)} kr</h3>
-              <p className="text-sm text-slate-600">Beräknad kostnad</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-2xl font-bold text-slate-900">{projectCost.toFixed(0)} kr</h3>
+                {selectedProject?.budget_hours && selectedProject?.hourly_rate && (
+                  <span className="text-sm text-slate-500">
+                    / {(selectedProject.budget_hours * selectedProject.hourly_rate).toFixed(0)} kr
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-slate-600">Budget förbrukad</p>
+              {selectedProject?.budget_hours && selectedProject?.hourly_rate && (
+                <div className="mt-3">
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        projectCost > (selectedProject.budget_hours * selectedProject.hourly_rate) 
+                          ? 'bg-red-500' 
+                          : projectCost > (selectedProject.budget_hours * selectedProject.hourly_rate * 0.8) 
+                          ? 'bg-amber-500' 
+                          : 'bg-emerald-500'
+                      }`}
+                      style={{ 
+                        width: `${Math.min((projectCost / (selectedProject.budget_hours * selectedProject.hourly_rate)) * 100, 100)}%` 
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {((projectCost / (selectedProject.budget_hours * selectedProject.hourly_rate)) * 100).toFixed(0)}% av budget
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
