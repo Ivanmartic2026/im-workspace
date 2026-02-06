@@ -25,10 +25,24 @@ export default function EditUserModal({ employee, users, onClose }) {
         throw new Error('Användare hittades inte');
       }
       
-      // Update user's full name via service role (admin privilege)
-      await base44.asServiceRole.entities.User.update(user.id, {
-        full_name: fullName.trim()
-      });
+      if (!fullName.trim()) {
+        throw new Error('Namn kan inte vara tomt');
+      }
+      
+      // Update user's full name
+      // Note: Built-in User entity fields can only be updated through auth.updateMe for own profile
+      // For admin updating other users, we need to use a different approach
+      try {
+        // Try with service role first
+        await base44.asServiceRole.entities.User.update(user.id, {
+          full_name: fullName.trim()
+        });
+      } catch (error) {
+        // If that fails, user entity built-in fields might be protected
+        // We can only update through employee entity custom fields or create a workaround
+        console.error('Could not update User entity:', error);
+        throw new Error('Systemet tillåter inte att ändra användarnamn. Detta är en plattformsbegränsning för säkerhet.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });

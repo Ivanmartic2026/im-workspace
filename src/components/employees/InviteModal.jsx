@@ -15,7 +15,12 @@ export default function InviteModal({ open, onClose }) {
 
   const inviteMutation = useMutation({
     mutationFn: async () => {
-      await base44.users.inviteUser(email, role);
+      // Validate email
+      if (!email || !email.includes('@')) {
+        throw new Error('Ange en giltig e-postadress');
+      }
+      
+      await base44.users.inviteUser(email.trim(), role);
     },
     onSuccess: () => {
       setSuccess(true);
@@ -26,6 +31,10 @@ export default function InviteModal({ open, onClose }) {
         onClose();
       }, 2000);
     },
+    onError: (error) => {
+      console.error('Invite error:', error);
+      alert('Kunde inte skicka inbjudan: ' + (error.message || 'Okänt fel'));
+    }
   });
 
   const handleSubmit = (e) => {
