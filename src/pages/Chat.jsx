@@ -46,8 +46,22 @@ export default function Chat() {
       return all.filter(conv => conv.participants.includes(user.email) && !conv.is_archived);
     },
     enabled: !!user?.email,
-    refetchInterval: 2000,
   });
+
+  // Subscribe to conversation updates
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const unsubscribe = base44.entities.Conversation.subscribe((event) => {
+      if (event.type === 'create' || event.type === 'update') {
+        if (event.data?.participants?.includes(user.email)) {
+          refetchConversations();
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [user?.email, refetchConversations]);
 
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
@@ -60,7 +74,7 @@ export default function Chat() {
 
     setMessagesLoading(true);
     
-    // Fetch messages directly from Message entity
+    // Initial load
     const loadMessages = async () => {
       try {
         const msgs = await base44.entities.Message.filter(
@@ -78,62 +92,71 @@ export default function Chat() {
 
     loadMessages();
 
-    // Refresh messages every 1.5 seconds for real-time feel
-    const interval = setInterval(loadMessages, 1500);
+    // Subscribe to real-time updates
+    const unsubscribe = base44.entities.Message.subscribe((event) => {
+      if (event.data?.conversation_id !== selectedConversationId) return;
+
+      if (event.type === 'create') {
+        setMessages(prev => [...prev, event.data]);
+      } else if (event.type === 'update') {
+        setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+      } else if (event.type === 'delete') {
+        setMessages(prev => prev.filter(m => m.id !== event.id));
+      }
+    });
 
     return () => {
-      clearInterval(interval);
-      setMessagesLoading(false);
+      unsubscribe();
     };
-    }, [selectedConversationId]);
+  }, [selectedConversationId]);
 
-    // Mark messages as read when viewing
-    useEffect(() => {
+  // Mark messages as read when viewing
+  useEffect(() => {
     if (!selectedConversationId || !messages.length || !user?.email) return;
 
     const unreadMessages = messages.filter(msg => 
-    msg.sender_email !== user.email && 
-    (!msg.read_by || !msg.read_by.some(r => r.email === user.email))
+      msg.sender_email !== user.email && 
+      (!msg.read_by || !msg.read_by.some(r => r.email === user.email))
     );
 
     if (unreadMessages.length > 0) {
-    base44.functions.invoke('markMessagesAsRead', {
-      message_ids: unreadMessages.map(m => m.id)
-    }).catch(err => console.error('Error marking as read:', err));
+      base44.functions.invoke('markMessagesAsRead', {
+        message_ids: unreadMessages.map(m => m.id)
+      }).catch(err => console.error('Error marking as read:', err));
     }
-    }, [messages, selectedConversationId, user?.email]);
+  }, [messages, selectedConversationId, user?.email]);
 
-    // Handle typing indicator
-    const handleTypingChange = (value) => {
+  // Handle typing indicator
+  const handleTypingChange = (value) => {
     setMessageContent(value);
 
     if (!selectedConversationId || !user?.email) return;
 
     // Clear previous timeout
     if (typingTimeoutRef.current) {
-    clearTimeout(typingTimeoutRef.current);
+      clearTimeout(typingTimeoutRef.current);
     }
 
     // Send typing status
     if (value.trim() && !isTyping) {
-    setIsTyping(true);
-    base44.functions.invoke('updateTypingStatus', {
-      conversation_id: selectedConversationId,
-      is_typing: true
-    }).catch(err => console.error('Typing error:', err));
+      setIsTyping(true);
+      base44.functions.invoke('updateTypingStatus', {
+        conversation_id: selectedConversationId,
+        is_typing: true
+      }).catch(err => console.error('Typing error:', err));
     }
 
     // Clear typing status after 2 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
-    if (isTyping) {
-      setIsTyping(false);
-      base44.functions.invoke('updateTypingStatus', {
-        conversation_id: selectedConversationId,
-        is_typing: false
-      }).catch(err => console.error('Typing error:', err));
-    }
+      if (isTyping) {
+        setIsTyping(false);
+        base44.functions.invoke('updateTypingStatus', {
+          conversation_id: selectedConversationId,
+          is_typing: false
+        }).catch(err => console.error('Typing error:', err));
+      }
     }, 2000);
-    };
+  };
 
   const createConversationMutation = useMutation({
     mutationFn: async (participants) => {
@@ -178,19 +201,11 @@ export default function Chat() {
         conversation_id: selectedConversationId,
         content
       });
-      return response.data.message;
+      return response.data;
     },
     onSuccess: () => {
       refetchConversations();
       setMessageContent('');
-      // Force immediate reload of messages
-      if (selectedConversationId) {
-        base44.entities.Message.filter(
-          { conversation_id: selectedConversationId },
-          'created_date',
-          100
-        ).then(msgs => setMessages(msgs));
-      }
     },
   });
 
