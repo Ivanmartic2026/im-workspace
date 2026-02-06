@@ -20,6 +20,7 @@ export default function Projects() {
   const [editingProject, setEditingProject] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all'); // day, week, month, all
   const [sortBy, setSortBy] = useState('name');
   const queryClient = useQueryClient();
 
@@ -50,17 +51,41 @@ export default function Projects() {
     initialData: []
   });
 
-  const { data: timeEntries = [] } = useQuery({
+  const { data: allTimeEntries = [] } = useQuery({
     queryKey: ['time-entries'],
     queryFn: () => base44.entities.TimeEntry.list(),
     initialData: []
   });
 
-  const { data: journalEntries = [] } = useQuery({
+  const { data: allJournalEntries = [] } = useQuery({
     queryKey: ['journal-entries'],
     queryFn: () => base44.entities.DrivingJournalEntry.list(),
     initialData: []
   });
+
+  // Filter entries based on time period
+  const getFilteredEntries = () => {
+    const now = new Date();
+    const today = startOfDay(now);
+    
+    let startDate;
+    if (timeFilter === 'day') {
+      startDate = today;
+    } else if (timeFilter === 'week') {
+      startDate = new Date(now.setDate(now.getDate() - 7));
+    } else if (timeFilter === 'month') {
+      startDate = new Date(now.setMonth(now.getMonth() - 1));
+    } else {
+      return { timeEntries: allTimeEntries, journalEntries: allJournalEntries };
+    }
+
+    const timeEntries = allTimeEntries.filter(e => new Date(e.date) >= startDate);
+    const journalEntries = allJournalEntries.filter(e => new Date(e.start_time) >= startDate);
+    
+    return { timeEntries, journalEntries };
+  };
+
+  const { timeEntries, journalEntries } = getFilteredEntries();
 
   // Filtrering och sortering
   const projects = allProjects
@@ -214,7 +239,7 @@ export default function Projects() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-slate-500" />
               <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -230,6 +255,18 @@ export default function Projects() {
                 </SelectContent>
               </Select>
             </div>
+
+            <Select value={timeFilter} onValueChange={setTimeFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Tidsperiod" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All tid</SelectItem>
+                <SelectItem value="day">Idag</SelectItem>
+                <SelectItem value="week">Senaste veckan</SelectItem>
+                <SelectItem value="month">Senaste månaden</SelectItem>
+              </SelectContent>
+            </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-40">
@@ -285,59 +322,62 @@ export default function Projects() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg mb-2">{project.name}</CardTitle>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all bg-white overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-xl font-bold mb-2 text-slate-900">{project.name}</CardTitle>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-3 py-1 rounded-lg text-sm font-semibold bg-slate-900 text-white">
                             {project.project_code}
                           </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            project.status === 'pågående' ? 'bg-blue-100 text-blue-700' :
-                            project.status === 'avslutat' ? 'bg-slate-100 text-slate-700' :
-                            project.status === 'pausat' ? 'bg-amber-100 text-amber-700' :
-                            'bg-green-100 text-green-700'
+                          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                            project.status === 'pågående' ? 'bg-blue-500 text-white' :
+                            project.status === 'avslutat' ? 'bg-slate-400 text-white' :
+                            project.status === 'pausat' ? 'bg-amber-500 text-white' :
+                            'bg-emerald-500 text-white'
                           }`}>
                             {project.status}
                           </span>
                         </div>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setSelectedProject(project)}
-                          className="h-8 w-8"
+                          className="h-9 w-9 hover:bg-slate-100"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-5 w-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEdit(project)}
-                          className="h-8 w-8"
+                          className="h-9 w-9 hover:bg-slate-100"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-5 w-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(project.id)}
-                          className="h-8 w-8 text-rose-600 hover:text-rose-700"
+                          className="h-9 w-9 text-rose-600 hover:bg-rose-50"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-5 w-5" />
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-0">
                     {project.description && (
-                      <p className="text-sm text-slate-600 line-clamp-2">{project.description}</p>
+                      <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{project.description}</p>
                     )}
                     {project.customer && (
-                      <p className="text-sm text-slate-500">Kund: {project.customer}</p>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium text-slate-500">Kund:</span>
+                        <span className="font-semibold text-slate-900">{project.customer}</span>
+                      </div>
                     )}
                     <div className="pt-3 border-t">
                       {(() => {
@@ -378,13 +418,13 @@ export default function Projects() {
                           <div className="space-y-3">
                             {/* Senaste registrering */}
                             {latestEntry && (
-                              <div className="bg-indigo-50 rounded-lg p-3">
+                              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl p-3 text-white shadow-md">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-indigo-600" />
-                                    <span className="text-xs font-medium text-indigo-900">Senaste registrering</span>
+                                    <Calendar className="h-5 w-5" />
+                                    <span className="text-sm font-semibold">Senaste registrering</span>
                                   </div>
-                                  <span className="text-xs text-indigo-700 font-medium">
+                                  <span className="text-sm font-bold">
                                     {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
                                   </span>
                                 </div>
@@ -392,23 +432,23 @@ export default function Projects() {
                             )}
 
                             {/* Timmar */}
-                            <div className="bg-blue-50 rounded-lg p-3">
-                              <div className="flex items-center justify-between mb-2">
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-md">
+                              <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <Clock className="h-4 w-4 text-blue-600" />
-                                  <span className="text-xs font-medium text-blue-900">Nedlagd tid</span>
+                                  <Clock className="h-5 w-5" />
+                                  <span className="text-sm font-semibold">Nedlagd tid</span>
                                 </div>
-                                <span className="text-sm font-bold text-blue-700">{projectHours.toFixed(1)}h</span>
+                                <span className="text-2xl font-bold">{projectHours.toFixed(1)}h</span>
                               </div>
                               {project.budget_hours && (
                                 <>
-                                  <div className="flex items-center justify-between text-xs text-blue-600 mb-1">
+                                  <div className="flex items-center justify-between text-xs text-blue-100 mb-2">
                                     <span>Budget: {project.budget_hours}h</span>
-                                    <span>{budgetProgress.toFixed(0)}%</span>
+                                    <span className="font-bold">{budgetProgress.toFixed(0)}%</span>
                                   </div>
-                                  <div className="w-full bg-blue-200 rounded-full h-1.5">
+                                  <div className="w-full bg-blue-400/30 rounded-full h-2">
                                     <div 
-                                      className={`h-1.5 rounded-full ${budgetProgress > 100 ? 'bg-red-500' : 'bg-blue-600'}`}
+                                      className={`h-2 rounded-full ${budgetProgress > 100 ? 'bg-red-300' : 'bg-white'}`}
                                       style={{ width: `${Math.min(budgetProgress, 100)}%` }}
                                     />
                                   </div>
@@ -418,22 +458,22 @@ export default function Projects() {
 
                             {/* Kilometer */}
                             {projectKm > 0 && (
-                              <div className="bg-green-50 rounded-lg p-3">
+                              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white shadow-md">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <Navigation className="h-4 w-4 text-green-600" />
-                                    <span className="text-xs font-medium text-green-900">Körda kilometer</span>
+                                    <Navigation className="h-5 w-5" />
+                                    <span className="text-sm font-semibold">Körda kilometer</span>
                                   </div>
-                                  <span className="text-sm font-bold text-green-700">{projectKm.toFixed(0)} km</span>
+                                  <span className="text-2xl font-bold">{projectKm.toFixed(0)} km</span>
                                 </div>
                               </div>
                             )}
 
                             {/* Timpris */}
                             {project.hourly_rate && (
-                              <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                                <span>Timpris</span>
-                                <span className="font-medium">{project.hourly_rate} kr/h</span>
+                              <div className="flex items-center justify-between text-sm px-1 pt-1">
+                                <span className="text-slate-500 font-medium">Timpris</span>
+                                <span className="font-bold text-slate-900">{project.hourly_rate} kr/h</span>
                               </div>
                             )}
                           </div>
