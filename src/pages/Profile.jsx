@@ -41,21 +41,24 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    if (employee) {
-      setFormData(employee);
+    if (employee || user) {
+      setFormData({
+        ...employee,
+        full_name: user?.full_name || employee?.full_name || ''
+      });
     }
-  }, [employee]);
+  }, [employee, user]);
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      // Update user full_name if it changed
-      if (data.full_name && data.full_name !== user.full_name) {
-        await base44.auth.updateMe({ full_name: data.full_name });
-      }
-      
-      // Remove full_name from employee data since it's stored in User entity
       const { full_name, ...employeeData } = data;
-      
+
+      // Always update user full_name
+      if (full_name) {
+        await base44.auth.updateMe({ full_name });
+      }
+
+      // Update or create employee record
       if (employee?.id) {
         await base44.entities.Employee.update(employee.id, employeeData);
       } else {
