@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import JournalEntryCard from "@/components/journal/JournalEntryCard";
 import JournalStatsCard from "@/components/journal/JournalStatsCard";
@@ -125,10 +126,14 @@ export default function DrivingJournal() {
     return 'parkerad';
   };
 
-  const { data: entries = [], isLoading } = useQuery({
+  const { data: entries = [], isLoading, refetch: refetchEntries } = useQuery({
     queryKey: ['journalEntries'],
     queryFn: () => base44.entities.DrivingJournalEntry.list('-created_date', 200),
   });
+
+  const handleRefresh = async () => {
+    await refetchEntries();
+  };
 
   // Auto-sync GPS trips on mount and periodically
   useEffect(() => {
@@ -593,8 +598,9 @@ export default function DrivingJournal() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      <div className="max-w-2xl mx-auto px-4 py-6">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-24">
+        <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">Körjournal</h1>
         </div>
@@ -1219,6 +1225,7 @@ export default function DrivingJournal() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

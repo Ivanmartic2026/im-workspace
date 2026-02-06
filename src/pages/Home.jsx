@@ -18,6 +18,7 @@ import { format } from "date-fns";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -41,10 +42,17 @@ export default function Home() {
       .finally(() => setIsAuthLoading(false));
   }, []);
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: posts = [], isLoading, refetch: refetchPosts } = useQuery({
     queryKey: ['newsPosts'],
     queryFn: () => base44.entities.NewsPost.list('-created_date', 50),
   });
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetchPosts(),
+      refetchTimeEntries()
+    ]);
+  };
 
   const { data: timeEntries = [], refetch: refetchTimeEntries } = useQuery({
     queryKey: ['timeEntries', user?.email],
@@ -205,8 +213,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
+        <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -457,6 +466,7 @@ export default function Home() {
         currentUserEmail={user?.email}
         onComment={setSelectedPost}
       />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

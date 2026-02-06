@@ -8,9 +8,13 @@ import NotificationBell from './components/notifications/NotificationBell';
 import ServiceWorkerManager from './components/notifications/ServiceWorkerManager';
 import { LanguageProvider, useLanguage } from './components/contexts/LanguageContext';
 import LanguageSwitcher from './components/settings/LanguageSwitcher';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function LayoutContent({ children, currentPageName }) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   const navItems = [
     { name: 'Home', label: t('nav_home'), icon: Home },
@@ -54,6 +58,9 @@ function LayoutContent({ children, currentPageName }) {
 
   const isAdmin = user?.role === 'admin';
   
+  // Check if we're on a child route (not home)
+  const isChildRoute = currentPageName && currentPageName !== 'Home';
+  
   // Filter navigation items based on user's assigned features
   const hasFeatureAccess = (featureName) => {
     if (isAdmin) return true; // Admins have access to everything
@@ -89,13 +96,10 @@ function LayoutContent({ children, currentPageName }) {
           --color-accent: 99 102 241;
         }
         html, body {
-          width: 100%;
-          height: 100%;
-          -webkit-user-select: none;
-          user-select: none;
-          -webkit-user-scalable: no;
-          -webkit-touch-callout: none;
-        }
+            width: 100%;
+            height: 100%;
+            -webkit-user-scalable: no;
+          }
         @supports(padding: max(0px)) {
           body {
             padding-left: max(12px, env(safe-area-inset-left));
@@ -104,14 +108,35 @@ function LayoutContent({ children, currentPageName }) {
         }
       `}</style>
 
-      {/* Notification Bell and Language Switcher - Fixed Top Right */}
-      <div className="fixed top-3 right-3 z-50 flex gap-2">
-        <LanguageSwitcher />
-        <NotificationBell user={user} />
+      {/* Mobile Header - Fixed Top */}
+      <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-slate-100 dark:border-slate-800 z-50 safe-area-pt">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+          {isChildRoute ? (
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-slate-900 dark:text-white hover:text-slate-600 dark:hover:text-slate-300 transition-colors -ml-2 px-2 py-1"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span className="font-medium">{t('back') || 'Tillbaka'}</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-slate-900 dark:bg-white flex items-center justify-center">
+                <span className="text-white dark:text-slate-900 font-bold text-sm">IV</span>
+              </div>
+              <span className="font-bold text-slate-900 dark:text-white">ImVision</span>
+            </div>
+          )}
+          
+          <div className="flex gap-2">
+            <LanguageSwitcher />
+            <NotificationBell user={user} />
+          </div>
+        </div>
       </div>
       
       {/* Main Content */}
-      <main className="pb-20">
+      <main className="pb-20 pt-14">
         {children}
       </main>
 
