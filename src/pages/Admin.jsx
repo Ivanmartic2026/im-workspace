@@ -32,6 +32,7 @@ import RealtimeDashboard from '@/components/admin/RealtimeDashboard';
 import DetailedProjectReports from '@/components/admin/DetailedProjectReports';
 import AllVehicleReports from '@/components/admin/AllVehicleReports';
 import AllFuelLogs from '@/components/admin/AllFuelLogs';
+import ManualReportSender from '@/components/admin/ManualReportSender';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -478,6 +479,7 @@ export default function Admin() {
             {/* Automation Tab */}
             <TabsContent value="automation" className="space-y-4">
               <AutomationSettings />
+              <ManualReportSender />
             </TabsContent>
 
             {/* Settings Tab */}
