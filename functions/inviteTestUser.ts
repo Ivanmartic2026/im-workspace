@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
         }
 
         // Invite test user
-        await base44.asServiceRole.users.inviteUser('test@imvision.se', 'user');
+        await base44.users.inviteUser('test@imvision.se', 'user');
 
         return Response.json({ 
             success: true, 
