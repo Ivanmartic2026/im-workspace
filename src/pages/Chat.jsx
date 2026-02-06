@@ -161,11 +161,23 @@ export default function Chat() {
   const createConversationMutation = useMutation({
     mutationFn: async (participants) => {
       const allParticipants = [...new Set([user.email, ...participants])];
+      
+      // Get full user details for title
+      const participantNames = await Promise.all(
+        allParticipants.map(async (email) => {
+          const u = allUsers.find(u => u.email === email);
+          return u?.full_name || email;
+        })
+      );
+      
       const conversation = await base44.entities.Conversation.create({
-        title: conversationTitle || allParticipants.map(p => allUsers.find(u => u.email === p)?.full_name || p).join(', '),
+        title: conversationTitle || participantNames.join(', '),
         type: participants.length === 1 ? 'direct' : 'group',
         participants: allParticipants,
-        is_archived: false
+        is_archived: false,
+        last_message: '',
+        last_message_at: new Date().toISOString(),
+        last_message_by: user.email
       });
       return conversation;
     },
