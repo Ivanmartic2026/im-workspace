@@ -71,6 +71,7 @@ import Manuals from './pages/Manuals';
 import MyOnboarding from './pages/MyOnboarding';
 import NotificationSettings from './pages/NotificationSettings';
 import OnboardingTemplates from './pages/OnboardingTemplates';
+import PendingApprovals from './pages/PendingApprovals';
 import Profile from './pages/Profile';
 import ProjectReports from './pages/ProjectReports';
 import Projects from './pages/Projects';
@@ -82,7 +83,6 @@ import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import PendingApprovals from './pages/PendingApprovals';
 import __Layout from './Layout.jsx';
 
 
@@ -111,6 +111,7 @@ export const PAGES = {
     "MyOnboarding": MyOnboarding,
     "NotificationSettings": NotificationSettings,
     "OnboardingTemplates": OnboardingTemplates,
+    "PendingApprovals": PendingApprovals,
     "Profile": Profile,
     "ProjectReports": ProjectReports,
     "Projects": Projects,
@@ -122,7 +123,6 @@ export const PAGES = {
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "PendingApprovals": PendingApprovals,
 }
 
 export const pagesConfig = {

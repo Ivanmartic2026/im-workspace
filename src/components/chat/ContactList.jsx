@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Search, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import OnlineIndicator from './OnlineIndicator';
 
 export default function ContactList({ users, currentUserEmail, onSelectUser }) {
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { data: timeEntries = [] } = useQuery({
+    queryKey: ['activeTimeEntries'],
+    queryFn: async () => {
+      const all = await base44.entities.TimeEntry.list('-updated_date', 100);
+      return all.filter(e => e.status === 'active');
+    },
+    refetchInterval: 5000,
+  });
 
   const filteredUsers = users
     .filter(u => u.email !== currentUserEmail)
@@ -14,6 +26,18 @@ export default function ContactList({ users, currentUserEmail, onSelectUser }) {
         u.full_name?.toLowerCase().includes(query) ||
         u.email?.toLowerCase().includes(query)
       );
+    })
+    .map(u => {
+      const clockedIn = timeEntries.some(e => e.employee_email === u.email);
+      const isOnline = u.updated_date && (new Date() - new Date(u.updated_date)) < 5 * 60 * 1000;
+      return { ...u, isClockedIn: clockedIn, isOnline };
+    })
+    .sort((a, b) => {
+      if (a.isClockedIn && !b.isClockedIn) return -1;
+      if (!a.isClockedIn && b.isClockedIn) return 1;
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return 0;
     });
 
   return (
@@ -47,8 +71,16 @@ export default function ContactList({ users, currentUserEmail, onSelectUser }) {
               onClick={() => onSelectUser(user)}
               className="w-full flex items-center gap-3 p-3 rounded-xl bg-white hover:bg-slate-50 transition-all border border-slate-100 hover:border-slate-200 hover:shadow-sm"
             >
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
-                {user.full_name?.charAt(0) || user.email?.charAt(0)}
+              <div className="relative">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
+                  {user.full_name?.charAt(0) || user.email?.charAt(0)}
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5">
+                  <OnlineIndicator 
+                    isClockedIn={user.isClockedIn}
+                    isOnline={user.isOnline}
+                  />
+                </div>
               </div>
               <div className="flex-1 text-left min-w-0">
                 <p className="font-medium text-slate-900 truncate">

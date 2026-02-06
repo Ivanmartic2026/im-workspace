@@ -11,6 +11,7 @@ import ConversationList from '@/components/chat/ConversationList';
 import MessageList from '@/components/chat/MessageList';
 import ContactList from '@/components/chat/ContactList';
 import TypingIndicator from '@/components/chat/TypingIndicator';
+import OnlineUsersList from '@/components/chat/OnlineUsersList';
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Chat() {
@@ -266,12 +267,17 @@ export default function Chat() {
         </motion.div>
 
         <div className="flex flex-1 gap-4 p-4 min-h-0">
-          <div className="w-80 overflow-y-auto">
+          <div className="w-80 overflow-y-auto space-y-4">
+            <OnlineUsersList 
+              currentUserEmail={user?.email}
+              onStartChat={handleSelectContact}
+            />
             <ConversationList
               conversations={filteredConversations}
               selectedId={selectedConversationId}
               onSelect={setSelectedConversationId}
               loading={conversationsLoading}
+              currentUserEmail={user?.email}
             />
           </div>
 
@@ -419,12 +425,17 @@ export default function Chat() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto space-y-4 px-4">
+              <OnlineUsersList 
+                currentUserEmail={user?.email}
+                onStartChat={handleSelectContact}
+              />
               <ConversationList
                 conversations={filteredConversations}
                 selectedId={selectedConversationId}
                 onSelect={setSelectedConversationId}
                 loading={conversationsLoading}
+                currentUserEmail={user?.email}
               />
             </div>
           </>
