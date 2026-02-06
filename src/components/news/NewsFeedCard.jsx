@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, ThumbsUp, PartyPopper, MessageCircle, AlertTriangle, CheckCircle } from "lucide-react";
-import { format } from "date-fns";
+import { Heart, ThumbsUp, PartyPopper, MessageCircle, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { format, formatDistanceToNow, differenceInDays } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion } from "framer-motion";
 
@@ -37,6 +37,10 @@ export default function NewsFeedCard({ post, onReact, onComment, onAcknowledge, 
     if (!name) return "?";
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
+  const createdDate = new Date(post.created_date);
+  const daysAgo = differenceInDays(new Date(), createdDate);
+  const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true, locale: sv });
 
   return (
     <motion.div
@@ -110,8 +114,21 @@ export default function NewsFeedCard({ post, onReact, onComment, onAcknowledge, 
                 <h3 className="font-semibold text-lg text-slate-900 leading-tight">{post.title}</h3>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
-              <span>{format(new Date(post.created_date), "d MMM yyyy 'kl' HH:mm", { locale: sv })}</span>
+            <div className="flex items-center gap-2 mt-2 text-xs">
+              <div className="flex items-center gap-1 text-slate-600 font-medium">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{timeAgo}</span>
+              </div>
+              <span className="text-slate-300">•</span>
+              <span className="text-slate-500">{format(createdDate, "d MMM yyyy 'kl' HH:mm", { locale: sv })}</span>
+              {daysAgo > 0 && (
+                <>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-500 font-medium">
+                    {daysAgo === 1 ? '1 dag sedan' : `${daysAgo} dagar sedan`}
+                  </span>
+                </>
+              )}
             </div>
           </CardHeader>
 
