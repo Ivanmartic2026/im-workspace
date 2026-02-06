@@ -43,8 +43,10 @@ export default function NewsFeedCard({ post, onReact, onComment, onAcknowledge, 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
     >
-      <Card className={`overflow-hidden border-0 shadow-sm hover:shadow-md transition-all duration-300 ${
+      <Card className={`overflow-hidden border-0 shadow-sm hover:shadow-xl transition-all duration-300 ${
         needsAcknowledgment ? 'ring-2 ring-blue-400' : 
         post.is_important ? 'ring-2 ring-amber-400 bg-amber-50/30' : 'bg-white'
       }`}>
@@ -72,13 +74,17 @@ export default function NewsFeedCard({ post, onReact, onComment, onAcknowledge, 
 
         <div className={needsAcknowledgment ? 'blur-sm pointer-events-none select-none' : ''}>
           {post.image_url && (
-            <div className="h-48 overflow-hidden">
+            <motion.div 
+              className="h-48 overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
               <img 
                 src={post.image_url} 
                 alt={post.title}
                 className="w-full h-full object-cover"
               />
-            </div>
+            </motion.div>
           )}
           
           <CardHeader className="pb-3">
@@ -112,49 +118,77 @@ export default function NewsFeedCard({ post, onReact, onComment, onAcknowledge, 
           <CardContent className="pt-0">
             <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
             
-            <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
+            <motion.div 
+              className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onReact(post.id, 'likes')}
-                  className={`h-9 px-3 rounded-full transition-all ${hasLiked ? 'bg-blue-100 text-blue-600' : 'hover:bg-slate-100 text-slate-500'}`}
-                >
-                  <ThumbsUp className={`w-4 h-4 mr-1.5 ${hasLiked ? 'fill-current' : ''}`} />
-                  <span className="text-xs font-medium">{reactions.likes?.length || 0}</span>
-                </Button>
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onReact(post.id, 'likes')}
+                    className={`h-9 px-3 rounded-full transition-all ${hasLiked ? 'bg-blue-100 text-blue-600' : 'hover:bg-slate-100 text-slate-500'}`}
+                  >
+                    <motion.div
+                      animate={hasLiked ? { rotate: [0, -15, 15, -15, 0] } : {}}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <ThumbsUp className={`w-4 h-4 mr-1.5 ${hasLiked ? 'fill-current' : ''}`} />
+                    </motion.div>
+                    <span className="text-xs font-medium">{reactions.likes?.length || 0}</span>
+                  </Button>
+                </motion.div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onReact(post.id, 'hearts')}
-                  className={`h-9 px-3 rounded-full transition-all ${hasHearted ? 'bg-rose-100 text-rose-500' : 'hover:bg-slate-100 text-slate-500'}`}
-                >
-                  <Heart className={`w-4 h-4 mr-1.5 ${hasHearted ? 'fill-current' : ''}`} />
-                  <span className="text-xs font-medium">{reactions.hearts?.length || 0}</span>
-                </Button>
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onReact(post.id, 'hearts')}
+                    className={`h-9 px-3 rounded-full transition-all ${hasHearted ? 'bg-rose-100 text-rose-500' : 'hover:bg-slate-100 text-slate-500'}`}
+                  >
+                    <motion.div
+                      animate={hasHearted ? { scale: [1, 1.3, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Heart className={`w-4 h-4 mr-1.5 ${hasHearted ? 'fill-current' : ''}`} />
+                    </motion.div>
+                    <span className="text-xs font-medium">{reactions.hearts?.length || 0}</span>
+                  </Button>
+                </motion.div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onReact(post.id, 'celebrates')}
-                  className={`h-9 px-3 rounded-full transition-all ${hasCelebrated ? 'bg-amber-100 text-amber-600' : 'hover:bg-slate-100 text-slate-500'}`}
-                >
-                  <PartyPopper className={`w-4 h-4 mr-1.5 ${hasCelebrated ? 'fill-current' : ''}`} />
-                  <span className="text-xs font-medium">{reactions.celebrates?.length || 0}</span>
-                </Button>
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onReact(post.id, 'celebrates')}
+                    className={`h-9 px-3 rounded-full transition-all ${hasCelebrated ? 'bg-amber-100 text-amber-600' : 'hover:bg-slate-100 text-slate-500'}`}
+                  >
+                    <motion.div
+                      animate={hasCelebrated ? { rotate: [0, -20, 20, -20, 0], scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <PartyPopper className={`w-4 h-4 mr-1.5 ${hasCelebrated ? 'fill-current' : ''}`} />
+                    </motion.div>
+                    <span className="text-xs font-medium">{reactions.celebrates?.length || 0}</span>
+                  </Button>
+                </motion.div>
               </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onComment(post)}
-                className="h-9 px-3 rounded-full hover:bg-slate-100 text-slate-500"
-              >
-                <MessageCircle className="w-4 h-4 mr-1.5" />
-                <span className="text-xs font-medium">{comments.length}</span>
-              </Button>
-            </div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onComment(post)}
+                  className="h-9 px-3 rounded-full hover:bg-slate-100 text-slate-500"
+                >
+                  <MessageCircle className="w-4 h-4 mr-1.5" />
+                  <span className="text-xs font-medium">{comments.length}</span>
+                </Button>
+              </motion.div>
+            </motion.div>
           </CardContent>
         </div>
       </Card>
