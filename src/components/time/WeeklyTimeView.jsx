@@ -258,18 +258,24 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
                             </div>
                           )}
                           
-                          <div className="flex items-center gap-4 text-xs text-slate-600">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>
-                                {format(new Date(entry.clock_in_time), 'HH:mm')} - {' '}
+                          <div className="flex items-center gap-4 text-sm text-slate-700">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-slate-500">In:</span>
+                              <span className="font-bold">{format(new Date(entry.clock_in_time), 'HH:mm')}</span>
+                            </div>
+                            
+                            <span className="text-slate-300">→</span>
+                            
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-slate-500">Ut:</span>
+                              <span className="font-bold">
                                 {entry.clock_out_time ? format(new Date(entry.clock_out_time), 'HH:mm') : 'Pågår'}
                               </span>
                             </div>
                             
                             {entry.total_break_minutes > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Coffee className="h-3 w-3" />
+                              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                <Coffee className="h-3.5 w-3.5" />
                                 <span>{entry.total_break_minutes}m rast</span>
                               </div>
                             )}

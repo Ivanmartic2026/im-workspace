@@ -60,10 +60,10 @@ export default function TimeEntryList({ entries }) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <p className="text-xs text-slate-500">Instämpling</p>
-                    <p className="text-sm font-semibold text-slate-900">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Instämpling</p>
+                    <p className="text-2xl font-bold text-emerald-600">
                       {format(clockIn, 'HH:mm')}
                     </p>
                     {entry.clock_in_location && (
@@ -75,9 +75,9 @@ export default function TimeEntryList({ entries }) {
                   </div>
 
                   {clockOut ? (
-                    <div className="space-y-1">
-                      <p className="text-xs text-slate-500">Utstämpling</p>
-                      <p className="text-sm font-semibold text-slate-900">
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Utstämpling</p>
+                      <p className="text-2xl font-bold text-rose-600">
                         {format(clockOut, 'HH:mm')}
                       </p>
                       {entry.clock_out_location && (
@@ -89,7 +89,10 @@ export default function TimeEntryList({ entries }) {
                     </div>
                   ) : (
                     <div className="flex items-center justify-center">
-                      <Badge variant="secondary" className="text-xs">Pågår</Badge>
+                      <Badge className="bg-emerald-500 text-white text-sm px-4 py-2">
+                        <Clock className="h-4 w-4 mr-1.5" />
+                        Pågår
+                      </Badge>
                     </div>
                   )}
                 </div>

@@ -120,8 +120,8 @@ export default function TimeHistory({ entries, onEdit }) {
                         <div className="text-right">
                           {hasEntries ? (
                             <>
-                              <p className="text-lg font-bold text-slate-900">{dayTotal.toFixed(1)}h</p>
-                              <p className="text-xs text-slate-500">{dayEntries.length} pass</p>
+                              <p className="text-xl font-bold text-slate-900">{dayTotal.toFixed(1)}h</p>
+                              <p className="text-xs text-slate-500">{dayEntries.length} registrering{dayEntries.length !== 1 ? 'ar' : ''}</p>
                             </>
                           ) : (
                             <p className="text-sm text-slate-400">-</p>
@@ -177,12 +177,24 @@ export default function TimeHistory({ entries, onEdit }) {
                                   <Badge className={`${categoryConfig[entry.category]?.color} text-white shrink-0 text-xs`}>
                                     {categoryConfig[entry.category]?.label}
                                   </Badge>
-                                  <div className="flex items-center gap-1.5 text-slate-600">
-                                    <Clock className="h-3.5 w-3.5 text-slate-400" />
-                                    <span className="text-sm font-medium">
-                                      {format(parseISO(entry.clock_in_time), 'HH:mm')}
-                                      {entry.clock_out_time && ` – ${format(parseISO(entry.clock_out_time), 'HH:mm')}`}
-                                    </span>
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-xs font-medium text-slate-500">In:</span>
+                                      <span className="text-sm font-bold text-slate-900">
+                                        {format(parseISO(entry.clock_in_time), 'HH:mm')}
+                                      </span>
+                                    </div>
+                                    {entry.clock_out_time && (
+                                      <>
+                                        <span className="hidden sm:inline text-slate-300">•</span>
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-xs font-medium text-slate-500">Ut:</span>
+                                          <span className="text-sm font-bold text-slate-900">
+                                            {format(parseISO(entry.clock_out_time), 'HH:mm')}
+                                          </span>
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
                                 
