@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Save, Loader2, Mail, Phone, MapPin, Building2, Briefcase, LogOut, Settings } from "lucide-react";
+import { Camera, Save, Loader2, Mail, Phone, MapPin, Building2, Briefcase, LogOut, Settings, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import PushNotificationSetup from '@/components/notifications/PushNotificationSetup';
 import SettingsCard from '@/components/profile/SettingsCard';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const departments = ["Ledning", "HR", "Sälj", "Marknad", "IT", "Ekonomi", "Produktion", "Kundtjänst", "Övrigt"];
 
@@ -377,18 +378,51 @@ export default function Profile() {
             {/* App Settings */}
             <SettingsCard user={user} />
 
-            {/* Logout */}
+            {/* Logout and Delete Account */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-0">
                 <button 
                   onClick={handleLogout}
-                  className="flex items-center gap-4 p-4 w-full text-left hover:bg-slate-50 transition-colors text-rose-600"
+                  className="flex items-center gap-4 p-4 w-full text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-rose-600"
                 >
                   <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center">
                     <LogOut className="h-4 w-4" />
                   </div>
                   <span className="font-medium">Logga ut</span>
                 </button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button 
+                      className="flex items-center gap-4 p-4 w-full text-left hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors text-rose-600 border-t"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center">
+                        <Trash2 className="h-4 w-4" />
+                      </div>
+                      <span className="font-medium">Radera konto</span>
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Är du säker?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Detta kommer permanent radera ditt konto och all associerad data. 
+                        Denna åtgärd kan inte ångras.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          alert('Kontaktfunktion för kontoradering är under utveckling. Kontakta admin@imvision.se för att radera ditt konto.');
+                        }}
+                        className="bg-rose-600 hover:bg-rose-700"
+                      >
+                        Radera permanent
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </CardContent>
             </Card>
           </motion.div>
