@@ -53,18 +53,20 @@ export default function Profile() {
         await base44.auth.updateMe({ full_name: data.full_name });
       }
       
-      // Remove full_name from employee data
+      // Remove full_name from employee data since it's stored in User entity
       const { full_name, ...employeeData } = data;
       
-      if (employee) {
-        return base44.entities.Employee.update(employee.id, employeeData);
+      if (employee?.id) {
+        await base44.entities.Employee.update(employee.id, employeeData);
       } else {
-        return base44.entities.Employee.create({ ...employeeData, user_email: user.email });
+        await base44.entities.Employee.create({ ...employeeData, user_email: user.email });
       }
+
+      // Return updated user for onSuccess
+      return await base44.auth.me();
     },
-    onSuccess: async () => {
+    onSuccess: async (updatedUser) => {
       queryClient.invalidateQueries({ queryKey: ['myEmployee'] });
-      const updatedUser = await base44.auth.me();
       setUser(updatedUser);
       setIsEditing(false);
     },
