@@ -68,6 +68,15 @@
     user-select: none;
     -webkit-touch-callout: none;
   }
+
+  /* iOS Safe Area Support */
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top) !important;
+  }
+  
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

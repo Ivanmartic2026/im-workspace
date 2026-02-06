@@ -414,7 +414,7 @@ export default function Profile() {
                       <AlertDialogCancel>Avbryt</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => {
-                          alert('Kontaktfunktion för kontoradering är under utveckling. Kontakta admin@imvision.se för att radera ditt konto.');
+                          window.location.href = `mailto:info@imvision.se?subject=Account Deletion Request&body=I would like to request the deletion of my account.%0D%0A%0D%0AUser Email: ${encodeURIComponent(user.email)}`;
                         }}
                         className="bg-rose-600 hover:bg-rose-700"
                       >
