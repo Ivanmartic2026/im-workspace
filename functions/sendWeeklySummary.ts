@@ -174,7 +174,27 @@ Deno.serve(async (req) => {
             </div>
         `;
 
-        // Skicka e-post
+        // Skicka e-post - först försök hitta användare i systemet
+        const users = await base44.asServiceRole.entities.User.list();
+        const targetUser = users.find(u => u.email === 'info@imvision.se');
+        
+        if (!targetUser) {
+            // Om användaren inte finns, returnera rapporten istället för att skicka
+            return Response.json({ 
+                success: true, 
+                message: `Veckorapport genererad för vecka ${weekNumber}. Lägg till info@imvision.se som användare för att få automatisk e-post.`,
+                summary: {
+                    weekNumber,
+                    dateRange,
+                    totalHours,
+                    totalEmployees,
+                    totalProjects
+                },
+                report: emailBody
+            });
+        }
+
+        // Skicka e-post till användare i systemet
         await base44.asServiceRole.integrations.Core.SendEmail({
             to: 'info@imvision.se',
             subject: `Veckorapport - Vecka ${weekNumber} (${dateRange})`,
