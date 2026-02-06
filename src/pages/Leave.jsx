@@ -7,6 +7,8 @@ import { Plus, CalendarPlus } from "lucide-react";
 import LeaveBalanceCard from "@/components/leave/LeaveBalanceCard";
 import LeaveRequestCard from "@/components/leave/LeaveRequestCard";
 import CreateLeaveModal from "@/components/leave/CreateLeaveModal";
+import TeamLeaveCalendar from "@/components/leave/TeamLeaveCalendar";
+import AdminLeaveOverview from "@/components/leave/AdminLeaveOverview";
 import ClockInOutCard from "@/components/time/ClockInOutCard";
 import TimeEntryList from "@/components/time/TimeEntryList";
 import TimeStats from "@/components/time/TimeStats";
@@ -123,7 +125,7 @@ export default function Leave() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-          <TabsList className={`w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid ${user?.role === 'admin' ? 'grid-cols-5' : 'grid-cols-3'}`}>
+          <TabsList className={`w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid ${user?.role === 'admin' ? 'grid-cols-7' : 'grid-cols-3'}`}>
             <TabsTrigger value="time" className="rounded-xl text-xs data-[state=active]:shadow-sm">
               Tidrapport
             </TabsTrigger>
@@ -135,6 +137,12 @@ export default function Leave() {
             </TabsTrigger>
             {user?.role === 'admin' && (
               <>
+                <TabsTrigger value="calendar" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+                  Kalender
+                </TabsTrigger>
+                <TabsTrigger value="overview" className="rounded-xl text-xs data-[state=active]:shadow-sm">
+                  Översikt
+                </TabsTrigger>
                 <TabsTrigger value="review" className="rounded-xl text-xs data-[state=active]:shadow-sm">
                   Granska
                 </TabsTrigger>
@@ -274,6 +282,14 @@ export default function Leave() {
 
           {user?.role === 'admin' && (
             <>
+              <TabsContent value="calendar" className="mt-6">
+                <TeamLeaveCalendar />
+              </TabsContent>
+
+              <TabsContent value="overview" className="mt-6">
+                <AdminLeaveOverview />
+              </TabsContent>
+
               <TabsContent value="review" className="mt-6">
                 <h3 className="font-semibold text-slate-900 mb-4">Granska tidrapporter</h3>
                 <AdminTimeReview />
