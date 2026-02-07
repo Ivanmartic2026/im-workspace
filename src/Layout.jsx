@@ -16,6 +16,18 @@ function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Stack preservation: Save scroll position per tab
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem(`scroll-${currentPageName}`);
+    if (savedPosition) {
+      window.scrollTo(0, parseInt(savedPosition));
+    }
+    
+    return () => {
+      sessionStorage.setItem(`scroll-${currentPageName}`, window.scrollY.toString());
+    };
+  }, [currentPageName]);
+  
   const navItems = [
     { name: 'Home', label: t('nav_home'), icon: Home },
     { name: 'TimeTracking', label: t('nav_time'), icon: Clock },
@@ -191,12 +203,12 @@ function LayoutContent({ children, currentPageName }) {
                 <Link
                   key={name}
                   to={createPageUrl(name)}
+                  state={{ direction: isActive ? 'back' : 'forward' }}
                   onClick={(e) => {
-                    // If clicking active tab, reset to root URL
-                    if (isActive && window.history.state?.idx > 0) {
+                    // If clicking active tab and on a child route, go back to root
+                    if (isActive && isChildRoute) {
                       e.preventDefault();
-                      window.history.pushState({ direction: 'back' }, '', createPageUrl(name));
-                      window.location.reload();
+                      navigate(createPageUrl(name), { replace: true, state: { direction: 'back' } });
                     }
                   }}
                   className="relative flex flex-col items-center py-1.5 px-3 min-w-[56px] flex-shrink-0"
