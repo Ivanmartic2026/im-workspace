@@ -45,7 +45,7 @@ export default function Profile() {
     if (employee || user) {
       setFormData({
         ...employee,
-        full_name: user?.full_name || employee?.full_name || ''
+        display_name: employee?.display_name || user?.full_name || ''
       });
     }
   }, [employee, user]);
@@ -123,7 +123,7 @@ export default function Profile() {
             )}
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 mt-4">{user.full_name}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mt-4">{employee?.display_name || user.full_name}</h1>
           <p className="text-slate-500">{formData.job_title || employee?.job_title || 'Ingen titel'}</p>
           {(formData.department || employee?.department) && (
             <Badge className="mt-2 bg-slate-100 text-slate-700 border-0">
@@ -172,11 +172,11 @@ export default function Profile() {
                   <div className="space-y-2">
                     <Label>Förnamn</Label>
                     <Input
-                      value={(formData.full_name ?? user.full_name)?.split(' ')[0] || ''}
+                      value={(formData.display_name ?? user.full_name)?.split(' ')[0] || ''}
                       onChange={(e) => {
                         const firstName = e.target.value;
-                        const lastName = (formData.full_name ?? user.full_name)?.split(' ').slice(1).join(' ') || '';
-                        setFormData(prev => ({ ...prev, full_name: `${firstName} ${lastName}`.trim() }));
+                        const lastName = (formData.display_name ?? user.full_name)?.split(' ').slice(1).join(' ') || '';
+                        setFormData(prev => ({ ...prev, display_name: `${firstName} ${lastName}`.trim() }));
                       }}
                       placeholder="Förnamn"
                       className="h-11"
@@ -185,11 +185,11 @@ export default function Profile() {
                   <div className="space-y-2">
                     <Label>Efternamn</Label>
                     <Input
-                      value={(formData.full_name ?? user.full_name)?.split(' ').slice(1).join(' ') || ''}
+                      value={(formData.display_name ?? user.full_name)?.split(' ').slice(1).join(' ') || ''}
                       onChange={(e) => {
-                        const firstName = (formData.full_name ?? user.full_name)?.split(' ')[0] || '';
+                        const firstName = (formData.display_name ?? user.full_name)?.split(' ')[0] || '';
                         const lastName = e.target.value;
-                        setFormData(prev => ({ ...prev, full_name: `${firstName} ${lastName}`.trim() }));
+                        setFormData(prev => ({ ...prev, display_name: `${firstName} ${lastName}`.trim() }));
                       }}
                       placeholder="Efternamn"
                       className="h-11"
