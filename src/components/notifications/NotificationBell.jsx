@@ -24,12 +24,12 @@ export default function NotificationBell({ user }) {
 
       const notifs = [];
 
-      // Hämta systemnotifikationer (både lästa och olästa)
+      // Hämta systemnotifikationer (visa alla - både lästa och olästa de senaste 100)
       const systemNotifications = await base44.entities.Notification.filter(
         { recipient_email: user.email }, 
         '-created_date', 
         100
-      );
+      ).catch(() => []);
       systemNotifications.forEach(notif => {
         notifs.push({
           id: `notification-${notif.id}`,
@@ -76,12 +76,12 @@ export default function NotificationBell({ user }) {
         });
       }
 
-      // Nya chattmeddelanden
+      // Chattmeddelanden (visa alla de senaste 20)
       const chatNotifications = await base44.entities.Notification.filter(
-        { recipient_email: user.email, type: 'chat', is_read: false },
+        { recipient_email: user.email, type: 'chat' },
         '-created_date',
         20
-      );
+      ).catch(() => []);
       chatNotifications.forEach(notif => {
         notifs.push({
           id: `chat-${notif.id}`,
