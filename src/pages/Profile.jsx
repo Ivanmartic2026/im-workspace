@@ -54,6 +54,8 @@ export default function Profile() {
     mutationFn: async (data) => {
       const { full_name, ...employeeData } = data;
 
+      console.log('Saving full_name:', full_name);
+
       // Always update user full_name
       if (full_name && full_name.trim()) {
         await base44.auth.updateMe({ full_name: full_name.trim() });
@@ -65,12 +67,15 @@ export default function Profile() {
       } else {
         await base44.entities.Employee.create({ ...employeeData, user_email: user.email });
       }
+
+      // Return updated user
+      return await base44.auth.me();
     },
-    onSuccess: async () => {
-      // Reload user data to reflect name change
-      const updatedUser = await base44.auth.me();
+    onSuccess: async (updatedUser) => {
+      console.log('Updated user:', updatedUser);
       setUser(updatedUser);
-      queryClient.invalidateQueries({ queryKey: ['myEmployee'] });
+      setFormData(prev => ({ ...prev, full_name: updatedUser.full_name }));
+      await queryClient.invalidateQueries({ queryKey: ['myEmployee'] });
       setIsEditing(false);
     },
   });
