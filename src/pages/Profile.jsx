@@ -52,29 +52,14 @@ export default function Profile() {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      const { full_name, ...employeeData } = data;
-
-      console.log('Saving full_name:', full_name);
-
-      // Always update user full_name
-      if (full_name && full_name.trim()) {
-        await base44.auth.updateMe({ full_name: full_name.trim() });
-      }
-
-      // Update or create employee record
+      // Update or create employee record with display_name
       if (employee?.id) {
-        await base44.entities.Employee.update(employee.id, employeeData);
+        await base44.entities.Employee.update(employee.id, data);
       } else {
-        await base44.entities.Employee.create({ ...employeeData, user_email: user.email });
+        await base44.entities.Employee.create({ ...data, user_email: user.email });
       }
-
-      // Return updated user
-      return await base44.auth.me();
     },
-    onSuccess: async (updatedUser) => {
-      console.log('Updated user:', updatedUser);
-      setUser(updatedUser);
-      setFormData(prev => ({ ...prev, full_name: updatedUser.full_name }));
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['myEmployee'] });
       setIsEditing(false);
     },
