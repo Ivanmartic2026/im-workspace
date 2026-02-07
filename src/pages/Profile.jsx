@@ -55,8 +55,8 @@ export default function Profile() {
       const { full_name, ...employeeData } = data;
 
       // Always update user full_name
-      if (full_name) {
-        await base44.auth.updateMe({ full_name });
+      if (full_name && full_name.trim()) {
+        await base44.auth.updateMe({ full_name: full_name.trim() });
       }
 
       // Update or create employee record
@@ -65,13 +65,12 @@ export default function Profile() {
       } else {
         await base44.entities.Employee.create({ ...employeeData, user_email: user.email });
       }
-
-      // Return updated user for onSuccess
-      return await base44.auth.me();
     },
-    onSuccess: async (updatedUser) => {
-      queryClient.invalidateQueries({ queryKey: ['myEmployee'] });
+    onSuccess: async () => {
+      // Reload user data to reflect name change
+      const updatedUser = await base44.auth.me();
       setUser(updatedUser);
+      queryClient.invalidateQueries({ queryKey: ['myEmployee'] });
       setIsEditing(false);
     },
   });
