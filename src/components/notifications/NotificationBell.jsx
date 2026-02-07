@@ -17,48 +17,58 @@ export default function NotificationBell({ user }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: notifications = [], refetch } = useQuery({
+  const { data: notifications = [], refetch, isLoading } = useQuery({
     queryKey: ['notifications', user?.email],
     queryFn: async () => {
       if (!user) return [];
 
       const notifs = [];
 
-      // Hämta systemnotifikationer (visa alla - både lästa och olästa de senaste 100)
-      const systemNotifications = await base44.entities.Notification.filter(
-        { recipient_email: user.email }, 
-        '-created_date', 
-        100
-      ).catch(() => []);
-      systemNotifications.forEach(notif => {
-        notifs.push({
-          id: `notification-${notif.id}`,
-          type: notif.type === 'system' ? 'system' : notif.type,
-          title: notif.title,
-          description: notif.message,
-          date: notif.created_date,
-          urgent: notif.priority === 'urgent' || notif.priority === 'high',
-          data: notif
-        });
-      });
-
-      // Nya viktiga nyheter (senaste 7 dagarna)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const news = await base44.entities.NewsPost.filter({ is_important: true }, '-created_date', 10);
-      news.forEach(post => {
-        if (new Date(post.created_date) > sevenDaysAgo) {
+      try {
+        // Hämta systemnotifikationer (visa alla - både lästa och olästa de senaste 100)
+        const systemNotifications = await base44.entities.Notification.filter(
+          { recipient_email: user.email }, 
+          '-created_date', 
+          100
+        );
+        console.log('System notifications:', systemNotifications);
+        systemNotifications.forEach(notif => {
           notifs.push({
-            id: `news-${post.id}`,
-            type: 'news',
-            title: 'Viktigt meddelande',
-            description: post.title,
-            date: post.created_date,
-            urgent: true,
-            data: post
+            id: `notification-${notif.id}`,
+            type: notif.type === 'system' ? 'system' : notif.type,
+            title: notif.title,
+            description: notif.message,
+            date: notif.created_date,
+            urgent: notif.priority === 'urgent' || notif.priority === 'high',
+            data: notif
           });
-        }
-      });
+        });
+      } catch (error) {
+        console.error('Error fetching system notifications:', error);
+      }
+
+      try {
+        // Nya viktiga nyheter (senaste 7 dagarna)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const news = await base44.entities.NewsPost.filter({ is_important: true }, '-created_date', 10);
+        console.log('Important news:', news);
+        news.forEach(post => {
+          if (new Date(post.created_date) > sevenDaysAgo) {
+            notifs.push({
+              id: `news-${post.id}`,
+              type: 'news',
+              title: 'Viktigt meddelande',
+              description: post.title,
+              date: post.created_date,
+              urgent: true,
+              data: post
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      }
 
       // Väntande ledighetsansökningar (för admin/chef)
       if (user.role === 'admin') {
@@ -154,12 +164,15 @@ export default function NotificationBell({ user }) {
       });
 
       // Sortera efter datum
+      console.log('Total notifications:', notifs.length);
       return notifs.sort((a, b) => new Date(b.date) - new Date(a.date));
     },
     enabled: !!user,
     refetchInterval: 30000, // Uppdatera var 30:e sekund
     staleTime: 20000
   });
+
+  console.log('Notifications state:', { count: notifications.length, unreadCount: notifications.filter(n => !n.data?.is_read).length });
 
   const deleteNotificationMutation = useMutation({
     mutationFn: async (notificationId) => {
