@@ -171,15 +171,29 @@ export default function NotificationsList({ notifications, onClose, onDelete, on
   const navigate = useNavigate();
 
   const handleNavigate = (notification) => {
+    // Markera som läst först
+    if (notification.id.startsWith('notification-') && !notification.data?.is_read) {
+      onMarkAsRead?.(notification.id);
+    }
+
+    // Navigera baserat på typ
     if (notification.type === 'news') {
       navigate(createPageUrl('Home'));
-    } else if (notification.type === 'leave') {
+    } else if (notification.type === 'leave' || notification.type === 'approval_needed') {
       navigate(createPageUrl('Leave'));
     } else if (notification.type === 'vehicle') {
-      navigate(createPageUrl('VehicleReports'));
+      navigate(createPageUrl('Vehicles'));
     } else if (notification.type === 'chat') {
       navigate(createPageUrl('Chat'));
+    } else if (notification.type === 'time_correction_needed') {
+      navigate(createPageUrl('TimeTracking'));
+    } else if (notification.type === 'approved' || notification.type === 'rejected') {
+      navigate(createPageUrl('TimeTracking'));
+    } else {
+      // Default till Home för systemnotifikationer
+      navigate(createPageUrl('Home'));
     }
+    
     onClose();
   };
 
