@@ -426,15 +426,29 @@ export default function Projects() {
 
                             {/* Senaste aktivitet */}
                             {latestEntry && (
-                              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-indigo-600" />
-                                  <span className="text-xs font-medium text-slate-600">Senast aktiv</span>
+                              <>
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-indigo-600" />
+                                    <span className="text-xs font-medium text-slate-600">Senast aktiv</span>
+                                  </div>
+                                  <span className="text-xs font-bold text-slate-900">
+                                    {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
+                                  </span>
                                 </div>
-                                <span className="text-xs font-bold text-slate-900">
-                                  {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
-                                </span>
-                              </div>
+                                {latestEmployee && (
+                                  <div className="flex items-center gap-2 pl-6">
+                                    <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                                      <span className="text-xs font-bold text-indigo-700">
+                                        {(latestEmployee.display_name || latestEmployee.user_email).charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-slate-600">
+                                      {latestEmployee.display_name || latestEmployee.user_email.split('@')[0]}
+                                    </span>
+                                  </div>
+                                )}
+                              </>
                             )}
                           </>
                         );
