@@ -217,6 +217,42 @@ export default function NotificationBell({ user }) {
     }
   };
 
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      const unreadNotifications = notifications.filter(n => 
+        n.id.startsWith('notification-') && !n.data?.is_read
+      );
+      await Promise.all(
+        unreadNotifications.map(n => 
+          base44.entities.Notification.update(n.id.replace('notification-', ''), { is_read: true })
+        )
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.email] });
+      if ('clearAppBadge' in navigator) {
+        navigator.clearAppBadge();
+      }
+    }
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => {
+      const systemNotifications = notifications.filter(n => n.id.startsWith('notification-'));
+      await Promise.all(
+        systemNotifications.map(n => 
+          base44.entities.Notification.delete(n.id.replace('notification-', ''))
+        )
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.email] });
+      if ('clearAppBadge' in navigator) {
+        navigator.clearAppBadge();
+      }
+    }
+  });
+
   // Bara räkna systemnotifikationer som olästa (de från Notification-entiteten)
   const unreadCount = notifications.filter(n => 
     n.id.startsWith('notification-') && !n.data?.is_read
@@ -256,7 +292,37 @@ export default function NotificationBell({ user }) {
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="px-6 pt-6 pb-4 border-b">
-          <SheetTitle>Notifikationer</SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle>Notifikationer</SheetTitle>
+            {notifications.length > 0 && (
+              <div className="flex gap-2">
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => markAllAsReadMutation.mutate()}
+                    disabled={markAllAsReadMutation.isPending}
+                    className="text-xs"
+                  >
+                    Läs alla
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm('Vill du ta bort alla notifikationer?')) {
+                      deleteAllMutation.mutate();
+                    }
+                  }}
+                  disabled={deleteAllMutation.isPending}
+                  className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  Rensa
+                </Button>
+              </div>
+            )}
+          </div>
         </SheetHeader>
         <div className="flex-1 overflow-hidden px-6">
           <NotificationsList 
