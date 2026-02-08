@@ -192,7 +192,7 @@ export default function NotificationsList({ notifications, onClose, onDelete, on
   }
 
   return (
-    <div className="mt-6 space-y-2 overflow-y-auto max-h-[calc(100vh-120px)]">
+    <div className="mt-6 space-y-2 overflow-y-auto max-h-[calc(100vh-120px)] pb-4">
       {notifications.map((notification, idx) => (
         <NotificationItem
           key={notification.id}

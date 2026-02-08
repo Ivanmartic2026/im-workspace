@@ -254,16 +254,18 @@ export default function NotificationBell({ user }) {
           )}
         </button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md">
-        <SheetHeader>
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+        <SheetHeader className="px-6 pt-6 pb-4 border-b">
           <SheetTitle>Notifikationer</SheetTitle>
         </SheetHeader>
-        <NotificationsList 
-          notifications={notifications} 
-          onClose={() => setOpen(false)}
-          onDelete={handleDeleteNotification}
-          onMarkAsRead={handleMarkAsRead}
-        />
+        <div className="flex-1 overflow-hidden px-6">
+          <NotificationsList 
+            notifications={notifications} 
+            onClose={() => setOpen(false)}
+            onDelete={handleDeleteNotification}
+            onMarkAsRead={handleMarkAsRead}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );
