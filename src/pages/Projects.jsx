@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, Filter, Navigation, Calendar } from "lucide-react";
+import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, Filter, Navigation, Calendar, LayoutGrid, List } from "lucide-react";
 import { motion } from "framer-motion";
 import { format, parseISO, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import ProjectDetailView from '../components/projects/ProjectDetailView';
+import ProjectsDashboardView from '../components/projects/ProjectsDashboardView';
 
 export default function Projects() {
   const [user, setUser] = useState(null);
@@ -22,6 +23,7 @@ export default function Projects() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [timeFilter, setTimeFilter] = useState('all'); // day, week, month, all
   const [sortBy, setSortBy] = useState('name');
+  const [viewMode, setViewMode] = useState('dashboard'); // dashboard or cards
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -244,46 +246,70 @@ export default function Projects() {
             </Button>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-slate-500" />
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
+          {/* Filters and View Toggle */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start sm:items-center justify-between">
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-slate-500" />
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alla status</SelectItem>
+                    <SelectItem value="planerat">Planerat</SelectItem>
+                    <SelectItem value="pågående">Pågående</SelectItem>
+                    <SelectItem value="avslutat">Avslutat</SelectItem>
+                    <SelectItem value="pausat">Pausat</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Select value={timeFilter} onValueChange={setTimeFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder="Tidsperiod" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alla status</SelectItem>
-                  <SelectItem value="planerat">Planerat</SelectItem>
-                  <SelectItem value="pågående">Pågående</SelectItem>
-                  <SelectItem value="avslutat">Avslutat</SelectItem>
-                  <SelectItem value="pausat">Pausat</SelectItem>
+                  <SelectItem value="all">All tid</SelectItem>
+                  <SelectItem value="day">Idag</SelectItem>
+                  <SelectItem value="week">Senaste veckan</SelectItem>
+                  <SelectItem value="month">Senaste månaden</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Sortera efter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Namn</SelectItem>
+                  <SelectItem value="deadline">Deadline</SelectItem>
+                  <SelectItem value="manager">Projektledare</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Tidsperiod" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All tid</SelectItem>
-                <SelectItem value="day">Idag</SelectItem>
-                <SelectItem value="week">Senaste veckan</SelectItem>
-                <SelectItem value="month">Senaste månaden</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Sortera efter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Namn</SelectItem>
-                <SelectItem value="deadline">Deadline</SelectItem>
-                <SelectItem value="manager">Projektledare</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+              <Button
+                variant={viewMode === 'dashboard' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('dashboard')}
+                className={viewMode === 'dashboard' ? 'bg-white shadow-sm' : ''}
+              >
+                <List className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+              <Button
+                variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('cards')}
+                className={viewMode === 'cards' ? 'bg-white shadow-sm' : ''}
+              >
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                Kort
+              </Button>
+            </div>
           </div>
         </motion.div>
 
@@ -319,6 +345,16 @@ export default function Projects() {
               </Button>
             </CardContent>
           </Card>
+        ) : viewMode === 'dashboard' ? (
+          <ProjectsDashboardView
+            projects={projects}
+            timeEntries={timeEntries}
+            journalEntries={journalEntries}
+            employees={employees}
+            onView={(project) => setSelectedProject(project)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         ) : (
           <div className="space-y-3">
             {projects.map((project, index) => (
