@@ -8,8 +8,9 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Users, Clock, TrendingUp, CheckCircle2, AlertCircle, 
-  Calendar, DollarSign, BarChart3, Plus, User, Navigation, MapPin, ChevronDown
+  Calendar, DollarSign, BarChart3, Plus, User, Navigation, MapPin, ChevronDown, FileText, Download, Loader2
 } from "lucide-react";
+import { toast } from "sonner";
 import { format, parseISO, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
 import TaskList from './TaskList';
@@ -22,6 +23,7 @@ import ProjectExpenses from './ProjectExpenses';
 export default function ProjectDetailView({ project, onClose }) {
   const [showAddTask, setShowAddTask] = useState(false);
   const [expandedEntry, setExpandedEntry] = useState(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: tasks = [] } = useQuery({
@@ -90,6 +92,32 @@ export default function ProjectDetailView({ project, onClose }) {
   const stats = calculateStats();
   const isOverBudget = parseFloat(stats.budgetUsage) > 100;
 
+  const handleGenerateReport = async () => {
+    setIsGeneratingReport(true);
+    try {
+      const response = await base44.functions.invoke('generateProjectReport', {
+        project_id: project.id
+      });
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Projektrapport_${project.project_code}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+
+      toast.success('Rapport genererad och nedladdad');
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast.error('Kunde inte generera rapport');
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -108,9 +136,29 @@ export default function ProjectDetailView({ project, onClose }) {
           </div>
           <p className="text-sm text-slate-600">{project.project_code}</p>
         </div>
-        <Button variant="outline" onClick={onClose}>
-          Stäng
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleGenerateReport}
+            disabled={isGeneratingReport}
+            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 border-0"
+          >
+            {isGeneratingReport ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Genererar...
+              </>
+            ) : (
+              <>
+                <FileText className="h-4 w-4 mr-2" />
+                AI-rapport
+              </>
+            )}
+          </Button>
+          <Button variant="outline" onClick={onClose}>
+            Stäng
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}
