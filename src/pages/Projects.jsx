@@ -322,66 +322,61 @@ export default function Projects() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all bg-white overflow-hidden h-full flex flex-col">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-3">
+                <Card className="border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md transition-all bg-white overflow-hidden h-full flex flex-col">
+                  <CardHeader className="pb-4 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
+                    <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-xl font-bold mb-2 text-slate-900">{project.name}</CardTitle>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-3 py-1 rounded-lg text-sm font-semibold bg-slate-900 text-white">
-                            {project.project_code}
-                          </span>
-                          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                            project.status === 'pågående' ? 'bg-blue-500 text-white' :
-                            project.status === 'avslutat' ? 'bg-slate-400 text-white' :
-                            project.status === 'pausat' ? 'bg-amber-500 text-white' :
-                            'bg-emerald-500 text-white'
-                          }`}>
-                            {project.status}
-                          </span>
-                        </div>
+                        <CardTitle className="text-lg font-bold text-slate-900 mb-1 line-clamp-1">{project.name}</CardTitle>
+                        {project.customer && (
+                          <p className="text-xs text-slate-500 font-medium">{project.customer}</p>
+                        )}
                       </div>
-                      <div className="flex gap-1 flex-shrink-0">
+                      <div className="flex gap-0.5 flex-shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setSelectedProject(project)}
-                          className="h-9 w-9 hover:bg-slate-100"
+                          className="h-8 w-8 hover:bg-white"
                         >
-                          <Eye className="h-5 w-5" />
+                          <Eye className="h-4 w-4 text-slate-600" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEdit(project)}
-                          className="h-9 w-9 hover:bg-slate-100"
+                          className="h-8 w-8 hover:bg-white"
                         >
-                          <Edit className="h-5 w-5" />
+                          <Edit className="h-4 w-4 text-slate-600" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(project.id)}
-                          className="h-9 w-9 text-rose-600 hover:bg-rose-50"
+                          className="h-8 w-8 text-rose-600 hover:bg-rose-50"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 pt-0 flex-1 flex flex-col">
-                    <div className="space-y-3 flex-1">
-                      {project.description && (
-                        <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{project.description}</p>
-                      )}
-                      {project.customer && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium text-slate-500">Kund:</span>
-                          <span className="font-semibold text-slate-900">{project.customer}</span>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-slate-900 text-white">
+                        {project.project_code}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                        project.status === 'pågående' ? 'bg-blue-100 text-blue-700' :
+                        project.status === 'avslutat' ? 'bg-slate-200 text-slate-700' :
+                        project.status === 'pausat' ? 'bg-amber-100 text-amber-700' :
+                        'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {project.status}
+                      </span>
                     </div>
-                    <div className="pt-3 border-t mt-auto">
+                  </CardHeader>
+                  <CardContent className="p-4 flex-1 flex flex-col">
+                    {project.description && (
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">{project.description}</p>
+                    )}
+                    <div className="mt-auto space-y-2">
                       {(() => {
                         const projectHours = timeEntries
                           .filter(entry => {
@@ -417,63 +412,61 @@ export default function Projects() {
                           .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
                         return (
-                          <div className="space-y-2.5">
-                            {/* Senaste registrering */}
+                          <div className="space-y-2">
+                            {/* Senaste registrering - kompakt */}
                             {latestEntry && (
-                              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg p-2.5 text-white shadow-sm">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" />
-                                    <span className="text-xs font-semibold">Senaste registrering</span>
-                                  </div>
-                                  <span className="text-xs font-bold">
-                                    {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
-                                  </span>
+                              <div className="flex items-center justify-between px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg">
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar className="h-3.5 w-3.5 text-indigo-600" />
+                                  <span className="text-xs font-medium text-indigo-900">Senast aktiv</span>
                                 </div>
+                                <span className="text-xs font-bold text-indigo-700">
+                                  {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
+                                </span>
                               </div>
                             )}
 
-                            {/* Timmar */}
-                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 text-white shadow-sm">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <Clock className="h-4 w-4" />
-                                  <span className="text-xs font-semibold">Nedlagd tid</span>
+                            {/* Statistik grid - kompakt 2-kolumn */}
+                            <div className="grid grid-cols-2 gap-2">
+                              {/* Timmar */}
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Clock className="h-3.5 w-3.5 text-blue-600" />
+                                  <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wide">Tid</span>
                                 </div>
-                                <span className="text-xl font-bold">{projectHours.toFixed(1)}h</span>
+                                <div className="text-lg font-bold text-blue-900">{projectHours.toFixed(1)}h</div>
+                                {project.budget_hours && (
+                                  <div className="mt-1.5">
+                                    <div className="flex items-center justify-between text-[10px] text-blue-600 mb-0.5">
+                                      <span>{project.budget_hours}h</span>
+                                      <span className="font-bold">{budgetProgress.toFixed(0)}%</span>
+                                    </div>
+                                    <div className="w-full bg-blue-200 rounded-full h-1">
+                                      <div 
+                                        className={`h-1 rounded-full ${budgetProgress > 100 ? 'bg-red-500' : 'bg-blue-500'}`}
+                                        style={{ width: `${Math.min(budgetProgress, 100)}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              {project.budget_hours && (
-                                <>
-                                  <div className="flex items-center justify-between text-xs text-blue-100 mb-1.5">
-                                    <span>Budget: {project.budget_hours}h</span>
-                                    <span className="font-bold">{budgetProgress.toFixed(0)}%</span>
-                                  </div>
-                                  <div className="w-full bg-blue-400/30 rounded-full h-1.5">
-                                    <div 
-                                      className={`h-1.5 rounded-full ${budgetProgress > 100 ? 'bg-red-300' : 'bg-white'}`}
-                                      style={{ width: `${Math.min(budgetProgress, 100)}%` }}
-                                    />
-                                  </div>
-                                </>
-                              )}
+
+                              {/* Kilometer */}
+                              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2.5">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Navigation className="h-3.5 w-3.5 text-emerald-600" />
+                                  <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wide">Km</span>
+                                </div>
+                                <div className="text-lg font-bold text-emerald-900">{projectKm.toFixed(0)}</div>
+                                <div className="text-[10px] text-emerald-600 mt-0.5">kilometer</div>
+                              </div>
                             </div>
 
-                            {/* Kilometer - alltid visa, även om 0 */}
-                            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-3 text-white shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Navigation className="h-4 w-4" />
-                                  <span className="text-xs font-semibold">Körda kilometer</span>
-                                </div>
-                                <span className="text-xl font-bold">{projectKm.toFixed(0)} km</span>
-                              </div>
-                            </div>
-
-                            {/* Timpris */}
+                            {/* Timpris - endast om det finns */}
                             {project.hourly_rate && (
-                              <div className="flex items-center justify-between text-xs px-1 pt-1">
-                                <span className="text-slate-500 font-medium">Timpris</span>
-                                <span className="font-semibold text-slate-900">{project.hourly_rate} kr/h</span>
+                              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                                <span className="text-xs font-medium text-slate-600">Timpris</span>
+                                <span className="text-sm font-bold text-slate-900">{project.hourly_rate} kr/h</span>
                               </div>
                             )}
                           </div>
