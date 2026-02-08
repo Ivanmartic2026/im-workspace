@@ -63,6 +63,12 @@ export default function Projects() {
     initialData: []
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+    initialData: []
+  });
+
   // Filter entries based on time period
   const getFilteredEntries = () => {
     const now = new Date();
@@ -387,6 +393,11 @@ export default function Projects() {
                             return false;
                           })
                           .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                        // Hitta anställd för senaste registrering
+                        const latestEmployee = latestEntry 
+                          ? employees.find(emp => emp.user_email === latestEntry.employee_email)
+                          : null;
 
                         return (
                           <>
