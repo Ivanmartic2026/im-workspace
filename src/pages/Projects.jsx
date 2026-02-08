@@ -322,7 +322,7 @@ export default function Projects() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all bg-white overflow-hidden">
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all bg-white overflow-hidden h-full flex flex-col">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -369,17 +369,19 @@ export default function Projects() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4 pt-0">
-                    {project.description && (
-                      <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{project.description}</p>
-                    )}
-                    {project.customer && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium text-slate-500">Kund:</span>
-                        <span className="font-semibold text-slate-900">{project.customer}</span>
-                      </div>
-                    )}
-                    <div className="pt-3 border-t">
+                  <CardContent className="space-y-3 pt-0 flex-1 flex flex-col">
+                    <div className="space-y-3 flex-1">
+                      {project.description && (
+                        <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">{project.description}</p>
+                      )}
+                      {project.customer && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium text-slate-500">Kund:</span>
+                          <span className="font-semibold text-slate-900">{project.customer}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="pt-3 border-t mt-auto">
                       {(() => {
                         const projectHours = timeEntries
                           .filter(entry => {
@@ -415,16 +417,16 @@ export default function Projects() {
                           .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
                         return (
-                          <div className="space-y-3">
+                          <div className="space-y-2.5">
                             {/* Senaste registrering */}
                             {latestEntry && (
-                              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl p-3 text-white shadow-md">
+                              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg p-2.5 text-white shadow-sm">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="h-5 w-5" />
-                                    <span className="text-sm font-semibold">Senaste registrering</span>
+                                    <Calendar className="h-4 w-4" />
+                                    <span className="text-xs font-semibold">Senaste registrering</span>
                                   </div>
-                                  <span className="text-sm font-bold">
+                                  <span className="text-xs font-bold">
                                     {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
                                   </span>
                                 </div>
@@ -432,23 +434,23 @@ export default function Projects() {
                             )}
 
                             {/* Timmar */}
-                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-md">
-                              <div className="flex items-center justify-between mb-3">
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 text-white shadow-sm">
+                              <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
-                                  <Clock className="h-5 w-5" />
-                                  <span className="text-sm font-semibold">Nedlagd tid</span>
+                                  <Clock className="h-4 w-4" />
+                                  <span className="text-xs font-semibold">Nedlagd tid</span>
                                 </div>
-                                <span className="text-2xl font-bold">{projectHours.toFixed(1)}h</span>
+                                <span className="text-xl font-bold">{projectHours.toFixed(1)}h</span>
                               </div>
                               {project.budget_hours && (
                                 <>
-                                  <div className="flex items-center justify-between text-xs text-blue-100 mb-2">
+                                  <div className="flex items-center justify-between text-xs text-blue-100 mb-1.5">
                                     <span>Budget: {project.budget_hours}h</span>
                                     <span className="font-bold">{budgetProgress.toFixed(0)}%</span>
                                   </div>
-                                  <div className="w-full bg-blue-400/30 rounded-full h-2">
+                                  <div className="w-full bg-blue-400/30 rounded-full h-1.5">
                                     <div 
-                                      className={`h-2 rounded-full ${budgetProgress > 100 ? 'bg-red-300' : 'bg-white'}`}
+                                      className={`h-1.5 rounded-full ${budgetProgress > 100 ? 'bg-red-300' : 'bg-white'}`}
                                       style={{ width: `${Math.min(budgetProgress, 100)}%` }}
                                     />
                                   </div>
@@ -456,24 +458,22 @@ export default function Projects() {
                               )}
                             </div>
 
-                            {/* Kilometer */}
-                            {projectKm > 0 && (
-                              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white shadow-md">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Navigation className="h-5 w-5" />
-                                    <span className="text-sm font-semibold">Körda kilometer</span>
-                                  </div>
-                                  <span className="text-2xl font-bold">{projectKm.toFixed(0)} km</span>
+                            {/* Kilometer - alltid visa, även om 0 */}
+                            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-3 text-white shadow-sm">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Navigation className="h-4 w-4" />
+                                  <span className="text-xs font-semibold">Körda kilometer</span>
                                 </div>
+                                <span className="text-xl font-bold">{projectKm.toFixed(0)} km</span>
                               </div>
-                            )}
+                            </div>
 
                             {/* Timpris */}
                             {project.hourly_rate && (
-                              <div className="flex items-center justify-between text-sm px-1 pt-1">
+                              <div className="flex items-center justify-between text-xs px-1 pt-1">
                                 <span className="text-slate-500 font-medium">Timpris</span>
-                                <span className="font-bold text-slate-900">{project.hourly_rate} kr/h</span>
+                                <span className="font-semibold text-slate-900">{project.hourly_rate} kr/h</span>
                               </div>
                             )}
                           </div>
