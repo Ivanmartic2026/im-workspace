@@ -115,7 +115,10 @@ function NotificationItem({ notification, idx, onDelete, onMarkAsRead, onNavigat
 
       <motion.div
         drag="x"
-        dragConstraints={{ left: -100, right: notification.data?.is_read ? 0 : 100 }}
+        dragConstraints={{ 
+          left: notification.id.startsWith('notification-') ? -100 : 0, 
+          right: (notification.id.startsWith('notification-') && !notification.data?.is_read) ? 100 : 0 
+        }}
         dragElastic={0.2}
         style={{ x }}
         onDragEnd={handleDragEnd}
@@ -145,9 +148,9 @@ function NotificationItem({ notification, idx, onDelete, onMarkAsRead, onNavigat
                 </p>
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-slate-400">
-                    {format(new Date(notification.date + 'Z'), "d MMM 'kl' HH:mm", { locale: sv })}
+                    {format(new Date(notification.date), "d MMM 'kl' HH:mm", { locale: sv })}
                   </p>
-                  {!notification.data?.is_read && (
+                  {notification.id.startsWith('notification-') && !notification.data?.is_read && (
                     <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">
                       NY
                     </Badge>

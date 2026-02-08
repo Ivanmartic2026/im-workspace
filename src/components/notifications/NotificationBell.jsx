@@ -217,7 +217,10 @@ export default function NotificationBell({ user }) {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.data?.is_read).length;
+  // Bara räkna systemnotifikationer som olästa (de från Notification-entiteten)
+  const unreadCount = notifications.filter(n => 
+    n.id.startsWith('notification-') && !n.data?.is_read
+  ).length;
 
   useEffect(() => {
     if (open) {
