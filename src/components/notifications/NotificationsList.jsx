@@ -66,7 +66,7 @@ const typeConfig = {
 };
 
 function NotificationItem({ notification, idx, onDelete, onMarkAsRead, onNavigate }) {
-  const config = typeConfig[notification.type];
+  const config = typeConfig[notification.type] || typeConfig.system;
   const Icon = config.icon;
   const x = useMotionValue(0);
   const deleteOpacity = useTransform(x, [-100, 0], [1, 0]);
@@ -91,7 +91,7 @@ function NotificationItem({ notification, idx, onDelete, onMarkAsRead, onNavigat
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
-      animate={controls}
+      animate={{ opacity: 1, x: 0 }}
       transition={{ delay: idx * 0.05 }}
       className="relative"
     >
@@ -122,9 +122,10 @@ function NotificationItem({ notification, idx, onDelete, onMarkAsRead, onNavigat
         dragElastic={0.2}
         style={{ x }}
         onDragEnd={handleDragEnd}
+        animate={controls}
       >
         <Card 
-          className={`border-l-4 ${config.borderColor} cursor-pointer hover:shadow-md transition-shadow`}
+          className={`border-l-4 ${config.borderColor} cursor-pointer hover:shadow-md transition-shadow bg-white`}
           onClick={() => onNavigate(notification)}
         >
           <CardContent className="p-4">
