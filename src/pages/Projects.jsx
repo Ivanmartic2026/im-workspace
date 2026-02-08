@@ -314,7 +314,7 @@ export default function Projects() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-3">
             {projects.map((project, index) => (
               <motion.div
                 key={project.id}
@@ -322,61 +322,38 @@ export default function Projects() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md transition-all bg-white overflow-hidden h-full flex flex-col">
-                  <CardHeader className="pb-4 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
-                    <div className="flex items-start justify-between gap-2 mb-3">
+                <Card className="border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md transition-all bg-white overflow-hidden flex flex-row">
+                  {/* Vänster sektion - Info */}
+                  <div className="flex-1 p-4 border-r border-slate-100">
+                    <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg font-bold text-slate-900 mb-1 line-clamp-1">{project.name}</CardTitle>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CardTitle className="text-base font-bold text-slate-900">{project.name}</CardTitle>
+                          <span className="px-2 py-0.5 rounded text-xs font-bold bg-slate-900 text-white">
+                            {project.project_code}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                            project.status === 'pågående' ? 'bg-blue-100 text-blue-700' :
+                            project.status === 'avslutat' ? 'bg-slate-200 text-slate-700' :
+                            project.status === 'pausat' ? 'bg-amber-100 text-amber-700' :
+                            'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            {project.status}
+                          </span>
+                        </div>
                         {project.customer && (
-                          <p className="text-xs text-slate-500 font-medium">{project.customer}</p>
+                          <p className="text-xs text-slate-500 font-medium mb-1">{project.customer}</p>
+                        )}
+                        {project.description && (
+                          <p className="text-xs text-slate-500 line-clamp-1 leading-relaxed">{project.description}</p>
                         )}
                       </div>
-                      <div className="flex gap-0.5 flex-shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedProject(project)}
-                          className="h-8 w-8 hover:bg-white"
-                        >
-                          <Eye className="h-4 w-4 text-slate-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(project)}
-                          className="h-8 w-8 hover:bg-white"
-                        >
-                          <Edit className="h-4 w-4 text-slate-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(project.id)}
-                          className="h-8 w-8 text-rose-600 hover:bg-rose-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-slate-900 text-white">
-                        {project.project_code}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                        project.status === 'pågående' ? 'bg-blue-100 text-blue-700' :
-                        project.status === 'avslutat' ? 'bg-slate-200 text-slate-700' :
-                        project.status === 'pausat' ? 'bg-amber-100 text-amber-700' :
-                        'bg-emerald-100 text-emerald-700'
-                      }`}>
-                        {project.status}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4 flex-1 flex flex-col">
-                    {project.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">{project.description}</p>
-                    )}
-                    <div className="mt-auto space-y-2">
+                  </div>
+                  
+                  {/* Mitten sektion - Statistik */}
+                  <div className="w-64 p-4 bg-slate-50 border-r border-slate-100">
+                    <div className="space-y-2">
                       {(() => {
                         const projectHours = timeEntries
                           .filter(entry => {
@@ -412,68 +389,95 @@ export default function Projects() {
                           .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
                         return (
-                          <div className="space-y-2">
-                            {/* Senaste registrering - kompakt */}
-                            {latestEntry && (
-                              <div className="flex items-center justify-between px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg">
-                                <div className="flex items-center gap-1.5">
-                                  <Calendar className="h-3.5 w-3.5 text-indigo-600" />
-                                  <span className="text-xs font-medium text-indigo-900">Senast aktiv</span>
+                          <>
+                            {/* Timmar */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-blue-600" />
+                                <span className="text-xs font-medium text-slate-600">Nedlagd tid</span>
+                              </div>
+                              <span className="text-base font-bold text-slate-900">{projectHours.toFixed(1)}h</span>
+                            </div>
+                            {project.budget_hours && (
+                              <div className="pl-6">
+                                <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                                  <span>av {project.budget_hours}h</span>
+                                  <span className={`font-bold ${budgetProgress > 100 ? 'text-red-600' : 'text-blue-600'}`}>
+                                    {budgetProgress.toFixed(0)}%
+                                  </span>
                                 </div>
-                                <span className="text-xs font-bold text-indigo-700">
+                                <div className="w-full bg-slate-200 rounded-full h-1.5">
+                                  <div 
+                                    className={`h-1.5 rounded-full ${budgetProgress > 100 ? 'bg-red-500' : 'bg-blue-500'}`}
+                                    style={{ width: `${Math.min(budgetProgress, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Kilometer */}
+                            <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                              <div className="flex items-center gap-2">
+                                <Navigation className="h-4 w-4 text-emerald-600" />
+                                <span className="text-xs font-medium text-slate-600">Körda km</span>
+                              </div>
+                              <span className="text-base font-bold text-slate-900">{projectKm.toFixed(0)}</span>
+                            </div>
+
+                            {/* Senaste aktivitet */}
+                            {latestEntry && (
+                              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4 text-indigo-600" />
+                                  <span className="text-xs font-medium text-slate-600">Senast aktiv</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-900">
                                   {format(parseISO(latestEntry.date), 'd MMM', { locale: sv })}
                                 </span>
                               </div>
                             )}
-
-                            {/* Statistik grid - kompakt 2-kolumn */}
-                            <div className="grid grid-cols-2 gap-2">
-                              {/* Timmar */}
-                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <Clock className="h-3.5 w-3.5 text-blue-600" />
-                                  <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wide">Tid</span>
-                                </div>
-                                <div className="text-lg font-bold text-blue-900">{projectHours.toFixed(1)}h</div>
-                                {project.budget_hours && (
-                                  <div className="mt-1.5">
-                                    <div className="flex items-center justify-between text-[10px] text-blue-600 mb-0.5">
-                                      <span>{project.budget_hours}h</span>
-                                      <span className="font-bold">{budgetProgress.toFixed(0)}%</span>
-                                    </div>
-                                    <div className="w-full bg-blue-200 rounded-full h-1">
-                                      <div 
-                                        className={`h-1 rounded-full ${budgetProgress > 100 ? 'bg-red-500' : 'bg-blue-500'}`}
-                                        style={{ width: `${Math.min(budgetProgress, 100)}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Kilometer */}
-                              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2.5">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <Navigation className="h-3.5 w-3.5 text-emerald-600" />
-                                  <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wide">Km</span>
-                                </div>
-                                <div className="text-lg font-bold text-emerald-900">{projectKm.toFixed(0)}</div>
-                                <div className="text-[10px] text-emerald-600 mt-0.5">kilometer</div>
-                              </div>
-                            </div>
-
-                            {/* Timpris - endast om det finns */}
-                            {project.hourly_rate && (
-                              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
-                                <span className="text-xs font-medium text-slate-600">Timpris</span>
-                                <span className="text-sm font-bold text-slate-900">{project.hourly_rate} kr/h</span>
-                              </div>
-                            )}
-                          </div>
+                          </>
                         );
                       })()}
                     </div>
-                  </CardContent>
+                  </div>
+                  
+                  {/* Höger sektion - Actions */}
+                  <div className="w-32 p-4 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-50 to-white">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedProject(project)}
+                      className="w-full"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Visa
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(project)}
+                      className="w-full"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Redigera
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(project.id)}
+                      className="w-full text-rose-600 hover:bg-rose-50 border-rose-200"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Ta bort
+                    </Button>
+                    {project.hourly_rate && (
+                      <div className="mt-2 pt-2 border-t border-slate-200 w-full text-center">
+                        <div className="text-xs text-slate-500">Timpris</div>
+                        <div className="text-sm font-bold text-slate-900">{project.hourly_rate} kr</div>
+                      </div>
+                    )}
+                  </div>
                 </Card>
               </motion.div>
             ))}
