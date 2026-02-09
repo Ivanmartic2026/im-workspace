@@ -135,12 +135,11 @@ function LayoutContent({ children, currentPageName }) {
               <span className="font-medium">{t('back') || 'Tillbaka'}</span>
             </button>
           ) : (
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-slate-900 dark:bg-white flex items-center justify-center">
-                <span className="text-white dark:text-slate-900 font-bold text-sm">IV</span>
-              </div>
-              <span className="font-bold text-slate-900 dark:text-white">ImVision</span>
-            </div>
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6951895d1643f7057890a865/daf37ea55_LogoLIGGANDE_IMvision_svartkopiaepskopia2.png" 
+              alt="IM Vision" 
+              className="h-8 object-contain"
+            />
           )}
           
           <div className="flex gap-2">
