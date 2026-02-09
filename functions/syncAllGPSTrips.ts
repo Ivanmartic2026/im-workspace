@@ -95,13 +95,20 @@ Deno.serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             deviceid: vehicle.gps_device_id,
-            begintime: Math.floor(new Date(startDate).getTime() / 1000),
-            endtime: Math.floor(new Date(endDate).getTime() / 1000),
+            begintime: params.begintime,
+            endtime: params.endtime,
             timezone: 1
           })
         });
 
-        const gpsData = await response.json();
+        const text = await response.text();
+        let gpsData;
+        try {
+          gpsData = JSON.parse(text);
+        } catch (e) {
+          console.log(`Failed to parse GPS response for ${vehicle.registration_number}: ${text.substring(0, 200)}`);
+          continue;
+        }
 
         if (gpsData.status !== 0) {
           console.log(`Failed to fetch trips for ${vehicle.registration_number}: ${gpsData.cause}`);
