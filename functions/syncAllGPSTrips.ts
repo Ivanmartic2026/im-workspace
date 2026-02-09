@@ -95,8 +95,8 @@ Deno.serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             deviceid: vehicle.gps_device_id,
-            begintime: params.begintime,
-            endtime: params.endtime,
+            begintime: Math.floor(new Date(startDate).getTime() / 1000),
+            endtime: Math.floor(new Date(endDate).getTime() / 1000),
             timezone: 1
           })
         });
