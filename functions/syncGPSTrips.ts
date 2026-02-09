@@ -1,4 +1,68 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createHash } from 'node:crypto';
+
+const GPS_URL = "https://api.gps51.com";
+const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
+const GPS_PASSWORD = Deno.env.get("GALAGPS_PASSWORD");
+
+// Cache för GPS token (giltig i 24 timmar)
+let tokenCache = {
+  token: null,
+  expiresAt: null
+};
+
+async function getGPSToken() {
+  // Återanvänd token om den fortfarande är giltig
+  if (tokenCache.token && tokenCache.expiresAt && Date.now() < tokenCache.expiresAt) {
+    return tokenCache.token;
+  }
+
+  // Skapa MD5 hash av lösenord
+  const md5Password = createHash('md5').update(GPS_PASSWORD).digest('hex');
+
+  const response = await fetch(`${GPS_URL}/webapi?action=login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: "USER",
+      from: "WEB",
+      username: GPS_USERNAME,
+      password: md5Password,
+      browser: "Base44"
+    })
+  });
+
+  const data = await response.json();
+  
+  if (data.status !== 0) {
+    throw new Error(`GPS login failed: ${data.cause || 'Unknown error'}`);
+  }
+
+  // Spara token med 23 timmars giltighet
+  tokenCache.token = data.token;
+  tokenCache.expiresAt = Date.now() + (23 * 60 * 60 * 1000);
+
+  return data.token;
+}
+
+async function reverseGeocode(latitude, longitude) {
+  if (!latitude || !longitude) return null;
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+      { headers: { 'User-Agent': 'Base44-GPS-App/1.0' } }
+    );
+    if (!response.ok) return `${latitude}, ${longitude}`;
+    const data = await response.json();
+    return data.display_name || `${latitude}, ${longitude}`;
+  } catch (e) {
+    return `${latitude}, ${longitude}`;
+  }
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -22,24 +86,68 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No GPS device ID configured for this vehicle' }, { status: 400 });
     }
 
-    // Hämta resor från GPS-systemet
-    const gpsResponse = await base44.asServiceRole.functions.invoke('gpsTracking', {
-      action: 'getTrips',
-      params: {
-        deviceId: vehicleData.gps_device_id,
+    // Hämta resor direkt från GPS API
+    const token = await getGPSToken();
+    const response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deviceid: vehicleData.gps_device_id,
         begintime: Math.floor(new Date(startDate).getTime() / 1000),
-        endtime: Math.floor(new Date(endDate).getTime() / 1000)
-      }
+        endtime: Math.floor(new Date(endDate).getTime() / 1000),
+        timezone: 1
+      })
     });
 
-    if (!gpsResponse.data || gpsResponse.data.status !== 0) {
+    const gpsData = await response.json();
+
+    if (gpsData.status !== 0) {
       return Response.json({ 
         error: 'Failed to fetch GPS trips',
-        details: gpsResponse.data 
+        details: gpsData 
       }, { status: 500 });
     }
 
-    const trips = gpsResponse.data.totaltrips || [];
+    const trips = gpsData.totaltrips || [];
+
+    // Geokoda adresser
+    if (trips.length > 0) {
+      console.log(`Enriching ${trips.length} trips with addresses...`);
+      const uniqueCoordinates = new Map();
+      
+      for (const trip of trips) {
+        if (trip.slat && trip.slon) uniqueCoordinates.set(`${trip.slat},${trip.slon}`, null);
+        if (trip.elat && trip.elon) uniqueCoordinates.set(`${trip.elat},${trip.elon}`, null);
+      }
+
+      let geocodeCount = 0;
+      for (const [coordKey] of uniqueCoordinates) {
+        if (geocodeCount > 0) await delay(1100);
+        const [lat, lon] = coordKey.split(',');
+        const address = await reverseGeocode(lat, lon);
+        uniqueCoordinates.set(coordKey, address);
+        geocodeCount++;
+      }
+
+      for (const trip of trips) {
+        if (trip.slat && trip.slon) {
+          const key = `${trip.slat},${trip.slon}`;
+          trip.beginlocation = {
+            latitude: trip.slat,
+            longitude: trip.slon,
+            address: uniqueCoordinates.get(key)
+          };
+        }
+        if (trip.elat && trip.elon) {
+          const key = `${trip.elat},${trip.elon}`;
+          trip.endlocation = {
+            latitude: trip.elat,
+            longitude: trip.elon,
+            address: uniqueCoordinates.get(key)
+          };
+        }
+      }
+    }
     const syncedTrips = [];
     const skippedTrips = [];
 
