@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { createHash } from 'node:crypto';
 
-const GPS_URL = Deno.env.get("GALAGPS_URL");
+const GPS_URL = Deno.env.get("GALAGPS_URL") || "https://api.gps51.com";
 const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
 const GPS_PASSWORD = Deno.env.get("GALAGPS_PASSWORD");
 
