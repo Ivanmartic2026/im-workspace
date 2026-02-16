@@ -22,7 +22,7 @@ const categoryLabels = {
   allmänt: "Allmänt"
 };
 
-export default function NewsFeedCard({ post, onReact, onComment, onAcknowledge, currentUserEmail }) {
+const NewsFeedCardComponent = React.forwardRef(({ post, onReact, onComment, onAcknowledge, currentUserEmail }, ref) => {
   const reactions = post.reactions || { likes: [], hearts: [], celebrates: [] };
   const comments = post.comments || [];
   
@@ -44,6 +44,7 @@ export default function NewsFeedCard({ post, onReact, onComment, onAcknowledge, 
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
