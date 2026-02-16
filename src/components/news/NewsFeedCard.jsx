@@ -212,4 +212,8 @@ const NewsFeedCardComponent = React.forwardRef(({ post, onReact, onComment, onAc
       </Card>
     </motion.div>
   );
-}
+});
+
+NewsFeedCardComponent.displayName = 'NewsFeedCard';
+
+export default NewsFeedCardComponent;
