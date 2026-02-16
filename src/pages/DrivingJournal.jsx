@@ -155,7 +155,7 @@ export default function DrivingJournal() {
             endDate
           });
         } catch (error) {
-          console.error(`Failed to auto-sync ${vehicle.registration_number}:`, error);
+          // Silent error - logged but not shown to user
         }
       }
 
