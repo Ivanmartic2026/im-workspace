@@ -168,20 +168,20 @@ Deno.serve(async (req) => {
       }
 
       // Lägg till startplats om tillgänglig
-      if (trip.beginlocation) {
+      if (trip.slat && trip.slon) {
         journalEntry.start_location = {
-          latitude: trip.beginlocation.latitude,
-          longitude: trip.beginlocation.longitude,
-          address: trip.beginlocation.address || `${trip.beginlocation.latitude}, ${trip.beginlocation.longitude}`
+          latitude: trip.slat,
+          longitude: trip.slon,
+          address: null
         };
       }
 
       // Lägg till slutplats om tillgänglig
-      if (trip.endlocation) {
+      if (trip.elat && trip.elon) {
         journalEntry.end_location = {
-          latitude: trip.endlocation.latitude,
-          longitude: trip.endlocation.longitude,
-          address: trip.endlocation.address || `${trip.endlocation.latitude}, ${trip.endlocation.longitude}`
+          latitude: trip.elat,
+          longitude: trip.elon,
+          address: null
         };
       }
 
