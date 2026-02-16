@@ -31,7 +31,6 @@ export default function NotificationBell({ user }) {
           '-created_date', 
           100
         );
-        console.log('System notifications:', systemNotifications);
         systemNotifications.forEach(notif => {
           notifs.push({
             id: `notification-${notif.id}`,
@@ -52,7 +51,6 @@ export default function NotificationBell({ user }) {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const news = await base44.entities.NewsPost.filter({ is_important: true }, '-created_date', 10);
-        console.log('Important news:', news);
         news.forEach(post => {
           if (new Date(post.created_date) > sevenDaysAgo) {
             notifs.push({
@@ -164,15 +162,12 @@ export default function NotificationBell({ user }) {
       });
 
       // Sortera efter datum
-      console.log('Total notifications:', notifs.length);
       return notifs.sort((a, b) => new Date(b.date) - new Date(a.date));
     },
     enabled: !!user,
     refetchInterval: 30000, // Uppdatera var 30:e sekund
     staleTime: 20000
   });
-
-  console.log('Notifications state:', { count: notifications.length, unreadCount: notifications.filter(n => !n.data?.is_read).length });
 
   const deleteNotificationMutation = useMutation({
     mutationFn: async (notificationId) => {
