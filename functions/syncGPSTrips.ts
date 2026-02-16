@@ -45,24 +45,7 @@ async function getGPSToken() {
   return data.token;
 }
 
-async function reverseGeocode(latitude, longitude) {
-  if (!latitude || !longitude) return null;
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-      { headers: { 'User-Agent': 'Base44-GPS-App/1.0' } }
-    );
-    if (!response.ok) return `${latitude}, ${longitude}`;
-    const data = await response.json();
-    return data.display_name || `${latitude}, ${longitude}`;
-  } catch (e) {
-    return `${latitude}, ${longitude}`;
-  }
-}
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 Deno.serve(async (req) => {
   try {
