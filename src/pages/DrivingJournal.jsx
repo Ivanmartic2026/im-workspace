@@ -135,7 +135,7 @@ export default function DrivingJournal() {
     await refetchEntries();
   };
 
-  // Auto-sync GPS trips on mount and periodically
+  // Auto-sync GPS trips on mount only (one time per session)
   useEffect(() => {
     const autoSync = async () => {
       if (user?.role !== 'admin' || vehicles.length === 0) return;
@@ -143,12 +143,12 @@ export default function DrivingJournal() {
       const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
       if (vehiclesWithGPS.length === 0) return;
 
-      // Synka från sista 30 dagarna för att fånga alla resor
+      // Synka endast från senaste 2 dagarna (inte historiska data)
       const today = new Date();
-      const thirtyDaysAgo = new Date(today);
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const twoDaysAgo = new Date(today);
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
       
-      const startDate = format(startOfDay(thirtyDaysAgo), "yyyy-MM-dd'T'HH:mm:ss");
+      const startDate = format(startOfDay(twoDaysAgo), "yyyy-MM-dd'T'HH:mm:ss");
       const endDate = format(endOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
 
       for (const vehicle of vehiclesWithGPS) {
@@ -159,16 +159,16 @@ export default function DrivingJournal() {
             endDate
           });
         } catch (error) {
-          // Silent error - logged but not shown to user
+          // Silent error - logged men inte visat till användare
         }
       }
 
       queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
     };
 
+    // Synka en gång när sidan laddar
     autoSync();
-    const interval = setInterval(autoSync, 5 * 60 * 1000); // Every 5 minutes
-    return () => clearInterval(interval);
+    // Inte uppretat - resor sparas automatiskt via gps_trip_id
   }, [user, vehicles, queryClient]);
 
   const updateEntryMutation = useMutation({
