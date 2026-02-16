@@ -143,8 +143,12 @@ export default function DrivingJournal() {
       const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
       if (vehiclesWithGPS.length === 0) return;
 
+      // Synka från sista 30 dagarna för att fånga alla resor
       const today = new Date();
-      const startDate = format(startOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
+      const thirtyDaysAgo = new Date(today);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const startDate = format(startOfDay(thirtyDaysAgo), "yyyy-MM-dd'T'HH:mm:ss");
       const endDate = format(endOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
 
       for (const vehicle of vehiclesWithGPS) {
