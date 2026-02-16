@@ -93,44 +93,6 @@ Deno.serve(async (req) => {
 
     const trips = gpsData.totaltrips || [];
 
-    // Geokoda adresser
-    if (trips.length > 0) {
-      console.log(`Enriching ${trips.length} trips with addresses...`);
-      const uniqueCoordinates = new Map();
-      
-      for (const trip of trips) {
-        if (trip.slat && trip.slon) uniqueCoordinates.set(`${trip.slat},${trip.slon}`, null);
-        if (trip.elat && trip.elon) uniqueCoordinates.set(`${trip.elat},${trip.elon}`, null);
-      }
-
-      let geocodeCount = 0;
-      for (const [coordKey] of uniqueCoordinates) {
-        if (geocodeCount > 0) await delay(1100);
-        const [lat, lon] = coordKey.split(',');
-        const address = await reverseGeocode(lat, lon);
-        uniqueCoordinates.set(coordKey, address);
-        geocodeCount++;
-      }
-
-      for (const trip of trips) {
-        if (trip.slat && trip.slon) {
-          const key = `${trip.slat},${trip.slon}`;
-          trip.beginlocation = {
-            latitude: trip.slat,
-            longitude: trip.slon,
-            address: uniqueCoordinates.get(key)
-          };
-        }
-        if (trip.elat && trip.elon) {
-          const key = `${trip.elat},${trip.elon}`;
-          trip.endlocation = {
-            latitude: trip.elat,
-            longitude: trip.elon,
-            address: uniqueCoordinates.get(key)
-          };
-        }
-      }
-    }
     const syncedTrips = [];
     const skippedTrips = [];
 
