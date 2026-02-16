@@ -150,60 +150,24 @@ Deno.serve(async (req) => {
           timezone: 1
         });
 
-        // Optimerad geokodning - samla unika koordinater först
+        // Returnera resor direkt med koordinater - klienten kan geokoda vid behov
         if (result && result.totaltrips && result.totaltrips.length > 0) {
-          console.log(`Enriching ${result.totaltrips.length} trips with addresses...`);
-
-          // Samla alla unika koordinater
-          const uniqueCoordinates = new Map();
           for (const trip of result.totaltrips) {
             if (trip.slat && trip.slon) {
-              const key = `${trip.slat},${trip.slon}`;
-              uniqueCoordinates.set(key, null);
-            }
-            if (trip.elat && trip.elon) {
-              const key = `${trip.elat},${trip.elon}`;
-              uniqueCoordinates.set(key, null);
-            }
-          }
-
-          console.log(`Found ${uniqueCoordinates.size} unique coordinates to geocode`);
-
-          // Geokoda varje unik koordinat med fördröjning
-          let geocodeCount = 0;
-          for (const [coordKey] of uniqueCoordinates) {
-            if (geocodeCount > 0) {
-              await delay(1100); // Respektera Nominatim rate limit (max 1 req/sec)
-            }
-            
-            const [lat, lon] = coordKey.split(',');
-            const address = await reverseGeocode(lat, lon);
-            uniqueCoordinates.set(coordKey, address);
-            console.log(`[${geocodeCount + 1}/${uniqueCoordinates.size}] Geocoded ${lat}, ${lon}`);
-            geocodeCount++;
-          }
-
-          // Tilldela adresser till resor
-          for (const trip of result.totaltrips) {
-            if (trip.slat && trip.slon) {
-              const key = `${trip.slat},${trip.slon}`;
               trip.beginlocation = {
                 latitude: trip.slat,
                 longitude: trip.slon,
-                address: uniqueCoordinates.get(key)
+                address: null // Klienten kan ladda detta vid behov
               };
             }
             if (trip.elat && trip.elon) {
-              const key = `${trip.elat},${trip.elon}`;
               trip.endlocation = {
                 latitude: trip.elat,
                 longitude: trip.elon,
-                address: uniqueCoordinates.get(key)
+                address: null
               };
             }
           }
-
-          console.log('Address enrichment completed');
         }
         break;
 
