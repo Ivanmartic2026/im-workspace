@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { createHash } from 'node:crypto';
 
 const GPS_URL = Deno.env.get("GALAGPS_URL") || "https://api.gps51.com";
 const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
@@ -17,18 +16,14 @@ async function getGPSToken() {
     return tokenCache.token;
   }
 
-  // Skapa MD5 hash av lösenord
-  const md5Password = createHash('md5').update(GPS_PASSWORD).digest('hex');
-
   const response = await fetch(`${GPS_URL}/webapi?action=login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       type: "USER",
-      from: "WEB",
+      from: "web",
       username: GPS_USERNAME,
-      password: md5Password,
-      browser: "Base44"
+      password: GPS_PASSWORD
     })
   });
 
@@ -70,37 +65,7 @@ async function callGPSAPI(action, params = {}) {
   }
 }
 
-async function reverseGeocode(latitude, longitude) {
-  if (!latitude || !longitude) {
-    return null;
-  }
-  try {
-    const nominatimResponse = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-      {
-        headers: {
-          'User-Agent': 'Base44-GPS-App/1.0'
-        }
-      }
-    );
-    
-    if (!nominatimResponse.ok) {
-      console.warn(`Nominatim returned ${nominatimResponse.status} for ${latitude}, ${longitude}`);
-      return `${latitude}, ${longitude}`;
-    }
-    
-    const nominatimData = await nominatimResponse.json();
-    return nominatimData.display_name || `${latitude}, ${longitude}`;
-  } catch (e) {
-    console.warn(`Could not reverse geocode ${latitude}, ${longitude}: ${e.message}`);
-    return `${latitude}, ${longitude}`;
-  }
-}
 
-// Helper to add delay between geocoding requests (Nominatim rate limit)
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
