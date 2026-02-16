@@ -84,6 +84,15 @@ Deno.serve(async (req) => {
 
     const gpsData = await response.json();
 
+    // Logga GPS-svar för felsökning
+    console.log('GPS API response:', JSON.stringify(gpsData, null, 2));
+    console.log('Request params:', {
+      deviceid: vehicleData.gps_device_id,
+      begintime: Math.floor(new Date(startDate).getTime() / 1000),
+      endtime: Math.floor(new Date(endDate).getTime() / 1000),
+      timezone: 1
+    });
+
     if (gpsData.status !== 0) {
       return Response.json({ 
         error: 'Failed to fetch GPS trips',
