@@ -127,6 +127,9 @@ Deno.serve(async (req) => {
 
         const trips = gpsData.totaltrips || [];
         console.log(`Found ${trips.length} trips for ${vehicle.registration_number}`);
+        if (trips.length === 0) {
+          console.log(`Full GPS response for ${vehicle.registration_number}:`, JSON.stringify(gpsData));
+        }
 
         if (trips.length === 0) {
           results.push({ vehicle: vehicle.registration_number, synced: 0, skipped: 0 });
