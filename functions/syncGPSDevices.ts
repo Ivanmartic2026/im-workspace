@@ -67,52 +67,78 @@ Deno.serve(async (req) => {
 
     // Hämta befintliga fordon
     const existingVehicles = await base44.asServiceRole.entities.Vehicle.list();
-    const existingDeviceIds = new Set(existingVehicles.map(v => v.gps_device_id));
-
+    
+    const updated = [];
     const created = [];
     const skipped = [];
     const errors = [];
 
-    // Skapa fordon för enheter som inte finns
+    // Skapa en map av registreringsnummer till fordon
+    const vehiclesByRegNo = new Map();
+    existingVehicles.forEach(v => {
+      if (v.registration_number) {
+        vehiclesByRegNo.set(v.registration_number.toLowerCase(), v);
+      }
+    });
+
+    // För varje GPS-enhet, matcha med fordon
     for (const device of allDevices) {
       const deviceId = device.deviceid;
+      const deviceName = device.devicename || deviceId;
       
-      if (existingDeviceIds.has(deviceId)) {
-        skipped.push({
-          deviceId,
-          deviceName: device.devicename,
-          reason: 'Already exists'
-        });
-        continue;
-      }
-
       try {
-        // Skapa Vehicle-post
-        const vehicleData = {
-          registration_number: device.devicename || deviceId,
-          gps_device_id: deviceId,
-          make: 'Okänd',
-          model: 'GPS-enhet',
-          category: 'personbil',
-          vehicle_type: 'personbil',
-          fuel_type: 'bensin',
-          is_pool_vehicle: false,
-          status: 'aktiv',
-          notes: `Automatiskt importerad från GPS-system. Device type: ${device.devicetype}`
-        };
-
-        const newVehicle = await base44.asServiceRole.entities.Vehicle.create(vehicleData);
+        // Leta efter fordon med matchande registreringsnummer
+        const matchingVehicle = vehiclesByRegNo.get(deviceName.toLowerCase());
         
-        created.push({
-          vehicleId: newVehicle.id,
-          deviceId: deviceId,
-          registrationNumber: vehicleData.registration_number
-        });
+        if (matchingVehicle) {
+          // Uppdatera GPS device ID om det inte stämmer
+          if (matchingVehicle.gps_device_id !== deviceId) {
+            await base44.asServiceRole.entities.Vehicle.update(matchingVehicle.id, {
+              gps_device_id: deviceId
+            });
+            
+            updated.push({
+              vehicleId: matchingVehicle.id,
+              registrationNumber: matchingVehicle.registration_number,
+              oldDeviceId: matchingVehicle.gps_device_id,
+              newDeviceId: deviceId
+            });
+          } else {
+            skipped.push({
+              vehicleId: matchingVehicle.id,
+              registrationNumber: matchingVehicle.registration_number,
+              deviceId,
+              reason: 'GPS device ID already correct'
+            });
+          }
+        } else {
+          // Skapa nytt fordon om det inte finns
+          const vehicleData = {
+            registration_number: deviceName,
+            gps_device_id: deviceId,
+            make: 'Okänd',
+            model: 'GPS-enhet',
+            category: 'personbil',
+            vehicle_type: 'personbil',
+            fuel_type: 'bensin',
+            is_pool_vehicle: false,
+            status: 'aktiv',
+            notes: `Automatiskt importerad från GPS-system. Device type: ${device.devicetype}`
+          };
+
+          const newVehicle = await base44.asServiceRole.entities.Vehicle.create(vehicleData);
+          
+          created.push({
+            vehicleId: newVehicle.id,
+            deviceId: deviceId,
+            registrationNumber: vehicleData.registration_number
+          });
+        }
 
       } catch (error) {
         errors.push({
           deviceId,
-          deviceName: device.devicename,
+          deviceName,
           error: error.message
         });
       }
@@ -122,10 +148,12 @@ Deno.serve(async (req) => {
       success: true,
       summary: {
         total: allDevices.length,
+        updated: updated.length,
         created: created.length,
         skipped: skipped.length,
         errors: errors.length
       },
+      updated,
       created,
       skipped,
       errors
