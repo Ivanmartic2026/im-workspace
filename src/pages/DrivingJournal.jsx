@@ -731,6 +731,53 @@ export default function DrivingJournal() {
 
           {/* Register Tab */}
           <TabsContent value="register">
+            {/* Sync Button */}
+            <Card className="border-0 shadow-sm mb-4 bg-gradient-to-r from-blue-50 to-cyan-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <RefreshCw className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">Synka resor från GPS</p>
+                      <p className="text-xs text-slate-600">
+                        Hämta nya resor från dina fordons GPS-enheter
+                      </p>
+                    </div>
+                  </div>
+                  <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Alla fordon</SelectItem>
+                      {vehiclesWithGPS.map(v => (
+                        <SelectItem key={v.id} value={v.id}>{v.registration_number}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleSync}
+                    disabled={syncTripsMutation.isPending || selectedVehicle === 'all'}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {syncTripsMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Synkar...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Synka nu
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Månadsöversikt */}
             <Card className="border-0 shadow-sm mb-4">
               <CardHeader>
