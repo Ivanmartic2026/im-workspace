@@ -13,6 +13,7 @@ import PushPromptBanner from "@/components/notifications/PushPromptBanner";
 import ImportantNewsAlert from "@/components/home/ImportantNewsAlert";
 import ProjectSelector from "@/components/home/ProjectSelector";
 import ClockInOutCard from "@/components/home/ClockInOutCard";
+import VehicleTripsOverview from "@/components/home/VehicleTripsOverview";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -343,6 +344,11 @@ export default function Home() {
           />
 
         </motion.div>
+
+        {/* Vehicle Trips Overview - Admin Only */}
+        {user?.role === 'admin' && (
+          <VehicleTripsOverview />
+        )}
 
         {/* Important News Alert */}
         <ImportantNewsAlert 
