@@ -69,30 +69,16 @@ Deno.serve(async (req) => {
               return Response.json({ error: 'No GPS device ID configured for this vehicle' }, { status: 400 });
             }
 
-            // Försök först med önskad period, om ingen data, försök föregående vecka
+            // Försök söka bakåt tills vi hittar data
             const token = await getGPSToken();
             let requestStartDate = new Date(startDate);
             let requestEndDate = new Date(endDate);
+            let gpsData = null;
+            let daysBack = 0;
 
-            let response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                deviceid: vehicleData.gps_device_id,
-                begintime: Math.floor(requestStartDate.getTime() / 1000),
-                endtime: Math.floor(requestEndDate.getTime() / 1000),
-                timezone: 1
-              })
-            });
-
-            let gpsData = await response.json();
-
-            // Om ingen data, försök med föregående vecka
-            if ((!gpsData.totaltrips || gpsData.totaltrips.length === 0) && gpsData.status === 0) {
-              requestStartDate.setDate(requestStartDate.getDate() - 7);
-              requestEndDate.setDate(requestEndDate.getDate() - 7);
-
-              response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
+            // Försök från aktuell period och så långt tillbaka som 90 dagar
+            while (daysBack <= 90) {
+              const response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -102,10 +88,19 @@ Deno.serve(async (req) => {
                   timezone: 1
                 })
               });
-              gpsData = await response.json();
-            }
 
-    const gpsData = await response.json();
+              gpsData = await response.json();
+
+              // Om vi fick data eller ett fel, bryt loopen
+              if (gpsData.status !== 0 || (gpsData.totaltrips && gpsData.totaltrips.length > 0)) {
+                break;
+              }
+
+              // Gå tillbaka en vecka och försök igen
+              daysBack += 7;
+              requestStartDate.setDate(requestStartDate.getDate() - 7);
+              requestEndDate.setDate(requestEndDate.getDate() - 7);
+            }
 
     // Logga GPS-svar för felsökning
     console.log('GPS API response:', JSON.stringify(gpsData, null, 2));
