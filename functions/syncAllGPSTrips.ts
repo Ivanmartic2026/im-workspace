@@ -69,16 +69,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Default: synka endast från senaste 2 dagar för nya resor
+    // Default: synka från senaste 90 dagar för att få all historisk data
     let { startDate, endDate, maxVehicles } = await req.json();
     
     if (!startDate || !endDate) {
       const today = new Date();
-      const twoDaysAgo = new Date(today);
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      const ninetyDaysAgo = new Date(today);
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
       
       endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString();
-      startDate = new Date(twoDaysAgo.getFullYear(), twoDaysAgo.getMonth(), twoDaysAgo.getDate(), 0, 0, 0).toISOString();
+      startDate = new Date(ninetyDaysAgo.getFullYear(), ninetyDaysAgo.getMonth(), ninetyDaysAgo.getDate(), 0, 0, 0).toISOString();
     }
 
     // Hämta alla fordon med GPS-enheter
