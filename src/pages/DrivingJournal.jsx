@@ -135,41 +135,10 @@ export default function DrivingJournal() {
     await refetchEntries();
   };
 
-  // Auto-sync GPS trips on mount only (one time per session)
+  // Load all trips on mount (synced daily via automation)
   useEffect(() => {
-    const autoSync = async () => {
-      if (user?.role !== 'admin' || vehicles.length === 0) return;
-      
-      const vehiclesWithGPS = vehicles.filter(v => v.gps_device_id);
-      if (vehiclesWithGPS.length === 0) return;
-
-      // Synka endast från senaste 2 dagarna (inte historiska data)
-      const today = new Date();
-      const twoDaysAgo = new Date(today);
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-      
-      const startDate = format(startOfDay(twoDaysAgo), "yyyy-MM-dd'T'HH:mm:ss");
-      const endDate = format(endOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
-
-      for (const vehicle of vehiclesWithGPS) {
-        try {
-          await base44.functions.invoke('syncGPSTrips', {
-            vehicleId: vehicle.id,
-            startDate,
-            endDate
-          });
-        } catch (error) {
-          // Silent error - logged men inte visat till användare
-        }
-      }
-
-      queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
-    };
-
-    // Synka en gång när sidan laddar
-    autoSync();
-    // Inte uppretat - resor sparas automatiskt via gps_trip_id
-  }, [user, vehicles, queryClient]);
+    refetchEntries();
+  }, []);
 
   const updateEntryMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DrivingJournalEntry.update(id, data),
@@ -183,7 +152,10 @@ export default function DrivingJournal() {
   const syncTripsMutation = useMutation({
     mutationFn: async ({ vehicleId }) => {
       const today = new Date();
-      const startDate = format(startOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
+      const ninetyDaysAgo = new Date(today);
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      
+      const startDate = format(startOfDay(ninetyDaysAgo), "yyyy-MM-dd'T'HH:mm:ss");
       const endDate = format(endOfDay(today), "yyyy-MM-dd'T'HH:mm:ss");
       
       const response = await base44.functions.invoke('syncGPSTrips', {
