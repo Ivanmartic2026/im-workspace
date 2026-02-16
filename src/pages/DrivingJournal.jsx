@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Car, MapPin, Clock, Loader2, Filter, X, CheckCircle, AlertCircle } from "lucide-react";
+import { Car, MapPin, Clock, Loader2, Filter, X, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -43,6 +43,8 @@ export default function DrivingJournal() {
     queryFn: () => base44.entities.DrivingJournalEntry.list('-start_time', 300),
   });
 
+  const [syncLoading, setSyncLoading] = useState(false);
+
   const updateEntryMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DrivingJournalEntry.update(id, data),
     onSuccess: () => {
@@ -51,6 +53,19 @@ export default function DrivingJournal() {
       setSelectedEntry(null);
     },
   });
+
+  const handleSyncAllVehicles = async () => {
+    setSyncLoading(true);
+    try {
+      const response = await base44.functions.invoke('syncAllGPSTrips', {});
+      await refetch();
+      alert(`Synkronisering klar: ${response.data.totalSynced || 0} resor laddades`);
+    } catch (error) {
+      alert('Synkronisering misslyckades: ' + error.message);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
 
   const handleEditEntry = (entry) => {
     setSelectedEntry(entry);
@@ -107,15 +122,34 @@ export default function DrivingJournal() {
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Körjournal</h1>
-            <div className="flex gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Car className="h-4 w-4 text-slate-400" />
-                <span className="text-slate-600">{totalTrips} resor</span>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Car className="h-4 w-4 text-slate-400" />
+                  <span className="text-slate-600">{totalTrips} resor</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-slate-400" />
+                  <span className="text-slate-600">{totalDistance.toFixed(0)} km</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-slate-400" />
-                <span className="text-slate-600">{totalDistance.toFixed(0)} km</span>
-              </div>
+              <Button 
+                onClick={handleSyncAllVehicles}
+                disabled={syncLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-sm"
+              >
+                {syncLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Laddar...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Synka nu
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
