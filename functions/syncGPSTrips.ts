@@ -58,29 +58,52 @@ Deno.serve(async (req) => {
 
     const { vehicleId, startDate, endDate } = await req.json();
 
-    // Hämta fordonsinformation
-    const vehicle = await base44.asServiceRole.entities.Vehicle.filter({ id: vehicleId });
-    if (!vehicle || vehicle.length === 0) {
-      return Response.json({ error: 'Vehicle not found' }, { status: 404 });
-    }
+            // Hämta fordonsinformation
+            const vehicle = await base44.asServiceRole.entities.Vehicle.filter({ id: vehicleId });
+            if (!vehicle || vehicle.length === 0) {
+              return Response.json({ error: 'Vehicle not found' }, { status: 404 });
+            }
 
-    const vehicleData = vehicle[0];
-    if (!vehicleData.gps_device_id) {
-      return Response.json({ error: 'No GPS device ID configured for this vehicle' }, { status: 400 });
-    }
+            const vehicleData = vehicle[0];
+            if (!vehicleData.gps_device_id) {
+              return Response.json({ error: 'No GPS device ID configured for this vehicle' }, { status: 400 });
+            }
 
-    // Hämta resor direkt från GPS API
-    const token = await getGPSToken();
-    const response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        deviceid: vehicleData.gps_device_id,
-        begintime: Math.floor(new Date(startDate).getTime() / 1000),
-        endtime: Math.floor(new Date(endDate).getTime() / 1000),
-        timezone: 1
-      })
-    });
+            // Försök först med önskad period, om ingen data, försök föregående vecka
+            const token = await getGPSToken();
+            let requestStartDate = new Date(startDate);
+            let requestEndDate = new Date(endDate);
+
+            let response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                deviceid: vehicleData.gps_device_id,
+                begintime: Math.floor(requestStartDate.getTime() / 1000),
+                endtime: Math.floor(requestEndDate.getTime() / 1000),
+                timezone: 1
+              })
+            });
+
+            let gpsData = await response.json();
+
+            // Om ingen data, försök med föregående vecka
+            if ((!gpsData.totaltrips || gpsData.totaltrips.length === 0) && gpsData.status === 0) {
+              requestStartDate.setDate(requestStartDate.getDate() - 7);
+              requestEndDate.setDate(requestEndDate.getDate() - 7);
+
+              response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  deviceid: vehicleData.gps_device_id,
+                  begintime: Math.floor(requestStartDate.getTime() / 1000),
+                  endtime: Math.floor(requestEndDate.getTime() / 1000),
+                  timezone: 1
+                })
+              });
+              gpsData = await response.json();
+            }
 
     const gpsData = await response.json();
 
