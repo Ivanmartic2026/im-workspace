@@ -225,15 +225,15 @@ export default function DrivingJournal() {
                             const isExpanded = expandedTrips[trip.id];
                             return (
                               <motion.div key={trip.id} layout>
-                                <div
-                                  onClick={() => toggleTripExpand(trip.id)}
-                                  className="p-4 hover:bg-slate-50 cursor-pointer transition-colors"
-                                >
-                                  <div className="flex items-start justify-between mb-2">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-semibold text-slate-900">
-                                          {format(new Date(trip.start_time), 'dd MMM, HH:mm', { locale: sv })}
+                              <div
+                              onClick={() => toggleTripExpand(trip.id)}
+                              className="p-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                              >
+                              <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold text-slate-900">
+                                    {trip.start_time ? format(new Date(trip.start_time), 'dd MMM, HH:mm', { locale: sv }) : 'Okänd tid'}
                                         </span>
                                         {trip.is_anomaly && (
                                           <AlertCircle className="h-4 w-4 text-red-500" />
