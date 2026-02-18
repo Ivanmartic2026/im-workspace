@@ -179,8 +179,12 @@ export default function NotificationsList({ notifications, onClose, onDelete, on
     // Navigera baserat på typ
     if (notification.type === 'news') {
       navigate(createPageUrl('Home'));
-    } else if (notification.type === 'leave' || notification.type === 'approval_needed') {
-      navigate(createPageUrl('Leave'));
+    } else if (notification.type === 'leave') {
+      // Navigera till AdminTimeSystem med ledighet-godkännande
+      navigate(createPageUrl('AdminTimeSystem'));
+    } else if (notification.type === 'approval_needed') {
+      // Navigera till AdminTimeSystem
+      navigate(createPageUrl('AdminTimeSystem'));
     } else if (notification.type === 'vehicle') {
       navigate(createPageUrl('Vehicles'));
     } else if (notification.type === 'chat') {
