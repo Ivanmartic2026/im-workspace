@@ -5,12 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Shield, UserPlus, Mail, Loader2, CheckCircle2, User } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Shield, UserPlus, Mail, Loader2, CheckCircle2, User, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UserRoleManagement() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('user');
+  const [editingUser, setEditingUser] = useState(null);
+  const [newName, setNewName] = useState('');
   const queryClient = useQueryClient();
 
   const { data: users = [], isLoading } = useQuery({
@@ -45,6 +48,21 @@ export default function UserRoleManagement() {
     }
   });
 
+  const updateNameMutation = useMutation({
+    mutationFn: async ({ userId, full_name }) => {
+      await base44.entities.User.update(userId, { full_name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setEditingUser(null);
+      setNewName('');
+      toast.success('Användarnamn uppdaterat!');
+    },
+    onError: (error) => {
+      toast.error('Misslyckades: ' + error.message);
+    }
+  });
+
   const handleInvite = () => {
     if (!inviteEmail) {
       toast.error('Ange en email-adress');
@@ -56,6 +74,22 @@ export default function UserRoleManagement() {
   const toggleRole = (user) => {
     const newRole = user.role === 'admin' ? 'user' : 'admin';
     updateUserMutation.mutate({ userId: user.id, role: newRole });
+  };
+
+  const handleEditName = (user) => {
+    setEditingUser(user);
+    setNewName(user.full_name || '');
+  };
+
+  const handleSaveName = () => {
+    if (!newName.trim()) {
+      toast.error('Namn kan inte vara tomt');
+      return;
+    }
+    updateNameMutation.mutate({ 
+      userId: editingUser.id, 
+      full_name: newName.trim() 
+    });
   };
 
   return (
@@ -139,7 +173,7 @@ export default function UserRoleManagement() {
                       <p className="text-sm text-slate-500">{user.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Badge className={
                       user.role === 'admin' 
                         ? 'bg-blue-100 text-blue-800 border-0' 
@@ -147,6 +181,14 @@ export default function UserRoleManagement() {
                     }>
                       {user.role}
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEditName(user)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -162,6 +204,56 @@ export default function UserRoleManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Name Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Redigera användarnamn</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">
+                Email
+              </label>
+              <Input
+                value={editingUser?.email || ''}
+                disabled
+                className="bg-slate-50"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">
+                Namn
+              </label>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Ange fullständigt namn"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditingUser(null)}
+            >
+              Avbryt
+            </Button>
+            <Button
+              onClick={handleSaveName}
+              disabled={updateNameMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {updateNameMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Spara'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
