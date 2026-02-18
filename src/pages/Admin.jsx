@@ -33,6 +33,7 @@ import DetailedProjectReports from '@/components/admin/DetailedProjectReports';
 import AllVehicleReports from '@/components/admin/AllVehicleReports';
 import AllFuelLogs from '@/components/admin/AllFuelLogs';
 import ManualReportSender from '@/components/admin/ManualReportSender';
+import UserRoleManagement from '@/components/admin/UserRoleManagement';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -120,6 +121,10 @@ export default function Admin() {
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Dashboard
               </TabsTrigger>
+              <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Shield className="h-4 w-4 mr-2" />
+                Användare
+              </TabsTrigger>
               <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <Database className="h-4 w-4 mr-2" />
                 System
@@ -162,6 +167,12 @@ export default function Admin() {
             <TabsContent value="dashboard" className="space-y-4">
               <h2 className="text-lg font-semibold text-slate-900 mb-4">Realtidsdashboard</h2>
               <RealtimeDashboard />
+            </TabsContent>
+
+            {/* Users Tab */}
+            <TabsContent value="users" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Användarhantering</h2>
+              <UserRoleManagement />
             </TabsContent>
 
             {/* Reports Tab */}
