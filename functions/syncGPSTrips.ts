@@ -138,6 +138,12 @@ Deno.serve(async (req) => {
     }
 
     for (const trip of trips) {
+      // Validera att vi har nödvändig data
+      if (!trip.begintime || !trip.endtime || !trip.tripid) {
+        skippedTrips.push({ tripId: trip.tripid || 'unknown', reason: 'Missing required trip data' });
+        continue;
+      }
+
       // Kontrollera om resan redan finns i körjournalen (kolla både gps_trip_id och tidsmatchning)
       const tripStartTime = new Date(trip.begintime * 1000).toISOString();
       
