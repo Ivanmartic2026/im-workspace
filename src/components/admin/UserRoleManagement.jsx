@@ -50,7 +50,8 @@ export default function UserRoleManagement() {
 
   const updateNameMutation = useMutation({
     mutationFn: async ({ userId, full_name }) => {
-      await base44.entities.User.update(userId, { full_name });
+      const response = await base44.functions.invoke('updateUserName', { userId, full_name });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
