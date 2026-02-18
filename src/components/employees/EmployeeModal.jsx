@@ -35,7 +35,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
   });
 
   useEffect(() => {
-    if (employee) {
+    if (open && employee) {
       const user = users.find(u => u.email === employee.user_email);
       setFormData({
         user_email: employee.user_email || '',
@@ -50,7 +50,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         assigned_services: employee.assigned_services || [],
         assigned_features: employee.assigned_features || [],
       });
-    } else {
+    } else if (open && !employee) {
       setFormData({
         user_email: '',
         full_name: '',
@@ -65,7 +65,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         assigned_features: [],
       });
     }
-  }, [employee, open, users]);
+  }, [employee, open]);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
