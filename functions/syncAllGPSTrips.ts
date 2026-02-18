@@ -181,6 +181,13 @@ Deno.serve(async (req) => {
         });
 
         for (const trip of trips) {
+          // Validera att vi har nödvändig data
+          if (!trip.begintime || !trip.endtime || !trip.tripid) {
+            console.log(`Skipping invalid trip:`, trip);
+            skippedCount++;
+            continue;
+          }
+
           // Kontrollera om resan redan finns
           const matchingEntry = existing.find(e => {
             if (e.gps_trip_id === trip.tripid?.toString()) return true;
