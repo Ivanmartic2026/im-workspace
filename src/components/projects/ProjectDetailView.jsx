@@ -357,21 +357,33 @@ export default function ProjectDetailView({ project, onClose }) {
                                     {users.find(u => u.email === entry.employee_email)?.full_name || entry.employee_email}
                                   </p>
                                   <div className="space-y-1 text-slate-600">
-                                    {entry.clock_in_location && (
+                                    {entry.clock_in_time && (
                                       <div className="flex items-start gap-2">
-                                        <MapPin className="h-3 w-3 text-green-600 flex-shrink-0 mt-0.5" />
+                                        <Clock className="h-3 w-3 text-green-600 flex-shrink-0 mt-0.5" />
                                         <div>
-                                          <p className="font-medium text-slate-700">Incheckat:</p>
-                                          <p>{entry.clock_in_location.address || `${entry.clock_in_location.latitude?.toFixed(5)}, ${entry.clock_in_location.longitude?.toFixed(5)}`}</p>
+                                          <p className="font-medium text-slate-700">
+                                            Incheckat: {format(parseISO(entry.clock_in_time), 'HH:mm')}
+                                          </p>
+                                          {entry.clock_in_location && (
+                                            <p className="text-slate-500">
+                                              {entry.clock_in_location.address || `${entry.clock_in_location.latitude?.toFixed(5)}, ${entry.clock_in_location.longitude?.toFixed(5)}`}
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
                                     )}
-                                    {entry.clock_out_location && (
+                                    {entry.clock_out_time && (
                                       <div className="flex items-start gap-2">
-                                        <MapPin className="h-3 w-3 text-red-600 flex-shrink-0 mt-0.5" />
+                                        <Clock className="h-3 w-3 text-red-600 flex-shrink-0 mt-0.5" />
                                         <div>
-                                          <p className="font-medium text-slate-700">Utcheckat:</p>
-                                          <p>{entry.clock_out_location.address || `${entry.clock_out_location.latitude?.toFixed(5)}, ${entry.clock_out_location.longitude?.toFixed(5)}`}</p>
+                                          <p className="font-medium text-slate-700">
+                                            Utcheckat: {format(parseISO(entry.clock_out_time), 'HH:mm')}
+                                          </p>
+                                          {entry.clock_out_location && (
+                                            <p className="text-slate-500">
+                                              {entry.clock_out_location.address || `${entry.clock_out_location.latitude?.toFixed(5)}, ${entry.clock_out_location.longitude?.toFixed(5)}`}
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
                                     )}
