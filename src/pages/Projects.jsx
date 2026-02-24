@@ -125,6 +125,11 @@ export default function Projects() {
       queryClient.invalidateQueries(['projects']);
       setShowModal(false);
       resetForm();
+      toast.success('Projekt skapat!');
+    },
+    onError: (error) => {
+      console.error('Create error:', error);
+      toast.error('Kunde inte skapa projekt: ' + (error.message || 'Okänt fel'));
     }
   });
 
@@ -134,6 +139,11 @@ export default function Projects() {
       queryClient.invalidateQueries(['projects']);
       setShowModal(false);
       resetForm();
+      toast.success('Projekt uppdaterat!');
+    },
+    onError: (error) => {
+      console.error('Update error:', error);
+      toast.error('Kunde inte uppdatera projekt: ' + (error.message || 'Okänt fel'));
     }
   });
 
@@ -141,6 +151,11 @@ export default function Projects() {
     mutationFn: (id) => base44.entities.Project.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
+      toast.success('Projekt borttaget!');
+    },
+    onError: (error) => {
+      console.error('Delete error:', error);
+      toast.error('Kunde inte ta bort projekt: ' + (error.message || 'Okänt fel'));
     }
   });
 
