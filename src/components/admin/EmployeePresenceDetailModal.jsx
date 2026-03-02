@@ -16,7 +16,14 @@ export default function EmployeePresenceDetailModal({ open, onClose, employee, t
   const [editData, setEditData] = useState({
     clock_in_time: '',
     clock_out_time: '',
-    edit_reason: ''
+    edit_reason: '',
+    project_id: ''
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects-active'],
+    queryFn: () => base44.entities.Project.filter({ status: 'pågående' }),
+    enabled: open
   });
 
   React.useEffect(() => {
@@ -24,7 +31,8 @@ export default function EmployeePresenceDetailModal({ open, onClose, employee, t
       setEditData({
         clock_in_time: timeEntry.clock_in_time ? format(new Date(timeEntry.clock_in_time), "yyyy-MM-dd'T'HH:mm") : '',
         clock_out_time: timeEntry.clock_out_time ? format(new Date(timeEntry.clock_out_time), "yyyy-MM-dd'T'HH:mm") : '',
-        edit_reason: ''
+        edit_reason: '',
+        project_id: timeEntry.project_id || (timeEntry.project_allocations?.[0]?.project_id) || ''
       });
     }
   }, [timeEntry, open]);
