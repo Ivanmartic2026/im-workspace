@@ -191,6 +191,26 @@ export default function EmployeePresenceDetailModal({ open, onClose, employee, t
               </div>
 
               <div className="space-y-2">
+                <Label>Projekt</Label>
+                <Select
+                  value={editData.project_id || 'none'}
+                  onValueChange={(value) => setEditData(prev => ({ ...prev, project_id: value === 'none' ? '' : value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj projekt..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Inget projekt</SelectItem>
+                    {projects.map(p => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} ({p.project_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label>Orsak till ändring *</Label>
                 <Textarea
                   placeholder="Beskriv varför tiden justeras..."
