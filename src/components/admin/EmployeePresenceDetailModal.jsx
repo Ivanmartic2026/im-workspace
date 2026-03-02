@@ -40,13 +40,22 @@ export default function EmployeePresenceDetailModal({ open, onClose, employee, t
   const updateTimeMutation = useMutation({
     mutationFn: async (data) => {
       if (!timeEntry?.id) return;
-      return await base44.entities.TimeEntry.update(timeEntry.id, {
+      const updateData = {
         clock_in_time: data.clock_in_time,
         clock_out_time: data.clock_out_time || null,
         edit_reason: data.edit_reason,
         edited_by: (await base44.auth.me()).email,
         edited_at: new Date().toISOString()
-      });
+      };
+      // Update project if changed
+      if (data.project_id) {
+        updateData.project_id = data.project_id;
+        updateData.project_allocations = [{
+          project_id: data.project_id,
+          hours: timeEntry.total_hours || 0
+        }];
+      }
+      return await base44.entities.TimeEntry.update(timeEntry.id, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeEntriesToday'] });
