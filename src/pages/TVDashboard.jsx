@@ -258,18 +258,17 @@ export default function TVDashboard() {
             <span style={{ fontSize: '16px', fontWeight: '700', color: '#f1f5f9' }}>Tidsöversikt medarbetare</span>
           </div>
           {/* Day headers */}
-          <div style={{ padding: '10px 14px 0', display: 'grid', gridTemplateColumns: '140px repeat(7,1fr) 50px 60px', gap: '4px', fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+          <div style={{ padding: '10px 14px 0', display: 'grid', gridTemplateColumns: '130px repeat(7,1fr) 50px', gap: '4px', fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
             <div></div>
             {dayLabels.map((d, i) => (
               <div key={d} style={{ textAlign: 'center', color: format(weekDays[i], 'yyyy-MM-dd') === today ? '#60a5fa' : '#64748b' }}>{d}</div>
             ))}
-            <div style={{ textAlign: 'center' }}>Vka</div>
-            <div style={{ textAlign: 'center' }}>Mån</div>
+            <div style={{ textAlign: 'center' }}>Tot</div>
           </div>
           <div style={{ padding: '6px 14px 14px', maxHeight: '540px', overflowY: 'auto' }}>
             {employeeSummary.map((emp, i) => (
               <div key={emp.email || i} style={{ 
-                display: 'grid', gridTemplateColumns: '140px repeat(7,1fr) 50px 60px', gap: '4px', 
+                display: 'grid', gridTemplateColumns: '130px repeat(7,1fr) 50px', gap: '4px', 
                 alignItems: 'center', background: i % 2 === 0 ? '#0f172a' : 'transparent',
                 borderRadius: '8px', padding: '7px 6px', marginBottom: '2px'
               }}>
@@ -286,9 +285,6 @@ export default function TVDashboard() {
                 ))}
                 <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '700', color: emp.weekHours >= 40 ? '#22c55e' : '#f1f5f9' }}>
                   {emp.weekHours.toFixed(0)}h
-                </div>
-                <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '700', color: '#c084fc' }}>
-                  {emp.monthHours.toFixed(0)}h
                 </div>
               </div>
             ))}
