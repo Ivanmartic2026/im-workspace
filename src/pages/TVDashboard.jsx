@@ -165,8 +165,8 @@ export default function TVDashboard() {
         ))}
       </div>
 
-      {/* Main Grid: 3 columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', alignItems: 'start' }}>
+      {/* Main Grid: 4 columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr 0.8fr', gap: '16px', alignItems: 'start' }}>
 
         {/* Column 1: Clocked In */}
         <div style={{ background: '#1e293b', borderRadius: '16px', overflow: 'hidden' }}>
