@@ -294,7 +294,6 @@ export default function TVDashboard() {
             ))}
           </div>
         </div>
-      </div>
 
         {/* Column 4: Monthly per employee */}
         <div style={{ background: '#1e293b', borderRadius: '16px', overflow: 'hidden' }}>
