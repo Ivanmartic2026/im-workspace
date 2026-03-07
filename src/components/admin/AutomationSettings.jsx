@@ -123,6 +123,11 @@ export default function AutomationSettings() {
           </TabsTrigger>
         </TabsList>
 
+        {/* Smart Alerts Tab */}
+        <TabsContent value="smart" className="space-y-4">
+          <SmartAlertsConfig />
+        </TabsContent>
+
         {/* Reminders Tab */}
         <TabsContent value="reminders" className="space-y-4">
           <Card className="border-0 shadow-sm">
