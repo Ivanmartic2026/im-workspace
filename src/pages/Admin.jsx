@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Settings, Users, Car, FileText, Clock, Database, 
   AlertCircle, CheckCircle2, Loader2, TrendingUp, 
-  Shield, Bell, Calendar, BarChart3, Wrench, BookOpen, MapPin, Radio
+  Shield, Bell, Calendar, BarChart3, Wrench, BookOpen, MapPin, Radio, Tv, ExternalLink
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
