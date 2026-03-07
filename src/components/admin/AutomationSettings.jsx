@@ -103,8 +103,12 @@ export default function AutomationSettings() {
         <p className="text-sm text-slate-500">Automatisera repetitiva uppgifter och schemalägg processer</p>
       </div>
 
-      <Tabs defaultValue="reminders">
-        <TabsList className="grid grid-cols-3 w-full">
+      <Tabs defaultValue="smart">
+        <TabsList className="grid grid-cols-4 w-full">
+          <TabsTrigger value="smart">
+            <Zap className="h-4 w-4 mr-2" />
+            Smart-notiser
+          </TabsTrigger>
           <TabsTrigger value="reminders">
             <Bell className="h-4 w-4 mr-2" />
             Påminnelser
