@@ -110,9 +110,18 @@ export default function Admin() {
           animate={{ opacity: 1, y: 0 }}
         >
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-slate-900 mb-1">Systemadministration</h1>
-            <p className="text-slate-500 text-sm">Hantera och övervaka systemet</p>
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-1">Systemadministration</h1>
+              <p className="text-slate-500 text-sm">Hantera och övervaka systemet</p>
+            </div>
+            <a href={createPageUrl('TVDashboard')} target="_blank" rel="noopener noreferrer">
+              <Button className="bg-slate-900 hover:bg-slate-700 text-white gap-2 whitespace-nowrap">
+                <Tv className="h-4 w-4" />
+                TV-dashboard
+                <ExternalLink className="h-3 w-3 opacity-70" />
+              </Button>
+            </a>
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
