@@ -3,10 +3,10 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Users, Clock, Briefcase, AlertTriangle, PlayCircle, 
-  Calendar, TrendingUp, MapPin, Activity
+  Calendar, TrendingUp, MapPin, Activity, BarChart3
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth,
-         differenceInHours, eachDayOfInterval } from "date-fns";
+         differenceInHours, eachDayOfInterval, isToday } from "date-fns";
 import { sv } from "date-fns/locale";
 
 export default function TVDashboard() {
