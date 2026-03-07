@@ -100,7 +100,18 @@ export default function TVDashboard() {
     const activeNow = clockedInEntries.filter(e => e.project_allocations?.some(a => a.project_id === p.id)).length;
     const budgetPct = p.budget_hours ? Math.min(100, (hours / p.budget_hours) * 100) : null;
     return { ...p, hours, activeNow, budgetPct };
-  }).sort((a, b) => b.activeNow - a.activeNow || b.hours - a.hours).slice(0, 8);
+  }).sort((a, b) => b.activeNow - a.activeNow || b.hours - a.hours);
+
+  // Monthly summary per employee
+  const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
+  const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+  const monthEntries = timeEntries.filter(e => e.date >= monthStart && e.date <= monthEnd);
+  const employeeMonthSummary = users.map(user => {
+    const empEntries = monthEntries.filter(e => e.employee_email === user.email && e.status === 'completed');
+    const totalMonthHours = empEntries.reduce((s, e) => s + (e.total_hours || 0), 0);
+    const emp = employees.find(e => e.user_email === user.email);
+    return { name: user.full_name, department: emp?.department || '', totalMonthHours };
+  }).filter(e => e.name && e.totalMonthHours > 0).sort((a, b) => b.totalMonthHours - a.totalMonthHours);
 
   const totalWeekHours = weekEntries.filter(e => e.status === 'completed').reduce((s, e) => s + (e.total_hours || 0), 0);
   const totalMonthHours = monthEntries.filter(e => e.status === 'completed').reduce((s, e) => s + (e.total_hours || 0), 0);
