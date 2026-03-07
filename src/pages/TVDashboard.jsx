@@ -103,9 +103,6 @@ export default function TVDashboard() {
   }).sort((a, b) => b.activeNow - a.activeNow || b.hours - a.hours);
 
   // Monthly summary per employee
-  const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
-  const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
-  const monthEntries = timeEntries.filter(e => e.date >= monthStart && e.date <= monthEnd);
   const employeeMonthSummary = users.map(user => {
     const empEntries = monthEntries.filter(e => e.employee_email === user.email && e.status === 'completed');
     const totalMonthHours = empEntries.reduce((s, e) => s + (e.total_hours || 0), 0);
