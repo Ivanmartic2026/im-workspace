@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Bell, FileText, Archive, Clock, Calendar, CheckCircle2, Loader2, Play, Pause } from "lucide-react";
+import { Bell, FileText, Archive, Clock, Calendar, CheckCircle2, Loader2, Play, Pause, Zap } from "lucide-react";
+import SmartAlertsConfig from './SmartAlertsConfig';
 import { toast } from "sonner";
 
 export default function AutomationSettings() {
