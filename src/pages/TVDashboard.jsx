@@ -296,6 +296,40 @@ export default function TVDashboard() {
         </div>
       </div>
 
+        {/* Column 4: Monthly per employee */}
+        <div style={{ background: '#1e293b', borderRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <BarChart3 style={{ width: '18px', height: '18px', color: '#f472b6' }} />
+            <span style={{ fontSize: '16px', fontWeight: '700', color: '#f1f5f9' }}>Månadsranking</span>
+            <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#64748b' }}>
+              {format(now, 'MMMM', { locale: sv })}
+            </span>
+          </div>
+          <div style={{ padding: '10px 12px 14px', maxHeight: '560px', overflowY: 'auto' }}>
+            {employeeMonthSummary.length === 0 ? (
+              <div style={{ textAlign: 'center', color: '#475569', padding: '40px 0', fontSize: '14px' }}>Inga timmar denna månad</div>
+            ) : employeeMonthSummary.map((emp, i) => {
+              const maxH = employeeMonthSummary[0]?.totalMonthHours || 1;
+              const pct = (emp.totalMonthHours / maxH) * 100;
+              return (
+                <div key={i} style={{ marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '11px', color: '#475569', fontWeight: '700', width: '18px', flexShrink: 0 }}>{i + 1}</span>
+                      <span style={{ fontSize: '13px', color: '#e2e8f0', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+                    </div>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#f472b6', marginLeft: '8px', flexShrink: 0 }}>{emp.totalMonthHours.toFixed(0)}h</span>
+                  </div>
+                  <div style={{ height: '5px', background: '#0f172a', borderRadius: '99px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: '99px', width: `${pct}%`, background: i === 0 ? '#f472b6' : i === 1 ? '#c084fc' : '#60a5fa', transition: 'width 0.5s ease' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
       <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '12px', color: '#334155' }}>
         IM Vision • Realtidsdashboard • Uppdateras automatiskt
