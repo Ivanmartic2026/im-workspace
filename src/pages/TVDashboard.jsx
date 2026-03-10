@@ -184,7 +184,10 @@ export default function TVDashboard() {
     return { ...p, hours, weekHours, activeNow, budgetPct, lastActivity };
   }).sort((a, b) => b.activeNow - a.activeNow || b.lastActivity.localeCompare(a.lastActivity));
 
-  const recentProjects = [...activeProjects].sort((a, b) => b.lastActivity.localeCompare(a.lastActivity)).slice(0, 5);
+  const recentProjects = [...activeProjects]
+    .sort((a, b) => b.lastActivity.localeCompare(a.lastActivity))
+    .slice(0, 10)
+    .sort((a, b) => b.hours - a.hours);
 
   const employeeMonthSummary = users.map(user => {
     const totalMonthHours = monthEntries.filter(e => e.employee_email === user.email && e.status === 'completed').reduce((s, e) => s + (e.total_hours || 0), 0);
