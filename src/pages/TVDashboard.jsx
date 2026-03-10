@@ -234,9 +234,12 @@ export default function TVDashboard() {
     .slice(0, 4);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#0a1120', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#0a1120', position: 'relative' }}>
     <div style={{
-      width: '1920px', minHeight: '1080px',
+      width: '1920px', height: '1080px',
+      position: 'absolute',
+      top: offset.y,
+      left: offset.x,
       background: 'linear-gradient(-45deg, #0a1120, #0d1f3c, #0a1120, #10182e)',
       backgroundSize: '400% 400%',
       animation: 'gradientBG 15s ease infinite',
