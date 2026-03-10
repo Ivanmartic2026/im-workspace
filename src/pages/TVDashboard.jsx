@@ -363,71 +363,34 @@ export default function TVDashboard() {
             </AutoScroll>
           </div>
 
-          {/* Active Projects */}
+          {/* Active Projects - top 10 by hours, static */}
           <div style={CARD}>
-            <CardHeader icon={<Briefcase style={{ width: '18px', height: '18px', color: '#c084fc' }} />} label="Pågående projekt" badge={activeProjects.length} badgeColor="#c084fc" />
-            <AutoScroll height={548}>
-              <div style={{ padding: '12px' }}>
-                {/* 5 senaste projekten */}
-                {recentProjects.length > 0 && (
-                  <div style={{ marginBottom: '10px' }}>
-                    <div style={{ fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 4px 6px' }}>5 senaste aktiviteter</div>
-                    {recentProjects.map((p, i) => (
-                      <div key={p.id + '-recent'} style={{ background: '#0a1628', border: '1px solid #1e3a5f', borderLeft: `3px solid #c084fc`, borderRadius: '10px', padding: '9px 12px', marginBottom: '5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                          <div style={{ fontSize: '11px', color: '#475569', marginTop: '1px' }}>
-                            {p.lastActivity ? `Senaste: ${format(parseISO(p.lastActivity), 'd MMM', { locale: sv })}` : p.project_code}
-                            {p.activeNow > 0 && <span style={{ color: '#22c55e', marginLeft: '6px', fontWeight: '700' }}>● aktiv nu</span>}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '10px' }}>
-                          <div style={{ fontSize: '18px', fontWeight: '800', color: '#c084fc' }}>{p.hours.toFixed(0)}h</div>
-                          <div style={{ fontSize: '10px', color: '#475569' }}>totalt</div>
+            <CardHeader icon={<Briefcase style={{ width: '18px', height: '18px', color: '#c084fc' }} />} label="Senaste 10 projekt" badge={recentProjects.length} badgeColor="#c084fc" />
+            <div style={{ padding: '12px' }}>
+              <div style={{ fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 4px 6px 4px' }}>Senaste aktivitet • mest timmar</div>
+              {recentProjects.length === 0
+                ? <div style={{ textAlign: 'center', color: '#475569', padding: '60px 0', fontSize: '16px' }}>Inga aktiva projekt</div>
+                : recentProjects.map((p, i) => (
+                    <div key={p.id} style={{ background: '#0f1a2e', border: '1px solid #1e3a5f', borderLeft: `4px solid ${i === 0 ? '#c084fc' : i === 1 ? '#a78bfa' : '#475569'}`, borderRadius: '12px', padding: '11px 14px', marginBottom: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '15px', fontWeight: '700', color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                        <div style={{ fontSize: '11px', color: '#475569', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {p.lastActivity ? `Senaste: ${format(parseISO(p.lastActivity), 'd MMM', { locale: sv })}` : p.project_code}
+                          {p.activeNow > 0 && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#22c55e', fontWeight: '700' }}>
+                              <PulsingDot color="#22c55e" size={6} /> aktiv nu
+                            </span>
+                          )}
                         </div>
                       </div>
-                    ))}
-                    <div style={{ borderTop: '1px solid #1e293b', margin: '10px 0 8px' }} />
-                    <div style={{ fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0 4px 6px' }}>Alla pågående projekt</div>
-                  </div>
-                )}
-                {activeProjects.length === 0
-                  ? <div style={{ textAlign: 'center', color: '#475569', padding: '60px 0', fontSize: '16px' }}>Inga aktiva projekt</div>
-                  : activeProjects.map(p => (
-                      <div key={p.id} style={{ background: '#0f1a2e', borderRadius: '14px', padding: '13px 15px', marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '16px', fontWeight: '700', color: '#f1f5f9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>{p.project_code}{p.customer ? ` • ${p.customer}` : ''}</div>
-                            {p.activeNow > 0 && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#22c55e', marginTop: '4px' }}>
-                                <PulsingDot color="#22c55e" size={7} />
-                                {p.activeNow} aktiv{p.activeNow > 1 ? 'a' : ''} nu
-                              </div>
-                            )}
-                          </div>
-                          <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '12px' }}>
-                            <div style={{ fontSize: '22px', fontWeight: '800', color: '#f1f5f9', lineHeight: 1 }}>{p.hours.toFixed(0)}h</div>
-                            <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: '600' }}>v.{p.weekHours.toFixed(0)}h</div>
-                            {p.budget_hours && <div style={{ fontSize: '11px', color: '#64748b' }}>av {p.budget_hours}h budget</div>}
-                          </div>
-                        </div>
-                        {p.budget_hours && (
-                          <>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                              <span style={{ color: '#64748b' }}>Budget</span>
-                              <span style={{ color: p.budgetPct >= 90 ? '#ef4444' : p.budgetPct >= 70 ? '#f59e0b' : '#22c55e', fontWeight: '700' }}>{p.budgetPct?.toFixed(0)}%</span>
-                            </div>
-                            <div style={{ height: '8px', background: '#1e293b', borderRadius: '99px', overflow: 'hidden' }}>
-                              <div style={{ height: '100%', borderRadius: '99px', width: `${p.budgetPct}%`, background: p.budgetPct >= 90 ? '#ef4444' : p.budgetPct >= 70 ? '#f59e0b' : '#22c55e' }} />
-                            </div>
-                          </>
-                        )}
+                      <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '12px' }}>
+                        <div style={{ fontSize: '20px', fontWeight: '800', color: '#c084fc' }}>{p.hours.toFixed(0)}h</div>
+                        <div style={{ fontSize: '10px', color: '#60a5fa' }}>v.{p.weekHours.toFixed(0)}h denna vecka</div>
                       </div>
-                    ))
-                }
-              </div>
-            </AutoScroll>
+                    </div>
+                  ))
+              }
+            </div>
           </div>
 
           {/* Employee Time + Mini bar charts */}
