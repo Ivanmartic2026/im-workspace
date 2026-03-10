@@ -189,7 +189,7 @@ export default function TVDashboard() {
   const emptyDepts = allDepts.filter(d => deptsWithEmployees.has(d) && !deptsWithActiveEmployees.has(d));
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#0a1120', position: 'relative' }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'linear-gradient(-45deg, #0a1120, #0d1f3c, #0a1120, #10182e)', backgroundSize: '400% 400%', animation: 'gradientBG 15s ease infinite', position: 'relative' }}>
     <div style={{
       width: '1920px', height: '1080px',
       position: 'absolute',

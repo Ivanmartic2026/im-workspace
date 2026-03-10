@@ -79,13 +79,13 @@ import Projects from './pages/Projects';
 import Reports from './pages/Reports';
 import Schedule from './pages/Schedule';
 import TVDashboard from './pages/TVDashboard';
+import TVProjectDashboard from './pages/TVProjectDashboard';
 import Team from './pages/Team';
 import TimeTracking from './pages/TimeTracking';
 import VehicleDetails from './pages/VehicleDetails';
 import VehicleReports from './pages/VehicleReports';
 import VehicleTracking from './pages/VehicleTracking';
 import Vehicles from './pages/Vehicles';
-import TVProjectDashboard from './pages/TVProjectDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -122,13 +122,13 @@ export const PAGES = {
     "Reports": Reports,
     "Schedule": Schedule,
     "TVDashboard": TVDashboard,
+    "TVProjectDashboard": TVProjectDashboard,
     "Team": Team,
     "TimeTracking": TimeTracking,
     "VehicleDetails": VehicleDetails,
     "VehicleReports": VehicleReports,
     "VehicleTracking": VehicleTracking,
     "Vehicles": Vehicles,
-    "TVProjectDashboard": TVProjectDashboard,
 }
 
 export const pagesConfig = {
