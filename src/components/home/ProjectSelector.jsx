@@ -180,6 +180,34 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
               exit={{ opacity: 0 }}
               className="space-y-2"
             >
+              {/* Recent projects quick picks */}
+              {recentProjectIds.length > 0 && (() => {
+                const recentProjects = recentProjectIds.map(id => projects.find(p => p.id === id)).filter(Boolean);
+                if (recentProjects.length === 0) return null;
+                return (
+                  <div className="mb-3">
+                    <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
+                      <History className="w-3 h-3" /> Senast använda
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {recentProjects.map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            onProjectSelect(p.id);
+                            localStorage.setItem('lastSelectedProjectId', p.id);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 hover:border-indigo-400 transition-all"
+                        >
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="border-t border-slate-100 mt-3 mb-1" />
+                  </div>
+                );
+              })()}
+
               {projects.length === 0 ? (
                 <div className="text-center py-8 px-4 bg-slate-50 rounded-xl">
                   <Briefcase className="w-8 h-8 text-slate-300 mx-auto mb-2" />
