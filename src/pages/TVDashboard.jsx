@@ -91,12 +91,18 @@ export default function TVDashboard() {
   const [page, setPage] = useState(0);
   const [pageTimer, setPageTimer] = useState(PAGE_DURATION);
   const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const updateScale = () => {
       const scaleX = window.innerWidth / 1920;
       const scaleY = window.innerHeight / 1080;
-      setScale(Math.min(scaleX, scaleY));
+      const s = Math.min(scaleX, scaleY);
+      setScale(s);
+      setOffset({
+        x: (window.innerWidth - 1920 * s) / 2,
+        y: (window.innerHeight - 1080 * s) / 2,
+      });
     };
     updateScale();
     window.addEventListener('resize', updateScale);
