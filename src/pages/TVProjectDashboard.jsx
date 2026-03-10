@@ -18,7 +18,7 @@ function PulsingDot({ color = '#22c55e', size = 10 }) {
   );
 }
 
-function AutoScroll({ children, height, speed = 0.35 }) {
+function AutoScroll({ children, height, speed = 0.18 }) {
   const outerRef = useRef(null);
   const innerRef = useRef(null);
   const posRef = useRef(0);
@@ -38,10 +38,10 @@ function AutoScroll({ children, height, speed = 0.35 }) {
       if (posRef.current >= maxScroll) {
         posRef.current = 0;
         pauseRef.current = true;
-        setTimeout(() => { pauseRef.current = false; }, 3000);
+        setTimeout(() => { pauseRef.current = false; }, 4000);
       }
       outer.scrollTop = posRef.current;
-    }, 30);
+    }, 16);
     return () => clearInterval(timer);
   }, [children, speed]);
   return (
