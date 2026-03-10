@@ -429,10 +429,10 @@ export default function TVDashboard() {
 
           {/* Employee Time + Mini bar charts */}
           <div style={CARD}>
-            <CardHeader icon={<TrendingUp style={{ width: '18px', height: '18px', color: '#60a5fa' }} />} label="Tidsöversikt medarbetare" />
+            <CardHeader icon={<TrendingUp style={{ width: '18px', height: '18px', color: '#60a5fa' }} />} label={`Personalens timmar – v.${format(now, 'w')}`} />
             <div style={{ padding: '8px 16px 4px', display: 'grid', gridTemplateColumns: '148px 1fr 76px 70px', gap: '6px', fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               <div>Medarbetare</div>
-              <div style={{ paddingLeft: '4px' }}>Veckodagar (M–S)</div>
+              <div style={{ paddingLeft: '4px' }}>Mån – Sön</div>
               <div style={{ textAlign: 'center' }}>Vecka</div>
               <div style={{ textAlign: 'center' }}>Månad</div>
             </div>
