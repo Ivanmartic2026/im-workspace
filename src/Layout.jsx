@@ -11,7 +11,12 @@ import LanguageSwitcher from './components/settings/LanguageSwitcher';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+const TV_PAGES = ['TVDashboard', 'TVProjectDashboard'];
+
 function LayoutContent({ children, currentPageName }) {
+  if (TV_PAGES.includes(currentPageName)) {
+    return <>{children}</>;
+  }
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
