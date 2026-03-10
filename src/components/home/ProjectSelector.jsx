@@ -23,6 +23,23 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
     initialData: []
   });
 
+  const { data: recentProjectIds = [] } = useQuery({
+    queryKey: ['recent-projects-for-user'],
+    queryFn: async () => {
+      const user = await base44.auth.me();
+      const entries = await base44.entities.TimeEntry.filter({ employee_email: user.email }, '-created_date', 20);
+      const seen = new Set();
+      const ids = [];
+      for (const e of entries) {
+        const pid = e.project_allocations?.[0]?.project_id || e.project_id;
+        if (pid && !seen.has(pid)) { seen.add(pid); ids.push(pid); }
+        if (ids.length >= 5) break;
+      }
+      return ids;
+    },
+    initialData: []
+  });
+
   const handleCreateProject = async () => {
     if (!newProjectData.name) {
       alert('Fyll i projektnamn');
