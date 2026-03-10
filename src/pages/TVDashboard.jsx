@@ -164,19 +164,20 @@ export default function TVDashboard() {
   const monthEntries = timeEntries.filter(e => e.date >= monthStart && e.date <= monthEnd);
   const weekDays = eachDayOfInterval({ start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) });
 
-  const employeeSummary = users.map(user => {
-    const isActive = clockedInEntries.some(e => e.employee_email === user.email);
-    const empWeek = weekEntries.filter(e => e.employee_email === user.email);
-    const empMonth = monthEntries.filter(e => e.employee_email === user.email);
-    const weekHours = empWeek.filter(e => e.status === 'completed').reduce((s, e) => s + (e.total_hours || 0), 0);
-    const monthHours = empMonth.filter(e => e.status === 'completed').reduce((s, e) => s + (e.total_hours || 0), 0);
+  const employeeSummary = employees.map(emp => {
+    const user = users.find(u => u.email === emp.user_email);
+    const name = user?.full_name || emp.display_name || emp.user_email;
+    const isActive = clockedInEntries.some(e => e.employee_email === emp.user_email);
+    const empWeek = weekEntries.filter(e => e.employee_email === emp.user_email);
+    const empMonth = monthEntries.filter(e => e.employee_email === emp.user_email);
+    const weekHours = empWeek.reduce((s, e) => s + (e.total_hours || 0), 0);
+    const monthHours = empMonth.reduce((s, e) => s + (e.total_hours || 0), 0);
     const dayHours = weekDays.map(day => {
       const ds = format(day, 'yyyy-MM-dd');
-      const de = empWeek.find(e => e.date === ds && e.status === 'completed');
-      return de?.total_hours || 0;
+      const de = empWeek.filter(e => e.date === ds).reduce((s, e) => s + (e.total_hours || 0), 0);
+      return de;
     });
-    const emp = employees.find(e => e.user_email === user.email);
-    return { name: user.full_name, department: emp?.department || '', isActive, weekHours, monthHours, dayHours };
+    return { name, department: emp.department || '', isActive, weekHours, monthHours, dayHours };
   }).filter(e => e.name).sort((a, b) => b.weekHours - a.weekHours);
 
   const activeProjects = projects.filter(p => p.status === 'pågående').map(p => {
