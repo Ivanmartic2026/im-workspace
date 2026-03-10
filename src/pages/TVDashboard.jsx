@@ -171,7 +171,7 @@ export default function TVDashboard() {
     });
     const emp = employees.find(e => e.user_email === user.email);
     return { name: user.full_name, department: emp?.department || '', isActive, weekHours, monthHours, dayHours };
-  }).filter(e => e.name && (e.weekHours > 0 || e.isActive)).sort((a, b) => b.weekHours - a.weekHours);
+  }).filter(e => e.name).sort((a, b) => b.weekHours - a.weekHours);
 
   const activeProjects = projects.filter(p => p.status === 'pågående').map(p => {
     const getHoursFromEntry = (e) => e.project_allocations?.find(a => a.project_id === p.id)?.hours || (e.project_id === p.id ? (e.total_hours || 0) : 0);
