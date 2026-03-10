@@ -335,7 +335,7 @@ export default function TVDashboard() {
 
       {/* PAGE 1: Main Dashboard */}
       {page === 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr 1.3fr 0.9fr', gap: '14px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', alignItems: 'start' }}>
 
           {/* Clocked In */}
           <div style={CARD}>
