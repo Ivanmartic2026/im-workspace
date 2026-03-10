@@ -219,13 +219,16 @@ export default function TVDashboard() {
     .slice(0, 4);
 
   return (
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#0a1120', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
     <div style={{
       width: '1920px', minHeight: '1080px',
       background: 'linear-gradient(-45deg, #0a1120, #0d1f3c, #0a1120, #10182e)',
       backgroundSize: '400% 400%',
       animation: 'gradientBG 15s ease infinite',
       color: 'white', fontFamily: '"Inter", system-ui, sans-serif',
-      padding: '24px 30px', boxSizing: 'border-box', overflow: 'hidden'
+      padding: '24px 30px', boxSizing: 'border-box', overflow: 'hidden',
+      transformOrigin: 'top left',
+      transform: `scale(${scale})`,
     }}>
       <style>{`
         @keyframes ping { 0%{transform:scale(1);opacity:.4} 75%,100%{transform:scale(2);opacity:0} }
