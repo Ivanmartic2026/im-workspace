@@ -406,9 +406,9 @@ export default function TVDashboard() {
           {/* Employee Time + Mini bar charts */}
           <div style={CARD}>
             <CardHeader icon={<TrendingUp style={{ width: '18px', height: '18px', color: '#60a5fa' }} />} label={`Personalens timmar – v.${format(now, 'w')}`} />
-            <div style={{ padding: '8px 16px 4px', display: 'grid', gridTemplateColumns: '148px 1fr 76px 70px', gap: '6px', fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ padding: '8px 16px 4px', display: 'grid', gridTemplateColumns: '2fr 3fr 1fr 1fr', gap: '6px', fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               <div>Medarbetare</div>
-              <div style={{ paddingLeft: '4px' }}>Mån – Sön</div>
+              <div style={{ textAlign: 'center' }}>Mån – Sön</div>
               <div style={{ textAlign: 'center' }}>Vecka</div>
               <div style={{ textAlign: 'center' }}>Månad</div>
             </div>
@@ -416,7 +416,7 @@ export default function TVDashboard() {
               <div style={{ padding: '4px 16px 12px' }}>
                 {employeeSummary.map((emp, i) => (
                   <div key={i} style={{
-                    display: 'grid', gridTemplateColumns: '148px 1fr 76px 70px', gap: '6px',
+                    display: 'grid', gridTemplateColumns: '2fr 3fr 1fr 1fr', gap: '6px',
                     alignItems: 'center',
                     background: i % 2 === 0 ? '#0f1a2e' : 'transparent',
                     borderRadius: '10px', padding: '7px 10px', marginBottom: '2px'
