@@ -197,7 +197,7 @@ export default function TVDashboard() {
     .sort((a, b) => b.hours - a.hours);
 
   const employeeMonthSummary = users.map(user => {
-    const totalMonthHours = monthEntries.filter(e => e.employee_email === user.email && e.status === 'completed').reduce((s, e) => s + (e.total_hours || 0), 0);
+    const totalMonthHours = monthEntries.filter(e => e.employee_email === user.email && e.status !== 'rejected').reduce((s, e) => s + (e.total_hours || 0), 0);
     const emp = employees.find(e => e.user_email === user.email);
     return { name: user.full_name, department: emp?.department || '', totalMonthHours };
   }).filter(e => e.name && e.totalMonthHours > 0).sort((a, b) => b.totalMonthHours - a.totalMonthHours);
