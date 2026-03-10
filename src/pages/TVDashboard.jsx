@@ -406,9 +406,8 @@ export default function TVDashboard() {
           {/* Employee Time + Mini bar charts */}
           <div style={CARD}>
             <CardHeader icon={<TrendingUp style={{ width: '18px', height: '18px', color: '#60a5fa' }} />} label={`Personalens timmar – v.${format(now, 'w')}`} />
-            <div style={{ padding: '8px 16px 4px', display: 'grid', gridTemplateColumns: '2fr 3fr 1fr 1fr', gap: '6px', fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ padding: '8px 16px 4px', display: 'grid', gridTemplateColumns: '3fr 1fr 1fr', gap: '6px', fontSize: '10px', color: '#475569', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               <div>Medarbetare</div>
-              <div style={{ textAlign: 'center' }}>Mån – Sön</div>
               <div style={{ textAlign: 'center' }}>Vecka</div>
               <div style={{ textAlign: 'center' }}>Månad</div>
             </div>
@@ -416,29 +415,15 @@ export default function TVDashboard() {
               <div style={{ padding: '4px 16px 12px' }}>
                 {employeeSummary.map((emp, i) => (
                   <div key={i} style={{
-                    display: 'grid', gridTemplateColumns: '2fr 3fr 1fr 1fr', gap: '6px',
+                    display: 'grid', gridTemplateColumns: '3fr 1fr 1fr', gap: '6px',
                     alignItems: 'center',
                     background: i % 2 === 0 ? '#0f1a2e' : 'transparent',
-                    borderRadius: '10px', padding: '7px 10px', marginBottom: '2px'
+                    borderRadius: '10px', padding: '10px 12px', marginBottom: '2px',
+                    minHeight: '44px'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                       {emp.isActive ? <PulsingDot color="#22c55e" size={8} /> : <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#253346', display: 'inline-block', flexShrink: 0 }} />}
                       <span style={{ fontSize: '14px', color: '#e2e8f0', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
-                    </div>
-                    {/* Mini bar chart */}
-                    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '3px', height: '28px' }}>
-                      {emp.dayHours.map((h, di) => {
-                        const isT = format(weekDays[di], 'yyyy-MM-dd') === today;
-                        const barH = h > 0 ? Math.max(4, (h / 10) * 26) : 2;
-                        return (
-                          <div key={di} title={`${h.toFixed(1)}h`} style={{
-                            width: '11px', height: `${barH}px`,
-                            background: h >= 8 ? '#22c55e' : h >= 6 ? '#60a5fa' : h > 0 ? '#f59e0b' : '#253346',
-                            borderRadius: '2px 2px 0 0',
-                            outline: isT ? '1.5px solid #60a5fa' : 'none',
-                          }} />
-                        );
-                      })}
                     </div>
                     <div style={{ textAlign: 'center', fontSize: '15px', fontWeight: '700', color: emp.weekHours >= 40 ? '#22c55e' : '#f1f5f9' }}>
                       {emp.weekHours.toFixed(0)}h
