@@ -426,7 +426,7 @@ export default function TVDashboard() {
                       <span style={{ fontSize: '14px', color: '#e2e8f0', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
                     </div>
                     {/* Mini bar chart */}
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '28px', paddingLeft: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '3px', height: '28px' }}>
                       {emp.dayHours.map((h, di) => {
                         const isT = format(weekDays[di], 'yyyy-MM-dd') === today;
                         const barH = h > 0 ? Math.max(4, (h / 10) * 26) : 2;
