@@ -630,5 +630,6 @@ export default function TVDashboard() {
         <span style={{ fontSize: '12px', color: '#253346' }}>{format(now, 'HH:mm:ss')}</span>
       </div>
     </div>
+    </div>
   );
 }
