@@ -161,7 +161,7 @@ export default function TVProjectDashboard() {
   ];
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#060e1a', position: 'relative' }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'linear-gradient(135deg, #060e1a 0%, #0d1f3c 50%, #060e1a 100%)', position: 'relative' }}>
       <div style={{
         width: '1920px', height: '1080px',
         position: 'absolute', top: offset.y, left: offset.x,
