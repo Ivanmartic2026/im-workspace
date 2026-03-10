@@ -174,11 +174,17 @@ export default function TVDashboard() {
   }).filter(e => e.name && (e.weekHours > 0 || e.isActive)).sort((a, b) => b.weekHours - a.weekHours);
 
   const activeProjects = projects.filter(p => p.status === 'pågående').map(p => {
-    const hours = timeEntries.reduce((s, e) => s + (e.project_allocations?.find(a => a.project_id === p.id)?.hours || 0), 0);
-    const activeNow = clockedInEntries.filter(e => e.project_allocations?.some(a => a.project_id === p.id)).length;
+    const getHoursFromEntry = (e) => e.project_allocations?.find(a => a.project_id === p.id)?.hours || (e.project_id === p.id ? (e.total_hours || 0) : 0);
+    const projEntries = timeEntries.filter(e => e.project_allocations?.some(a => a.project_id === p.id) || e.project_id === p.id);
+    const hours = projEntries.reduce((s, e) => s + getHoursFromEntry(e), 0);
+    const weekHours = weekEntries.filter(e => e.project_allocations?.some(a => a.project_id === p.id) || e.project_id === p.id).reduce((s, e) => s + getHoursFromEntry(e), 0);
+    const activeNow = clockedInEntries.filter(e => e.project_allocations?.some(a => a.project_id === p.id) || e.project_id === p.id).length;
     const budgetPct = p.budget_hours ? Math.min(100, (hours / p.budget_hours) * 100) : null;
-    return { ...p, hours, activeNow, budgetPct };
-  }).sort((a, b) => b.activeNow - a.activeNow || b.hours - a.hours);
+    const lastActivity = projEntries.sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0]?.date || '';
+    return { ...p, hours, weekHours, activeNow, budgetPct, lastActivity };
+  }).sort((a, b) => b.activeNow - a.activeNow || b.lastActivity.localeCompare(a.lastActivity));
+
+  const recentProjects = [...activeProjects].sort((a, b) => b.lastActivity.localeCompare(a.lastActivity)).slice(0, 5);
 
   const employeeMonthSummary = users.map(user => {
     const totalMonthHours = monthEntries.filter(e => e.employee_email === user.email && e.status === 'completed').reduce((s, e) => s + (e.total_hours || 0), 0);
