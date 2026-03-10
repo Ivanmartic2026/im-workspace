@@ -115,13 +115,22 @@ export default function Admin() {
               <h1 className="text-3xl font-bold text-slate-900 mb-1">Systemadministration</h1>
               <p className="text-slate-500 text-sm">Hantera och övervaka systemet</p>
             </div>
-            <a href={createPageUrl('TVDashboard')} target="_blank" rel="noopener noreferrer">
-              <Button className="bg-slate-900 hover:bg-slate-700 text-white gap-2 whitespace-nowrap">
-                <Tv className="h-4 w-4" />
-                TV-dashboard
-                <ExternalLink className="h-3 w-3 opacity-70" />
-              </Button>
-            </a>
+            <div className="flex gap-2">
+              <a href={createPageUrl('TVDashboard')} target="_blank" rel="noopener noreferrer">
+                <Button className="bg-slate-900 hover:bg-slate-700 text-white gap-2 whitespace-nowrap">
+                  <Tv className="h-4 w-4" />
+                  TV Personal
+                  <ExternalLink className="h-3 w-3 opacity-70" />
+                </Button>
+              </a>
+              <a href={createPageUrl('TVProjectDashboard')} target="_blank" rel="noopener noreferrer">
+                <Button className="bg-indigo-700 hover:bg-indigo-800 text-white gap-2 whitespace-nowrap">
+                  <Tv className="h-4 w-4" />
+                  TV Projekt
+                  <ExternalLink className="h-3 w-3 opacity-70" />
+                </Button>
+              </a>
+            </div>
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
