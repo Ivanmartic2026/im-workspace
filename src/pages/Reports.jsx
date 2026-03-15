@@ -159,6 +159,14 @@ export default function Reports() {
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="approvals">
+              <PendingApprovalsReport />
+            </TabsContent>
+
+            <TabsContent value="anomalies">
+              <TimeAnomaliesReport />
+            </TabsContent>
+
             <TabsContent value="vehicles" className="space-y-4">
               {/* Vehicle Filter */}
               <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
