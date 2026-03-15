@@ -421,15 +421,23 @@ export default function GPS() {
                            {tripCount} {tripCount === 1 ? 'dag' : 'dagar'}
                          </Badge>
                        </div>
+                      {currentPos && (
+                       <div className="flex items-center gap-1 text-xs text-slate-500 mb-3">
+                         <MapPin className="h-3 w-3 flex-shrink-0" />
+                         <span className="truncate">
+                           {currentPos.address || `${currentPos.callat?.toFixed(5)}, ${currentPos.callon?.toFixed(5)}`}
+                         </span>
+                       </div>
+                      )}
                       <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                        <div className="flex items-center gap-2">
-                          <Navigation className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-600">{totalDistance.toFixed(1)} km</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-600">{Math.round(totalTime)} min</span>
-                        </div>
+                       <div className="flex items-center gap-2">
+                         <Navigation className="h-4 w-4 text-slate-400" />
+                         <span className="text-slate-600">{totalDistance.toFixed(1)} km</span>
+                       </div>
+                       <div className="flex items-center gap-2">
+                         <Clock className="h-4 w-4 text-slate-400" />
+                         <span className="text-slate-600">{Math.round(totalTime)} min</span>
+                       </div>
                       </div>
                       <div className="border-t border-slate-100 pt-3 space-y-1">
                         {deviceTrips.data.totaltrips.slice(0, 3).map((trip, idx) => (
