@@ -382,21 +382,8 @@ export default function EmployeeDetails() {
                 </Button>
               </div>
 
-              {/* Onboarding Status */}
-              {employee.assigned_onboarding_template_id && (
-                <Card className="border-0 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Onboarding-status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Badge variant="secondary">
-                      {employee.onboarding_status === 'not_started' && 'Ej startad'}
-                      {employee.onboarding_status === 'in_progress' && 'Pågående'}
-                      {employee.onboarding_status === 'completed' && 'Slutförd'}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              )}
+              {/* Onboarding Progress */}
+              <OnboardingProgressView employee={employee} />
 
               {/* Credentials */}
               {employee.credentials && employee.credentials.length > 0 && (
@@ -482,15 +469,6 @@ export default function EmployeeDetails() {
                     </Card>
                   ))}
                 </div>
-              )}
-
-              {(!employee.credentials || employee.credentials.length === 0) && !employee.assigned_onboarding_template_id && (
-                <Card className="border-0 shadow-sm">
-                  <CardContent className="p-8 text-center">
-                    <Key className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">Ingen onboarding-information tillgänglig ännu</p>
-                  </CardContent>
-                </Card>
               )}
             </TabsContent>
           )}
