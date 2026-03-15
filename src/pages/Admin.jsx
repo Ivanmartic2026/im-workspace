@@ -510,6 +510,12 @@ export default function Admin() {
               </Tabs>
             </TabsContent>
 
+            {/* Onboarding Tab */}
+            <TabsContent value="onboarding" className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Onboarding-administration</h2>
+              <OnboardingAdmin />
+            </TabsContent>
+
             {/* Automation Tab */}
             <TabsContent value="automation" className="space-y-4">
               <AutomationSettings />
