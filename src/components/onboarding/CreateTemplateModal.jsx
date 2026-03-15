@@ -319,6 +319,11 @@ export default function CreateTemplateModal({ open, onClose, template }) {
                       onChange={(e) => handleTaskChange(index, 'admin_notes', e.target.value)}
                       className="min-h-[50px]"
                     />
+
+                    <div className="space-y-1.5">
+                      <AttachmentList attachments={task.attachments} target={index} />
+                      <FileUploadButton target={index} label="Bifoga PDF/bild till uppgift" />
+                    </div>
                   </CardContent>
                 </Card>
               ))}
