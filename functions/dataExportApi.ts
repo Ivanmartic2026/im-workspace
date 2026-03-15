@@ -15,6 +15,20 @@ const ALLOWED_ENTITIES = [
   'ApprovalRequest',
   'ProjectTask',
   'ProjectExpense',
+  'ScheduleEvent',
+  'Manual',
+  'Notification',
+  'DashboardWidget',
+  'Geofence',
+  'WorkPolicy',
+  'JournalPolicy',
+  'MileagePolicy',
+  'OnboardingTemplate',
+  'OnboardingTask',
+  'BluetoothDevice',
+  'VehicleHandover',
+  'Conversation',
+  'Message',
 ];
 
 Deno.serve(async (req) => {
