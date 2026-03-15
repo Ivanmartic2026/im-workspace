@@ -12,6 +12,7 @@ import {
   Plus, Trash2, Pencil, ChevronDown, ChevronRight, AlertCircle, Loader2, List
 } from "lucide-react";
 import CreateTemplateModal from '@/components/onboarding/CreateTemplateModal';
+import AssignTemplateModal from '@/components/onboarding/AssignTemplateModal';
 
 const statusConfig = {
   not_started: { label: 'Ej påbörjad', color: 'bg-slate-100 text-slate-600' },
