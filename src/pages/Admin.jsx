@@ -172,6 +172,10 @@ export default function Admin() {
                 <FileText className="h-4 w-4 mr-2" />
                 Körjournal
               </TabsTrigger>
+              <TabsTrigger value="onboarding" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+                <Users className="h-4 w-4 mr-2" />
+                Onboarding
+              </TabsTrigger>
               <TabsTrigger value="automation" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
                 <Wrench className="h-4 w-4 mr-2" />
                 Automation
