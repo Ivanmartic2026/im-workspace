@@ -257,6 +257,10 @@ function EmployeeOnboardingRow({ employee, templates }) {
 export default function OnboardingAdmin() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [showTemplateList, setShowTemplateList] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ['employees-onboarding'],
