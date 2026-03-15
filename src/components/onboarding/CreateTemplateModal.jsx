@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const departments = ["Ledning", "HR", "Sälj", "Marknad", "IT", "Ekonomi", "Produktion", "Kundtjänst", "Övrigt"];
 
 export default function CreateTemplateModal({ open, onClose, template }) {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -55,6 +56,7 @@ export default function CreateTemplateModal({ open, onClose, template }) {
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['onboardingTemplates'] });
       onClose();
     },
   });
