@@ -194,10 +194,13 @@ Deno.serve(async (req) => {
             { label: 'Timmar', right: true }, { label: 'Antal personer', right: true }
         ], projRows);
 
-        // Save PDF to /tmp and upload
+        // Upload PDF
         const pdfBytes = doc.output('arraybuffer');
         const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const { file_url: pdfUrl } = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfBlob });
+        const fileName = `veckorapport-vecka${weekNumber}-${lastMonday.getFullYear()}.pdf`;
+        const formData = new FormData();
+        formData.append('file', pdfBlob, fileName);
+        const { file_url: pdfUrl } = await base44.asServiceRole.integrations.Core.UploadFile({ file: formData.get('file') });
 
         // Email with PDF link
         const emailBody = `
