@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { createHash } from 'node:crypto';
 
 const GPS_URL = "https://api.gps51.com";
