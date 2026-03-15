@@ -26,11 +26,13 @@ Deno.serve(async (req) => {
         lastSunday.setDate(lastMonday.getDate() + 6);
         lastSunday.setHours(23, 59, 59, 999);
 
-        const allTimeEntries = await base44.asServiceRole.entities.TimeEntry.list();
-        const weekEntries = allTimeEntries.filter(entry => {
+        const weekEntries = await base44.asServiceRole.entities.TimeEntry.filter({
+            status: 'completed'
+        })
+        .then(entries => entries.filter(entry => {
             const entryDate = new Date(entry.date);
-            return entryDate >= lastMonday && entryDate <= lastSunday && entry.status === 'completed';
-        });
+            return entryDate >= lastMonday && entryDate <= lastSunday;
+        }));
 
         if (weekEntries.length === 0) {
             return Response.json({ 
@@ -168,14 +170,14 @@ Deno.serve(async (req) => {
         `;
 
         await base44.asServiceRole.integrations.Core.SendEmail({
-            to: 'info@imvision.se',
+            to: 'ivan@imvision.se',
             subject: `Veckorapport - Vecka ${weekNumber} (${dateRange})`,
             body: emailBody
         });
 
         return Response.json({ 
             success: true, 
-            message: `Veckorapport för vecka ${weekNumber} skickad till info@imvision.se`,
+            message: `Veckorapport för vecka ${weekNumber} skickad till ivan@imvision.se`,
             summary: { weekNumber, dateRange, totalHours, totalEmployees, totalProjects }
         });
 

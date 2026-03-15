@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const GPS_URL = Deno.env.get("GALAGPS_URL") || "https://api.gps51.com";
 const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
