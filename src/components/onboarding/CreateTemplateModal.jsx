@@ -19,8 +19,10 @@ export default function CreateTemplateModal({ open, onClose, template }) {
     description: '',
     department: '',
     is_active: true,
-    tasks: []
+    tasks: [],
+    attachments: []
   });
+  const [uploadingFile, setUploadingFile] = useState(null); // 'template' or task index
 
   useEffect(() => {
     if (template) {
