@@ -1,17 +1,21 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
+    // Allow scheduled calls (no user) or admin calls
+    try {
+      const user = await base44.auth.me();
+      if (user?.role !== 'admin') {
+        return Response.json({ error: 'Unauthorized' }, { status: 403 });
+      }
+    } catch {
+      // No user = scheduled/automated call, allow it
     }
 
     console.log('Starting monthly summary generation...');
 
-    // Get previous month dates
     const today = new Date();
     const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     const startOfMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
@@ -19,7 +23,6 @@ Deno.serve(async (req) => {
 
     console.log(`Generating summaries for ${startOfMonth.toLocaleDateString('sv-SE')} - ${endOfMonth.toLocaleDateString('sv-SE')}`);
 
-    // Get all employees
     const employees = await base44.asServiceRole.entities.Employee.list();
     console.log(`Processing ${employees.length} employees`);
 
@@ -27,7 +30,6 @@ Deno.serve(async (req) => {
 
     for (const employee of employees) {
       try {
-        // Get time entries for the month
         const timeEntries = await base44.asServiceRole.entities.TimeEntry.filter({
           employee_email: employee.user_email
         });
@@ -37,17 +39,9 @@ Deno.serve(async (req) => {
           return entryDate >= startOfMonth && entryDate <= endOfMonth;
         });
 
-        // Calculate total hours
-        const totalHours = monthEntries.reduce((sum, entry) => {
-          return sum + (entry.total_hours || 0);
-        }, 0);
+        const totalHours = monthEntries.reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+        const overtimeHours = monthEntries.reduce((sum, entry) => sum + (entry.overtime_hours || 0), 0);
 
-        // Calculate overtime
-        const overtimeHours = monthEntries.reduce((sum, entry) => {
-          return sum + (entry.overtime_hours || 0);
-        }, 0);
-
-        // Get driving journal entries
         const journalEntries = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
           driver_email: employee.user_email
         });
@@ -57,14 +51,12 @@ Deno.serve(async (req) => {
           return entryDate >= startOfMonth && entryDate <= endOfMonth;
         });
 
-        // Calculate distances
         const businessTrips = monthJournalEntries.filter(e => e.trip_type === 'tjänst');
         const privateTrips = monthJournalEntries.filter(e => e.trip_type === 'privat');
 
         const totalBusinessKm = businessTrips.reduce((sum, entry) => sum + (entry.distance_km || 0), 0);
         const totalPrivateKm = privateTrips.reduce((sum, entry) => sum + (entry.distance_km || 0), 0);
 
-        // Get leave days
         const leaveRequests = await base44.asServiceRole.entities.LeaveRequest.filter({
           employee_email: employee.user_email,
           status: 'approved'
@@ -83,7 +75,6 @@ Deno.serve(async (req) => {
           .filter(r => r.type === 'sjuk')
           .reduce((sum, r) => sum + (r.days || 0), 0);
 
-        // Create summary object
         const summary = {
           employee_email: employee.user_email,
           month: lastMonth.toISOString().slice(0, 7),
@@ -99,7 +90,6 @@ Deno.serve(async (req) => {
 
         summaries.push(summary);
 
-        // Send notification to employee
         await base44.asServiceRole.entities.Notification.create({
           recipient_email: employee.user_email,
           type: 'system',
@@ -117,7 +107,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Send summary to admin
     const adminUsers = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
     for (const admin of adminUsers) {
       await base44.asServiceRole.entities.Notification.create({

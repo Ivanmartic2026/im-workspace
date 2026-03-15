@@ -1,27 +1,25 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Hämta alla time entries som är äldre än 24 timmar och fortfarande aktiva
-    const allEntries = await base44.asServiceRole.entities.TimeEntry.list();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
+
+    // Filtrera direkt i API-anropet istället för att hämta allt
+    const allActive = await base44.asServiceRole.entities.TimeEntry.filter({ status: 'active' });
     
-    const pendingEntries = allEntries.filter(entry => {
+    const pendingEntries = allActive.filter(entry => {
       const clockInTime = new Date(entry.clock_in_time);
-      return entry.status === 'active' && clockInTime < yesterday;
+      return clockInTime < yesterday;
     });
     
-    // Hämta alla admins
     const allUsers = await base44.asServiceRole.entities.User.list();
     const admins = allUsers.filter(u => u.role === 'admin');
     
-    // Skicka notifikationer
     const notifications = [];
     
-    // Notifiera användare om utestående tidrapporter
     for (const entry of pendingEntries) {
       notifications.push({
         recipient_email: entry.employee_email,
@@ -35,7 +33,6 @@ Deno.serve(async (req) => {
       });
     }
     
-    // Notifiera admins om utestående tidrapporter
     if (pendingEntries.length > 0) {
       for (const admin of admins) {
         notifications.push({
@@ -49,14 +46,13 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Skapa alla notifikationer
     for (const notification of notifications) {
       await base44.asServiceRole.entities.Notification.create(notification);
     }
     
     return Response.json({ 
       success: true, 
-      checked: allEntries.length,
+      checked: allActive.length,
       pending: pendingEntries.length,
       notifications_sent: notifications.length
     });

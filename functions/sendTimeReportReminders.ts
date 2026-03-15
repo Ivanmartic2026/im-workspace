@@ -1,25 +1,27 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
+    // Allow scheduled calls (no user) or admin calls
+    try {
+      const user = await base44.auth.me();
+      if (user?.role !== 'admin') {
+        return Response.json({ error: 'Unauthorized' }, { status: 403 });
+      }
+    } catch {
+      // No user = scheduled/automated call, allow it
     }
 
     console.log('Starting time report reminders...');
 
-    // Get all employees
     const employees = await base44.asServiceRole.entities.Employee.list();
     console.log(`Found ${employees.length} employees`);
 
-    // Get current week info
     const today = new Date();
     const dayOfWeek = today.getDay();
     
-    // Only run on weekdays
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       console.log('Weekend - skipping reminders');
       return Response.json({ 
@@ -28,7 +30,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get start of current week (Monday)
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
     startOfWeek.setHours(0, 0, 0, 0);
@@ -37,7 +38,6 @@ Deno.serve(async (req) => {
 
     for (const employee of employees) {
       try {
-        // Check for incomplete weekly reports
         const weeklyReports = await base44.asServiceRole.entities.WeeklyReport.filter({
           employee_email: employee.user_email,
           week_start_date: startOfWeek.toISOString().split('T')[0],
@@ -57,7 +57,6 @@ Deno.serve(async (req) => {
           reminders.push({ type: 'weekly_report', employee: employee.user_email });
         }
 
-        // Check for pending journal entries
         const pendingJournalEntries = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
           driver_email: employee.user_email,
           status: 'pending_review'
@@ -77,7 +76,6 @@ Deno.serve(async (req) => {
           reminders.push({ type: 'journal_entries', employee: employee.user_email, count: pendingJournalEntries.length });
         }
 
-        // Check for forgotten clock-outs (from previous day)
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         yesterday.setHours(0, 0, 0, 0);

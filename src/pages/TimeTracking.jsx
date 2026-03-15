@@ -32,8 +32,8 @@ export default function TimeTracking() {
     queryKey: ['employee', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
-      const employees = await base44.entities.Employee.list();
-      return employees.find(e => e.user_email === user.email);
+      const employees = await base44.entities.Employee.filter({ user_email: user.email });
+      return employees[0] || null;
     },
     enabled: !!user?.email
   });
@@ -42,8 +42,7 @@ export default function TimeTracking() {
     queryKey: ['timeEntries', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const allEntries = await base44.entities.TimeEntry.list();
-      return allEntries.filter(e => e.employee_email === user.email);
+      return base44.entities.TimeEntry.filter({ employee_email: user.email }, '-date', 500);
     },
     enabled: !!user?.email
   });

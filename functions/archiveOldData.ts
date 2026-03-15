@@ -1,12 +1,17 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
+    // Allow scheduled calls (no user) or admin calls
+    try {
+      const user = await base44.auth.me();
+      if (user?.role !== 'admin') {
+        return Response.json({ error: 'Unauthorized' }, { status: 403 });
+      }
+    } catch {
+      // No user = scheduled/automated call, allow it
     }
 
     console.log('Starting data archiving...');
@@ -18,7 +23,6 @@ Deno.serve(async (req) => {
       journalEntries: 0
     };
 
-    // Archive notifications older than 3 months
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
@@ -32,7 +36,6 @@ Deno.serve(async (req) => {
     }
     console.log(`Archived ${results.notifications} old notifications`);
 
-    // Archive chat messages older than 6 months
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -46,7 +49,6 @@ Deno.serve(async (req) => {
     }
     console.log(`Archived ${results.messages} old messages`);
 
-    // Mark time entries older than 12 months as archived (add archived flag if needed)
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
@@ -54,14 +56,11 @@ Deno.serve(async (req) => {
     for (const entry of oldTimeEntries) {
       const entryDate = new Date(entry.date);
       if (entryDate < twelveMonthsAgo && entry.status === 'approved') {
-        // Instead of deleting, we could update with an archived flag
-        // For now, we'll just count them
         results.timeEntries++;
       }
     }
     console.log(`Found ${results.timeEntries} time entries older than 12 months`);
 
-    // Mark journal entries older than 24 months as archived
     const twentyFourMonthsAgo = new Date();
     twentyFourMonthsAgo.setMonth(twentyFourMonthsAgo.getMonth() - 24);
 
@@ -69,13 +68,11 @@ Deno.serve(async (req) => {
     for (const entry of oldJournalEntries) {
       const entryDate = new Date(entry.start_time);
       if (entryDate < twentyFourMonthsAgo && entry.status === 'approved') {
-        // Count entries that could be archived
         results.journalEntries++;
       }
     }
     console.log(`Found ${results.journalEntries} journal entries older than 24 months`);
 
-    // Send notification to admin
     const adminUsers = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
     for (const admin of adminUsers) {
       await base44.asServiceRole.entities.Notification.create({
