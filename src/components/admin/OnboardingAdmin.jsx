@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   CheckCircle2, Circle, Clock, Users, Key, Eye, EyeOff, 
-  Plus, Trash2, Pencil, ChevronDown, ChevronRight, AlertCircle, Loader2
+  Plus, Trash2, Pencil, ChevronDown, ChevronRight, AlertCircle, Loader2, List
 } from "lucide-react";
+import CreateTemplateModal from '@/components/onboarding/CreateTemplateModal';
+import { useQueryClient } from '@tanstack/react-query';
 
 const statusConfig = {
   not_started: { label: 'Ej påbörjad', color: 'bg-slate-100 text-slate-600' },
