@@ -181,6 +181,13 @@ Deno.serve(async (req) => {
             continue;
           }
 
+          // Filtrera bort resor under 10 km
+          const distanceKmCheck = parseFloat(((trip.tripdistance || 0) / 1000).toFixed(3));
+          if (distanceKmCheck < 10) {
+            skippedCount++;
+            continue;
+          }
+
           // Generera ett unikt trip-ID baserat på deviceid + starttid
           const tripId = `${vehicle.gps_device_id}_${tripStart}`;
 
