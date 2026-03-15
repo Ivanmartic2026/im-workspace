@@ -100,13 +100,20 @@ Deno.serve(async (req) => {
         console.log(`Processing ${vehicle.registration_number} (${vehicle.gps_device_id})...`);
 
         // Hämta resor från GPS API
+        // API:et kräver tidssträngar i formatet "YYYY-MM-DD HH:mm:ss"
+        const formatDateForAPI = (isoString) => {
+          const d = new Date(isoString);
+          const pad = (n) => String(n).padStart(2, '0');
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        };
+
         const response = await fetch(`${GPS_URL}/webapi?action=querytrips&token=${token}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             deviceid: vehicle.gps_device_id,
-            begintime: Math.floor(new Date(startDate).getTime() / 1000),
-            endtime: Math.floor(new Date(endDate).getTime() / 1000),
+            begintime: formatDateForAPI(startDate),
+            endtime: formatDateForAPI(endDate),
             timezone: 1
           })
         });
