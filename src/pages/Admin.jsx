@@ -131,6 +131,13 @@ export default function Admin() {
                   <ExternalLink className="h-3 w-3 opacity-70" />
                 </Button>
               </a>
+              <a href={createPageUrl('VehicleMapOverview')} target="_blank" rel="noopener noreferrer">
+                <Button className="bg-emerald-700 hover:bg-emerald-800 text-white gap-2 whitespace-nowrap">
+                  <MapPin className="h-4 w-4" />
+                  Fordonsöversikt
+                  <ExternalLink className="h-3 w-3 opacity-70" />
+                </Button>
+              </a>
             </div>
           </div>
 
