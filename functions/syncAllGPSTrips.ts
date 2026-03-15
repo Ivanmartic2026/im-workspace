@@ -143,39 +143,10 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Geokoda adresser
-        const uniqueCoordinates = new Map();
+        // Spara koordinater direkt utan geokodning (för snabbhet vid bulk-synk)
         for (const trip of trips) {
-          if (trip.slat && trip.slon) uniqueCoordinates.set(`${trip.slat},${trip.slon}`, null);
-          if (trip.elat && trip.elon) uniqueCoordinates.set(`${trip.elat},${trip.elon}`, null);
-        }
-
-        let geocodeCount = 0;
-        for (const [coordKey] of uniqueCoordinates) {
-          if (geocodeCount > 0) await delay(1100);
-          const [lat, lon] = coordKey.split(',');
-          const address = await reverseGeocode(lat, lon);
-          uniqueCoordinates.set(coordKey, address);
-          geocodeCount++;
-        }
-
-        for (const trip of trips) {
-          if (trip.slat && trip.slon) {
-            const key = `${trip.slat},${trip.slon}`;
-            trip.beginlocation = {
-              latitude: trip.slat,
-              longitude: trip.slon,
-              address: uniqueCoordinates.get(key)
-            };
-          }
-          if (trip.elat && trip.elon) {
-            const key = `${trip.elat},${trip.elon}`;
-            trip.endlocation = {
-              latitude: trip.elat,
-              longitude: trip.elon,
-              address: uniqueCoordinates.get(key)
-            };
-          }
+          trip.beginlocation = trip.slat ? { latitude: trip.slat, longitude: trip.slon, address: null } : null;
+          trip.endlocation = trip.elat ? { latitude: trip.elat, longitude: trip.elon, address: null } : null;
         }
 
         // Synka resor till databasen
