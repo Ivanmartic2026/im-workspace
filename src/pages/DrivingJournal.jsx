@@ -83,7 +83,7 @@ export default function DrivingJournal() {
   // Group by vehicle
   const tripsByVehicle = vehicles.map(vehicle => {
     let trips = entries.filter(e => 
-      e.vehicle_id === vehicle.id && !e.is_deleted
+      e.vehicle_id === vehicle.id && !e.is_deleted && (e.distance_km || 0) >= 10
     );
 
     if (filterStatus === 'pending') {
