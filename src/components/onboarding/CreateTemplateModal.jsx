@@ -31,7 +31,8 @@ export default function CreateTemplateModal({ open, onClose, template }) {
         description: template.description || '',
         department: template.department || '',
         is_active: template.is_active !== false,
-        tasks: template.tasks || []
+        tasks: template.tasks || [],
+        attachments: template.attachments || []
       });
     } else {
       setFormData({
@@ -39,7 +40,8 @@ export default function CreateTemplateModal({ open, onClose, template }) {
         description: '',
         department: '',
         is_active: true,
-        tasks: []
+        tasks: [],
+        attachments: []
       });
     }
   }, [template, open]);
