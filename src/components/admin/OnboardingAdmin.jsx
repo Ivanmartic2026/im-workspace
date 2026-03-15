@@ -193,6 +193,11 @@ function EmployeeOnboardingRow({ employee, templates }) {
 
         <Badge className={`${cfg.color} border-0 text-xs whitespace-nowrap`}>{cfg.label}</Badge>
 
+        <Button variant="outline" size="sm" onClick={() => setShowAssignTemplate(true)} className="gap-1.5 whitespace-nowrap">
+          <Plus className="h-3.5 w-3.5" />
+          Tilldela mall
+        </Button>
+
         <Button variant="outline" size="sm" onClick={() => setShowCredentials(true)} className="gap-1.5 whitespace-nowrap">
           <Key className="h-3.5 w-3.5" />
           Koder ({(employee.credentials || []).length})
