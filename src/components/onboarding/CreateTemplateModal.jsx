@@ -71,11 +71,79 @@ export default function CreateTemplateModal({ open, onClose, template }) {
           assigned_to_role: 'employee',
           is_critical: false,
           related_resource_url: '',
-          admin_notes: ''
+          admin_notes: '',
+          attachments: []
         }
       ]
     }));
   };
+
+  const handleUploadFile = async (file, target) => {
+    // target: 'template' or task index number
+    setUploadingFile(target);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const attachment = { name: file.name, url: file_url, type: file.type };
+
+    if (target === 'template') {
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...(prev.attachments || []), attachment]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        tasks: prev.tasks.map((task, i) =>
+          i === target ? { ...task, attachments: [...(task.attachments || []), attachment] } : task
+        )
+      }));
+    }
+    setUploadingFile(null);
+  };
+
+  const handleRemoveAttachment = (target, attachIdx) => {
+    if (target === 'template') {
+      setFormData(prev => ({
+        ...prev,
+        attachments: prev.attachments.filter((_, i) => i !== attachIdx)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        tasks: prev.tasks.map((task, i) =>
+          i === target ? { ...task, attachments: task.attachments.filter((_, ai) => ai !== attachIdx) } : task
+        )
+      }));
+    }
+  };
+
+  const AttachmentList = ({ attachments, target }) => (
+    <div className="space-y-1">
+      {(attachments || []).map((att, i) => (
+        <div key={i} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-1.5 text-sm">
+          {att.type?.includes('pdf') ? <FileText className="h-4 w-4 text-red-500 shrink-0" /> : <Image className="h-4 w-4 text-blue-500 shrink-0" />}
+          <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex-1 truncate text-slate-700 hover:underline">{att.name}</a>
+          <button type="button" onClick={() => handleRemoveAttachment(target, i)} className="text-slate-400 hover:text-red-500">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const FileUploadButton = ({ target, label }) => (
+    <label className="cursor-pointer">
+      <input
+        type="file"
+        accept=".pdf,image/*"
+        className="hidden"
+        onChange={(e) => { if (e.target.files[0]) handleUploadFile(e.target.files[0], target); e.target.value = ''; }}
+      />
+      <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 border border-dashed border-slate-300 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors">
+        {uploadingFile === target ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Paperclip className="h-3.5 w-3.5" />}
+        {uploadingFile === target ? 'Laddar upp...' : (label || 'Bifoga PDF/bild')}
+      </span>
+    </label>
+  );
 
   const handleRemoveTask = (index) => {
     setFormData(prev => ({
