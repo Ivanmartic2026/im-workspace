@@ -37,7 +37,7 @@ async function getGPSToken() {
   }
   
   if (data.status !== 0) {
-    throw new Error(`GPS login failed: ${data.cause || 'Unknown error'}`);
+    throw new Error(`GPS login failed: status=${data.status}, cause=${data.cause || ''}, msg=${data.msg || ''}, message=${data.message || ''}, raw=${JSON.stringify(data)}`);
   }
 
   // Spara token med 23 timmars giltighet
