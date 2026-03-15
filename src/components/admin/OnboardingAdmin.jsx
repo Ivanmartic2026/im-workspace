@@ -136,6 +136,7 @@ function CredentialsModal({ employee, open, onClose }) {
 function EmployeeOnboardingRow({ employee, templates }) {
   const [expanded, setExpanded] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
+  const [showAssignTemplate, setShowAssignTemplate] = useState(false);
   const queryClient = useQueryClient();
 
   const template = templates.find(t => t.id === employee.assigned_onboarding_template_id);
