@@ -236,15 +236,22 @@ Deno.serve(async (req) => {
             </div>
         `;
 
-        await base44.asServiceRole.integrations.Core.SendEmail({
-            to: 'ivan.martic@me.com',
-            subject: `Veckorapport - Vecka ${weekNumber} (${dateRange})`,
-            body: emailBody
-        });
+        await Promise.all([
+            base44.asServiceRole.integrations.Core.SendEmail({
+                to: 'ivan.martic@me.com',
+                subject: `Veckorapport - Vecka ${weekNumber} (${dateRange})`,
+                body: emailBody
+            }),
+            base44.asServiceRole.integrations.Core.SendEmail({
+                to: 'josefine@imvision.se',
+                subject: `Veckorapport - Vecka ${weekNumber} (${dateRange})`,
+                body: emailBody
+            })
+        ]);
 
         return Response.json({ 
             success: true, 
-            message: `Veckorapport för vecka ${weekNumber} skickad till ivan.martic@me.com med PDF`,
+            message: `Veckorapport för vecka ${weekNumber} skickad till ivan.martic@me.com och josefine@imvision.se med PDF`,
             pdf_url: pdfUrl,
             summary: { weekNumber, dateRange, totalHours, totalEmployees, totalProjects }
         });
