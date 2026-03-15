@@ -44,9 +44,9 @@ Deno.serve(async (req) => {
     }
 
     // Hämta resor som saknar adress (max 20 per körning för att hålla sig under timeout)
-    const BATCH_SIZE = 20;
+    const BATCH_SIZE = 50;
 
-    const allEntries = await base44.asServiceRole.entities.DrivingJournalEntry.list('-created_date', 500);
+    const allEntries = await base44.asServiceRole.entities.DrivingJournalEntry.list('-created_date', 1000);
 
     const needsGeocode = allEntries.filter(e => {
       const missingStart = e.start_location?.latitude && !e.start_location?.address;
