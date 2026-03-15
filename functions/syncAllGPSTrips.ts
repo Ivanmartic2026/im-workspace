@@ -188,18 +188,22 @@ Deno.serve(async (req) => {
         });
 
         for (const trip of trips) {
-          // Validera att vi har nödvändig data
-          if (!trip.begintime || !trip.endtime || !trip.tripid) {
-            console.log(`Skipping invalid trip:`, trip);
+          // Validera att vi har nödvändig data (API returnerar starttime/endtime i ms)
+          const tripStart = trip.starttime || trip.begintime;
+          const tripEnd = trip.endtime;
+          if (!tripStart || !tripEnd) {
+            console.log(`Skipping invalid trip (missing times):`, JSON.stringify(trip).substring(0, 200));
             skippedCount++;
             continue;
           }
 
+          // Generera ett unikt trip-ID baserat på deviceid + starttid
+          const tripId = `${vehicle.gps_device_id}_${tripStart}`;
+
           // Kontrollera om resan redan finns
           const matchingEntry = existing.find(e => {
-            if (e.gps_trip_id === trip.tripid?.toString()) return true;
+            if (e.gps_trip_id === tripId) return true;
             const entryStart = new Date(e.start_time).getTime();
-            const tripStart = trip.begintime * 1000;
             return Math.abs(entryStart - tripStart) < 5 * 60 * 1000;
           });
 
