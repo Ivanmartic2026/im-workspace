@@ -59,6 +59,11 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/VehicleMapOverview" element={
+        <LayoutWrapper currentPageName="VehicleMapOverview">
+          <VehicleMapOverview />
+        </LayoutWrapper>
+      } />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
