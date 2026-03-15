@@ -158,12 +158,25 @@ Deno.serve(async (req) => {
           vehicle_id: vehicle.id
         });
 
+        // Hämta förare om satt
+        let driverEmail = null, driverName = null;
+        if (vehicle.assigned_driver) {
+          try {
+            const driverList = await base44.asServiceRole.entities.User.filter({ email: vehicle.assigned_driver });
+            if (driverList.length > 0) {
+              driverEmail = driverList[0].email;
+              driverName = driverList[0].full_name;
+            }
+          } catch (e) {}
+        }
+
+        const toCreate = [];
+
         for (const trip of trips) {
           // Validera att vi har nödvändig data (API returnerar starttime/endtime i ms)
           const tripStart = trip.starttime || trip.begintime;
           const tripEnd = trip.endtime;
           if (!tripStart || !tripEnd) {
-            console.log(`Skipping invalid trip (missing times):`, JSON.stringify(trip).substring(0, 200));
             skippedCount++;
             continue;
           }
@@ -179,22 +192,15 @@ Deno.serve(async (req) => {
           });
 
           if (matchingEntry) {
-            if (!matchingEntry.gps_trip_id) {
-              await base44.asServiceRole.entities.DrivingJournalEntry.update(matchingEntry.id, {
-                gps_trip_id: tripId
-              });
-            }
             skippedCount++;
             continue;
           }
 
-          // Skapa ny resa
-          // tripdistance är i meter, konvertera till km
+          // Bygg journal-entry
           const distanceKm = parseFloat(((trip.tripdistance || 0) / 1000).toFixed(3));
-          // triptime är i millisekunder
           const durationMinutes = Math.round((trip.triptime || 0) / 60000);
 
-          const journalEntry = {
+          toCreate.push({
             vehicle_id: vehicle.id,
             registration_number: vehicle.registration_number,
             gps_trip_id: tripId,
@@ -205,23 +211,19 @@ Deno.serve(async (req) => {
             trip_type: 'väntar',
             status: 'pending_review',
             start_location: trip.beginlocation || null,
-            end_location: trip.endlocation || null
-          };
+            end_location: trip.endlocation || null,
+            driver_email: driverEmail,
+            driver_name: driverName
+          });
+        }
 
-          if (vehicle.assigned_driver) {
-            try {
-              const driverList = await base44.asServiceRole.entities.User.filter({ email: vehicle.assigned_driver });
-              if (driverList.length > 0) {
-                journalEntry.driver_email = driverList[0].email;
-                journalEntry.driver_name = driverList[0].full_name;
-              }
-            } catch (e) {
-              console.log('Could not fetch driver');
-            }
-          }
-
-          await base44.asServiceRole.entities.DrivingJournalEntry.create(journalEntry);
-          syncedCount++;
+        // Bulk-skapa i batchar om 50
+        const BATCH_SIZE = 50;
+        for (let i = 0; i < toCreate.length; i += BATCH_SIZE) {
+          const batch = toCreate.slice(i, i + BATCH_SIZE);
+          await base44.asServiceRole.entities.DrivingJournalEntry.bulkCreate(batch);
+          syncedCount += batch.length;
+          if (i + BATCH_SIZE < toCreate.length) await delay(500);
         }
 
         totalSynced += syncedCount;
