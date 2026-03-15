@@ -374,6 +374,12 @@ export default function OnboardingAdmin() {
         className="bg-white"
       />
 
+      <CreateTemplateModal
+        open={showTemplateModal}
+        onClose={() => { setShowTemplateModal(false); setEditingTemplate(null); queryClient.invalidateQueries({ queryKey: ['onboarding-templates'] }); }}
+        template={editingTemplate}
+      />
+
       {/* List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
