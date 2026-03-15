@@ -21,6 +21,7 @@ import EmergencyContactModal from '@/components/employees/EmergencyContactModal'
 import ImportantDateModal from '@/components/employees/ImportantDateModal';
 import AssignTemplateModal from '@/components/onboarding/AssignTemplateModal';
 import CredentialsModal from '@/components/onboarding/CredentialsModal';
+import OnboardingProgressView from '@/components/onboarding/OnboardingProgressView';
 
 export default function EmployeeDetails() {
   const [user, setUser] = useState(null);
