@@ -176,14 +176,22 @@ export default function NotificationsList({ notifications, onClose, onDelete, on
       onMarkAsRead?.(notification.id);
     }
 
-    // Navigera baserat på typ
+    // Använd action_url om den finns
+    if (notification.data?.action_url) {
+      navigate(notification.data.action_url);
+      onClose();
+      return;
+    }
+
+    // Navigera baserat på typ eller titel
+    const title = (notification.title || '').toLowerCase();
+    const desc = (notification.description || '').toLowerCase();
+
     if (notification.type === 'news') {
       navigate(createPageUrl('Home'));
     } else if (notification.type === 'leave') {
-      // Navigera till AdminTimeSystem med ledighet-godkännande
       navigate(createPageUrl('AdminTimeSystem'));
     } else if (notification.type === 'approval_needed') {
-      // Navigera till AdminTimeSystem
       navigate(createPageUrl('AdminTimeSystem'));
     } else if (notification.type === 'vehicle') {
       navigate(createPageUrl('Vehicles'));
@@ -193,8 +201,9 @@ export default function NotificationsList({ notifications, onClose, onDelete, on
       navigate(createPageUrl('TimeTracking'));
     } else if (notification.type === 'approved' || notification.type === 'rejected') {
       navigate(createPageUrl('TimeTracking'));
+    } else if (title.includes('rapport') || title.includes('sammanställning') || desc.includes('rapport') || desc.includes('timmar') || desc.includes('tidrapport')) {
+      navigate(createPageUrl('Reports'));
     } else {
-      // Default till Home för systemnotifikationer
       navigate(createPageUrl('Home'));
     }
     
