@@ -126,15 +126,14 @@ Deno.serve(async (req) => {
     // Försök att hitta förare baserat på fordonstilldelning
     let defaultDriver = null;
     if (vehicleData.assigned_driver) {
-      try {
-        const allUsers = await base44.asServiceRole.entities.User.list();
-        const driver = allUsers.find(u => u.email === vehicleData.assigned_driver);
-        if (driver) {
-          defaultDriver = driver;
-        }
-      } catch (e) {
-        console.log('Could not fetch users:', e.message);
+    try {
+      const driverList = await base44.asServiceRole.entities.User.filter({ email: vehicleData.assigned_driver });
+      if (driverList.length > 0) {
+        defaultDriver = driverList[0];
       }
+    } catch (e) {
+      console.log('Could not fetch users:', e.message);
+    }
     }
 
     for (const trip of trips) {

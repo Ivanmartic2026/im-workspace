@@ -223,11 +223,10 @@ Deno.serve(async (req) => {
 
           if (vehicle.assigned_driver) {
             try {
-              const allUsers = await base44.asServiceRole.entities.User.list();
-              const driver = allUsers.find(u => u.email === vehicle.assigned_driver);
-              if (driver) {
-                journalEntry.driver_email = driver.email;
-                journalEntry.driver_name = driver.full_name;
+              const driverList = await base44.asServiceRole.entities.User.filter({ email: vehicle.assigned_driver });
+              if (driverList.length > 0) {
+                journalEntry.driver_email = driverList[0].email;
+                journalEntry.driver_name = driverList[0].full_name;
               }
             } catch (e) {
               console.log('Could not fetch driver');
