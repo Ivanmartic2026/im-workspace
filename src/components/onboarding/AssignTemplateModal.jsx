@@ -75,32 +75,42 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="template">Välj mall *</Label>
-              <Select
-                value={selectedTemplateId}
-                onValueChange={setSelectedTemplateId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj en mall" />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates.map(template => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name} {template.department ? `(${template.department})` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3">
+              <Label>Välj mallar *</Label>
+              <div className="space-y-2 max-h-64 overflow-y-auto border border-slate-200 rounded-lg p-3">
+                {templates.length === 0 ? (
+                  <p className="text-sm text-slate-400">Inga mallar tillgängliga</p>
+                ) : (
+                  templates.map(template => (
+                    <div key={template.id} className="flex items-start gap-3 p-2 hover:bg-slate-50 rounded">
+                      <Checkbox
+                        id={`template-${template.id}`}
+                        checked={selectedTemplateIds.includes(template.id)}
+                        onCheckedChange={() => toggleTemplate(template.id)}
+                        className="mt-1"
+                      />
+                      <label htmlFor={`template-${template.id}`} className="flex-1 cursor-pointer text-sm">
+                        <div className="font-medium text-slate-900">{template.name}</div>
+                        {template.department && (
+                          <div className="text-xs text-slate-500">({template.department})</div>
+                        )}
+                        {template.description && (
+                          <div className="text-xs text-slate-500 mt-1">{template.description}</div>
+                        )}
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
-            {templates.find(t => t.id === selectedTemplateId) && (
-              <div className="p-3 bg-slate-50 rounded-lg text-sm">
-                <p className="text-slate-600">
-                  {templates.find(t => t.id === selectedTemplateId).description}
+            {selectedTemplateIds.length > 0 && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
+                <p className="text-emerald-900 font-medium">
+                  {selectedTemplateIds.length} mall{selectedTemplateIds.length > 1 ? 'er' : ''} vald{selectedTemplateIds.length > 1 ? 'a' : ''}
                 </p>
-                <p className="text-slate-500 mt-2">
-                  {templates.find(t => t.id === selectedTemplateId).tasks?.length || 0} uppgifter kommer att skapas
+                <p className="text-emerald-700 mt-1">
+                  {templates.filter(t => selectedTemplateIds.includes(t.id)).reduce((sum, t) => sum + (t.tasks?.length || 0), 0)} uppgifter totalt
                 </p>
               </div>
             )}
@@ -111,7 +121,7 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
               </Button>
               <Button
                 type="submit"
-                disabled={assignMutation.isPending || !selectedTemplateId}
+                disabled={assignMutation.isPending || selectedTemplateIds.length === 0}
                 className="flex-1"
               >
                 {assignMutation.isPending ? (
@@ -120,7 +130,7 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
                     Tilldelar...
                   </>
                 ) : (
-                  'Tilldela mall'
+                  'Tilldela mallar'
                 )}
               </Button>
             </div>
