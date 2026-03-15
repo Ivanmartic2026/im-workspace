@@ -34,6 +34,7 @@ import AllVehicleReports from '@/components/admin/AllVehicleReports';
 import AllFuelLogs from '@/components/admin/AllFuelLogs';
 import ManualReportSender from '@/components/admin/ManualReportSender';
 import UserRoleManagement from '@/components/admin/UserRoleManagement';
+import OnboardingAdmin from '@/components/admin/OnboardingAdmin';
 
 export default function Admin() {
   const [user, setUser] = useState(null);
