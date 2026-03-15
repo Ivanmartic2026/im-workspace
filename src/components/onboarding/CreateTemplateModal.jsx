@@ -224,6 +224,12 @@ export default function CreateTemplateModal({ open, onClose, template }) {
             <Label htmlFor="is_active" className="cursor-pointer">Aktiv mall</Label>
           </div>
 
+          <div className="space-y-2">
+            <Label>Bilagor till mallen</Label>
+            <AttachmentList attachments={formData.attachments} target="template" />
+            <FileUploadButton target="template" label="Bifoga PDF/bild till mall" />
+          </div>
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label>Uppgifter</Label>
