@@ -143,12 +143,18 @@ export default function Reports() {
             </button>
           </div>
 
-          <Tabs defaultValue="vehicles" className="space-y-4">
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-2">
-              <TabsTrigger value="vehicles" className="rounded-xl data-[state=active]:shadow-sm">
+          <Tabs defaultValue="approvals" className="space-y-4">
+            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-2xl grid grid-cols-4">
+              <TabsTrigger value="approvals" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+                Godkännanden
+              </TabsTrigger>
+              <TabsTrigger value="anomalies" className="rounded-xl data-[state=active]:shadow-sm text-xs">
+                Avvikelser
+              </TabsTrigger>
+              <TabsTrigger value="vehicles" className="rounded-xl data-[state=active]:shadow-sm text-xs">
                 Fordon
               </TabsTrigger>
-              <TabsTrigger value="time" className="rounded-xl data-[state=active]:shadow-sm">
+              <TabsTrigger value="time" className="rounded-xl data-[state=active]:shadow-sm text-xs">
                 Tid
               </TabsTrigger>
             </TabsList>
