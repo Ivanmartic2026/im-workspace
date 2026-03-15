@@ -143,10 +143,14 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Spara koordinater direkt utan geokodning (för snabbhet vid bulk-synk)
+        // Geocoda start- och slutplatser (max 1 req/sek för Nominatim)
         for (const trip of trips) {
-          trip.beginlocation = trip.slat ? { latitude: trip.slat, longitude: trip.slon, address: null } : null;
-          trip.endlocation = trip.elat ? { latitude: trip.elat, longitude: trip.elon, address: null } : null;
+          const startAddr = trip.slat ? await reverseGeocode(trip.slat, trip.slon) : null;
+          if (trip.slat) await delay(1100);
+          const endAddr = trip.elat ? await reverseGeocode(trip.elat, trip.elon) : null;
+          if (trip.elat) await delay(1100);
+          trip.beginlocation = trip.slat ? { latitude: trip.slat, longitude: trip.slon, address: startAddr } : null;
+          trip.endlocation = trip.elat ? { latitude: trip.elat, longitude: trip.elon, address: endAddr } : null;
         }
 
         // Synka resor till databasen
