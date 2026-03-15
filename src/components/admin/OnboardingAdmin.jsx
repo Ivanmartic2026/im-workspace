@@ -287,8 +287,59 @@ export default function OnboardingAdmin() {
     completed: employees.filter(e => e.onboarding_status === 'completed').length,
   };
 
+  const deleteTemplateMutation = useMutation({
+    mutationFn: (id) => base44.entities.OnboardingTemplate.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['onboarding-templates'] }),
+  });
+
   return (
     <div className="space-y-4">
+
+      {/* Mallar-sektion */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setShowTemplateList(!showTemplateList)}
+              className="flex items-center gap-2 font-medium text-slate-800 hover:text-slate-600"
+            >
+              <List className="h-4 w-4" />
+              Onboarding-mallar ({templates.length} st)
+              {showTemplateList ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+            <Button size="sm" onClick={() => { setEditingTemplate(null); setShowTemplateModal(true); }}>
+              <Plus className="h-4 w-4 mr-1" />
+              Ny mall
+            </Button>
+          </div>
+
+          {showTemplateList && (
+            <div className="space-y-2">
+              {templates.length === 0 ? (
+                <p className="text-sm text-slate-400 py-2">Inga mallar skapade ännu.</p>
+              ) : (
+                templates.map(t => (
+                  <div key={t.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm text-slate-800 truncate">{t.name}</div>
+                      {t.description && <div className="text-xs text-slate-500 truncate">{t.description}</div>}
+                    </div>
+                    <span className="text-xs text-slate-500 whitespace-nowrap">{t.tasks?.length || 0} uppgifter</span>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingTemplate(t); setShowTemplateModal(true); }}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => window.confirm(`Ta bort "${t.name}"?`) && deleteTemplateMutation.mutate(t.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
