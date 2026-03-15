@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
           if (matchingEntry) {
             if (!matchingEntry.gps_trip_id) {
               await base44.asServiceRole.entities.DrivingJournalEntry.update(matchingEntry.id, {
-                gps_trip_id: trip.tripid?.toString()
+                gps_trip_id: tripId
               });
             }
             skippedCount++;
@@ -218,14 +218,19 @@ Deno.serve(async (req) => {
           }
 
           // Skapa ny resa
+          // tripdistance är i meter, konvertera till km
+          const distanceKm = parseFloat(((trip.tripdistance || 0) / 1000).toFixed(3));
+          // triptime är i millisekunder
+          const durationMinutes = Math.round((trip.triptime || 0) / 60000);
+
           const journalEntry = {
             vehicle_id: vehicle.id,
             registration_number: vehicle.registration_number,
-            gps_trip_id: trip.tripid?.toString(),
-            start_time: new Date(trip.begintime * 1000).toISOString(),
-            end_time: new Date(trip.endtime * 1000).toISOString(),
-            distance_km: parseFloat((trip.mileage || 0).toFixed(2)),
-            duration_minutes: Math.round((trip.endtime - trip.begintime) / 60),
+            gps_trip_id: tripId,
+            start_time: new Date(tripStart).toISOString(),
+            end_time: new Date(tripEnd).toISOString(),
+            distance_km: distanceKm,
+            duration_minutes: durationMinutes,
             trip_type: 'väntar',
             status: 'pending_review',
             start_location: trip.beginlocation || null,
