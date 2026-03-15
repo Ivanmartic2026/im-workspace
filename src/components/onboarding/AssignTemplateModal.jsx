@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
 export default function AssignTemplateModal({ open, onClose, employee }) {
-  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState([]);
   const [success, setSuccess] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: templates = [] } = useQuery({
     queryKey: ['onboardingTemplates'],
@@ -19,24 +20,28 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
 
   const assignMutation = useMutation({
     mutationFn: async () => {
-      // Update employee with template
+      // Assign first template as primary
+      const primaryTemplateId = selectedTemplateIds[0];
       await base44.entities.Employee.update(employee.id, {
-        assigned_onboarding_template_id: selectedTemplateId,
+        assigned_onboarding_template_id: primaryTemplateId,
         onboarding_status: 'in_progress',
         onboarding_start_date: employee.start_date || new Date().toISOString().split('T')[0]
       });
 
-      // Generate tasks
-      await base44.functions.invoke('generateOnboardingTasks', {
-        employee_id: employee.id,
-        template_id: selectedTemplateId
-      });
+      // Generate tasks for all selected templates
+      for (const templateId of selectedTemplateIds) {
+        await base44.functions.invoke('generateOnboardingTasks', {
+          employee_id: employee.id,
+          template_id: templateId
+        });
+      }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees-onboarding'] });
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
-        setSelectedTemplateId('');
+        setSelectedTemplateIds([]);
         onClose();
       }, 2000);
     },
@@ -45,6 +50,14 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     assignMutation.mutate();
+  };
+
+  const toggleTemplate = (templateId) => {
+    setSelectedTemplateIds(prev =>
+      prev.includes(templateId)
+        ? prev.filter(id => id !== templateId)
+        : [...prev, templateId]
+    );
   };
 
   return (
