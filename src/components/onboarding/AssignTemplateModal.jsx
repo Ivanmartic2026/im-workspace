@@ -37,7 +37,7 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employees-onboarding'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', employee.id] });
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
