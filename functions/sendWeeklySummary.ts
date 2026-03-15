@@ -170,14 +170,14 @@ Deno.serve(async (req) => {
         `;
 
         await base44.asServiceRole.integrations.Core.SendEmail({
-            to: 'ivan@imvision.se',
+            to: 'ivan.martic@me.com',
             subject: `Veckorapport - Vecka ${weekNumber} (${dateRange})`,
             body: emailBody
         });
 
         return Response.json({ 
             success: true, 
-            message: `Veckorapport för vecka ${weekNumber} skickad till ivan@imvision.se`,
+            message: `Veckorapport för vecka ${weekNumber} skickad till ivan.martic@me.com`,
             summary: { weekNumber, dateRange, totalHours, totalEmployees, totalProjects }
         });
 
