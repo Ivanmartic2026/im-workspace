@@ -251,6 +251,12 @@ function EmployeeOnboardingRow({ employee, templates }) {
         </div>
       )}
 
+      <AssignTemplateModal
+        employee={employee}
+        open={showAssignTemplate}
+        onClose={() => setShowAssignTemplate(false)}
+      />
+
       <CredentialsModal
         employee={employee}
         open={showCredentials}
