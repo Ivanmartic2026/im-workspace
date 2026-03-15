@@ -24,7 +24,7 @@ async function getGPSToken() {
       type: "USER",
       from: "web",
       username: GPS_USERNAME,
-      password: GPS_PASSWORD
+      password: createHash('md5').update(GPS_PASSWORD).digest('hex')
     })
   });
 
