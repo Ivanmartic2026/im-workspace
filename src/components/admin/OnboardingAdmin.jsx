@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,6 @@ import {
   Plus, Trash2, Pencil, ChevronDown, ChevronRight, AlertCircle, Loader2, List
 } from "lucide-react";
 import CreateTemplateModal from '@/components/onboarding/CreateTemplateModal';
-import { useQueryClient } from '@tanstack/react-query';
 
 const statusConfig = {
   not_started: { label: 'Ej påbörjad', color: 'bg-slate-100 text-slate-600' },
