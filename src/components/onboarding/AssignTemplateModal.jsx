@@ -30,10 +30,13 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
 
       // Generate tasks for all selected templates
       for (const templateId of selectedTemplateIds) {
-        await base44.functions.invoke('generateOnboardingTasks', {
+        const result = await base44.functions.invoke('generateOnboardingTasks', {
           employee_id: employee.id,
           template_id: templateId
         });
+        if (!result.data.success) {
+          throw new Error(result.data.error || 'Kunde inte generera uppgifter');
+        }
       }
     },
     onSuccess: () => {
@@ -45,6 +48,9 @@ export default function AssignTemplateModal({ open, onClose, employee }) {
         onClose();
       }, 2000);
     },
+    onError: (error) => {
+      console.error('Assignment error:', error);
+    }
   });
 
   const handleSubmit = (e) => {
