@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Save, Loader2, Mail, Phone, MapPin, Building2, Briefcase, LogOut, Settings, Trash2 } from "lucide-react";
+import { Camera, Save, Loader2, Mail, Phone, MapPin, Building2, Briefcase, LogOut, Settings, Trash2, CheckCircle2, Clock, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
