@@ -361,6 +361,31 @@ export default function Profile() {
               </Card>
             )}
 
+            {/* Onboarding Section */}
+            {employee?.onboarding_status && employee.onboarding_status !== 'not_started' && (
+              <Link to={createPageUrl('MyOnboarding')}>
+                <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${employee.onboarding_status === 'completed' ? 'bg-green-100' : 'bg-blue-100'}`}>
+                        {employee.onboarding_status === 'completed'
+                          ? <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          : <Clock className="h-5 w-5 text-blue-600" />
+                        }
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900">Min onboarding</p>
+                        <p className="text-xs text-slate-500">
+                          {employee.onboarding_status === 'completed' ? 'Slutförd' : 'Pågående'}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+
             {/* Push Notifications */}
             <PushNotificationSetup user={user} />
 
