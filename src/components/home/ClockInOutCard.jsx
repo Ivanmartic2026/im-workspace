@@ -58,7 +58,7 @@ export default function ClockInOutCard({
             transition={{ duration: 0.2 }}
             className="mb-4"
           >
-            <Card className="border-0 shadow-sm bg-emerald-50 dark:bg-emerald-950/30">
+            <Card className="border-0 shadow-sm bg-emerald-50 dark:bg-emerald-500/10">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -101,7 +101,7 @@ export default function ClockInOutCard({
                 ? 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-800' 
                 : selectedProjectId
                 ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800'
-                : 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
+                : 'bg-slate-300 dark:bg-white/[0.08] cursor-not-allowed'
             }`}
           >
             {loading ? (

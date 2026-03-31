@@ -77,12 +77,12 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-indigo-600" />
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center">
+                <Briefcase className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Valt projekt</p>
-                <p className="font-semibold text-slate-900">{selectedProject.name}</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-500">Valt projekt</p>
+                <p className="font-semibold text-slate-900 dark:text-neutral-100">{selectedProject.name}</p>
               </div>
             </div>
             <Button
@@ -103,8 +103,8 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
     <Card className="border-0 shadow-sm mb-4">
       <CardContent className="p-4">
         <div className="mb-4">
-          <h3 className="font-semibold text-slate-900 mb-1">Välj projekt</h3>
-          <p className="text-xs text-slate-500">Välj vilket projekt du ska arbeta på</p>
+          <h3 className="font-semibold text-slate-900 dark:text-neutral-100 mb-1">Välj projekt</h3>
+          <p className="text-xs text-slate-500 dark:text-neutral-500">Välj vilket projekt du ska arbeta på</p>
         </div>
 
         <AnimatePresence mode="wait">
@@ -197,21 +197,21 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                             onProjectSelect(p.id);
                             localStorage.setItem('lastSelectedProjectId', p.id);
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 hover:border-indigo-400 transition-all"
+                          className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-500/20 hover:border-indigo-400 transition-all"
                         >
                           {p.name}
                         </button>
                       ))}
                     </div>
-                    <div className="border-t border-slate-100 mt-3 mb-1" />
+                    <div className="border-t border-slate-100 dark:border-white/[0.06] mt-3 mb-1" />
                   </div>
                 );
               })()}
 
               {projects.length === 0 ? (
-                <div className="text-center py-8 px-4 bg-slate-50 rounded-xl">
-                  <Briefcase className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-sm text-slate-600 mb-3">Inga projekt ännu</p>
+                <div className="text-center py-8 px-4 bg-slate-50 dark:bg-white/[0.02] rounded-xl">
+                  <Briefcase className="w-8 h-8 text-slate-300 dark:text-neutral-600 mx-auto mb-2" />
+                  <p className="text-sm text-slate-600 dark:text-neutral-400 mb-3">Inga projekt ännu</p>
                   <Button
                     onClick={() => setShowNewProjectForm(true)}
                     size="sm"
@@ -231,16 +231,16 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                           onProjectSelect(project.id);
                           localStorage.setItem('lastSelectedProjectId', project.id);
                         }}
-                        className="w-full text-left p-4 rounded-xl bg-white border-2 border-slate-200 hover:border-indigo-400 hover:shadow-sm transition-all"
+                        className="w-full text-left p-4 rounded-xl bg-white dark:bg-white/[0.02] border-2 border-slate-200 dark:border-white/[0.06] hover:border-indigo-400 dark:hover:border-indigo-500/30 hover:shadow-sm transition-all"
                         whileTap={{ scale: 0.98 }}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                              <Briefcase className="w-5 h-5 text-indigo-600" />
+                            <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+                              <Briefcase className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <div>
-                              <p className="font-semibold text-slate-900 text-sm">
+                              <p className="font-semibold text-slate-900 dark:text-neutral-100 text-sm">
                                 {project.name}
                               </p>
                               {project.type && (

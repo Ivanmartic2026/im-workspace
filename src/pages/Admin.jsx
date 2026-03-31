@@ -81,12 +81,12 @@ export default function Admin() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:bg-[#111] flex items-center justify-center p-6">
         <Card className="max-w-md border-0 shadow-sm">
           <CardContent className="p-8 text-center">
-            <Shield className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Åtkomst nekad</h2>
-            <p className="text-slate-600 mb-6">Du behöver admin-behörighet för att komma åt denna sida.</p>
+            <Shield className="h-16 w-16 text-slate-300 dark:text-neutral-600 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-slate-900 dark:text-neutral-100 mb-2">Åtkomst nekad</h2>
+            <p className="text-slate-600 dark:text-neutral-500 mb-6">Du behöver admin-behörighet för att komma åt denna sida.</p>
             <Link to={createPageUrl('Home')}>
               <Button>Tillbaka till hem</Button>
             </Link>
@@ -104,7 +104,7 @@ export default function Admin() {
   const totalEmployees = users.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:bg-[#111] pb-24">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -113,8 +113,8 @@ export default function Admin() {
           {/* Header */}
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-1">Systemadministration</h1>
-              <p className="text-slate-500 text-sm">Hantera och övervaka systemet</p>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-neutral-100 mb-1">Systemadministration</h1>
+              <p className="text-slate-500 dark:text-neutral-500 text-sm">Hantera och övervaka systemet</p>
             </div>
             <div className="flex gap-2">
               <a href={createPageUrl('TVDashboard')} target="_blank" rel="noopener noreferrer">
@@ -142,52 +142,52 @@ export default function Admin() {
           </div>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="w-full h-auto p-1 bg-white shadow-sm rounded-xl grid grid-cols-2 md:grid-cols-10 gap-2 mb-8">
-              <TabsTrigger value="dashboard" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+            <TabsList className="w-full h-auto p-1 bg-white dark:bg-white/[0.03] shadow-sm dark:shadow-none rounded-xl grid grid-cols-2 md:grid-cols-10 gap-2 mb-8">
+              <TabsTrigger value="dashboard" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Dashboard
               </TabsTrigger>
-              <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Shield className="h-4 w-4 mr-2" />
                 Användare
               </TabsTrigger>
-              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Database className="h-4 w-4 mr-2" />
                 System
               </TabsTrigger>
-              <TabsTrigger value="reports" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="reports" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Rapporter
               </TabsTrigger>
-              <TabsTrigger value="employees" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="employees" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Users className="h-4 w-4 mr-2" />
                 Anställda
               </TabsTrigger>
-              <TabsTrigger value="time" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="time" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Clock className="h-4 w-4 mr-2" />
                 Tidsystem
               </TabsTrigger>
-              <TabsTrigger value="vehicles" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="vehicles" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Car className="h-4 w-4 mr-2" />
                 Fordon
               </TabsTrigger>
-              <TabsTrigger value="bluetooth" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="bluetooth" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Radio className="h-4 w-4 mr-2" />
                 Bluetooth
               </TabsTrigger>
-              <TabsTrigger value="journal" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="journal" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <FileText className="h-4 w-4 mr-2" />
                 Körjournal
               </TabsTrigger>
-              <TabsTrigger value="onboarding" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="onboarding" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Users className="h-4 w-4 mr-2" />
                 Onboarding
               </TabsTrigger>
-              <TabsTrigger value="automation" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="automation" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Wrench className="h-4 w-4 mr-2" />
                 Automation
               </TabsTrigger>
-              <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white py-3 text-sm font-medium">
+              <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white/[0.1] data-[state=active]:text-white dark:data-[state=active]:text-neutral-100 dark:text-neutral-500 py-3 text-sm font-medium">
                 <Settings className="h-4 w-4 mr-2" />
                 Inställningar
               </TabsTrigger>
@@ -195,33 +195,33 @@ export default function Admin() {
 
             {/* Dashboard Tab */}
             <TabsContent value="dashboard" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Realtidsdashboard</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Realtidsdashboard</h2>
               <RealtimeDashboard />
             </TabsContent>
 
             {/* Users Tab */}
             <TabsContent value="users" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Användarhantering</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Användarhantering</h2>
               <UserRoleManagement />
             </TabsContent>
 
             {/* Reports Tab */}
             <TabsContent value="reports" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Projektrapporter</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Projektrapporter</h2>
               <DetailedProjectReports />
             </TabsContent>
 
             {/* Employees Tab */}
             <TabsContent value="employees" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Anställdöversikt</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Anställdöversikt</h2>
               <EmployeeTimeOverview />
             </TabsContent>
 
             {/* Vehicles Tab */}
             <TabsContent value="vehicles" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Fordonshantering</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Fordonshantering</h2>
               <Tabs defaultValue="management">
-                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1 mb-4">
+                <TabsList className="w-full bg-white dark:bg-white/[0.03] shadow-sm dark:shadow-none rounded-lg p-1 mb-4">
                   <TabsTrigger value="management" className="rounded-md">Fordonshantering</TabsTrigger>
                   <TabsTrigger value="reports" className="rounded-md">Alla rapporter</TabsTrigger>
                   <TabsTrigger value="fuel" className="rounded-md">Alla tankningar</TabsTrigger>
@@ -251,58 +251,58 @@ export default function Admin() {
             <TabsContent value="overview" className="space-y-6">
               {/* System Status Cards */}
               <div>
-                <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
                   <Database className="h-5 w-5 text-slate-600" />
                   Systemöversikt
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Link to={createPageUrl('Employees')}>
-                    <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-md transition-shadow cursor-pointer">
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                            <Users className="h-5 w-5 text-blue-600" />
+                          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           </div>
-                          <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
+                          <Badge variant="outline" className="bg-white/80 dark:bg-white/[0.04] text-sm font-semibold">
                             {totalEmployees}
                           </Badge>
                         </div>
-                        <h3 className="text-base font-semibold text-slate-900 mb-0.5">Personal</h3>
-                        <p className="text-xs text-slate-600">Aktiva medarbetare</p>
+                        <h3 className="text-base font-semibold text-slate-900 dark:text-neutral-100 mb-0.5">Personal</h3>
+                        <p className="text-xs text-slate-600 dark:text-neutral-500">Aktiva medarbetare</p>
                       </CardContent>
                     </Card>
                   </Link>
 
                   <Link to={createPageUrl('Vehicles')}>
-                    <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 hover:shadow-md transition-shadow cursor-pointer">
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <Car className="h-5 w-5 text-emerald-600" />
+                          <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                            <Car className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                           </div>
-                          <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
+                          <Badge variant="outline" className="bg-white/80 dark:bg-white/[0.04] text-sm font-semibold">
                             {activeVehicles}/{vehicles.length}
                           </Badge>
                         </div>
-                        <h3 className="text-base font-semibold text-slate-900 mb-0.5">Fordon</h3>
-                        <p className="text-xs text-slate-600">Aktiva fordon</p>
+                        <h3 className="text-base font-semibold text-slate-900 dark:text-neutral-100 mb-0.5">Fordon</h3>
+                        <p className="text-xs text-slate-600 dark:text-neutral-500">Aktiva fordon</p>
                       </CardContent>
                     </Card>
                   </Link>
 
                   <Link to={createPageUrl('PendingApprovals')}>
-                    <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 hover:shadow-md transition-shadow cursor-pointer">
+                    <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                            <AlertCircle className="h-5 w-5 text-amber-600" />
+                          <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                           </div>
-                          <Badge variant="outline" className="bg-white/80 text-sm font-semibold">
+                          <Badge variant="outline" className="bg-white/80 dark:bg-white/[0.04] text-sm font-semibold">
                             {pendingApprovals + pendingJournalEntries}
                           </Badge>
                         </div>
-                        <h3 className="text-base font-semibold text-slate-900 mb-0.5">Väntande</h3>
-                        <p className="text-xs text-slate-600">Kräver godkännande</p>
+                        <h3 className="text-base font-semibold text-slate-900 dark:text-neutral-100 mb-0.5">Väntande</h3>
+                        <p className="text-xs text-slate-600 dark:text-neutral-500">Kräver godkännande</p>
                       </CardContent>
                     </Card>
                   </Link>
@@ -311,58 +311,58 @@ export default function Admin() {
 
               {/* Quick Actions */}
               <div>
-                <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
                   <Wrench className="h-5 w-5 text-slate-600" />
                   Snabbåtgärder
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                   <Link to={createPageUrl('AdminTimeSystem')}>
-                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white dark:bg-white/[0.03]">
                       <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center">
                           <Clock className="h-5 w-5 text-slate-700" />
                         </div>
-                        <span className="text-sm font-medium text-slate-900">Tidsystem</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-neutral-100">Tidsystem</span>
                       </CardContent>
                     </Card>
                   </Link>
                   <Link to={createPageUrl('Employees')}>
-                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white dark:bg-white/[0.03]">
                       <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center">
                           <Users className="h-5 w-5 text-slate-700" />
                         </div>
-                        <span className="text-sm font-medium text-slate-900">Personal</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-neutral-100">Personal</span>
                       </CardContent>
                     </Card>
                   </Link>
                   <Link to={createPageUrl('OnboardingTemplates')}>
-                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white dark:bg-white/[0.03]">
                       <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center">
                           <BookOpen className="h-5 w-5 text-slate-700" />
                         </div>
-                        <span className="text-sm font-medium text-slate-900">Onboarding</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-neutral-100">Onboarding</span>
                       </CardContent>
                     </Card>
                   </Link>
                   <Link to={createPageUrl('Vehicles')}>
-                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white dark:bg-white/[0.03]">
                       <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center">
                           <Car className="h-5 w-5 text-slate-700" />
                         </div>
-                        <span className="text-sm font-medium text-slate-900">Fordon</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-neutral-100">Fordon</span>
                       </CardContent>
                     </Card>
                   </Link>
                   <Link to={createPageUrl('DrivingJournal')}>
-                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white">
+                    <Card className="border-0 shadow-sm hover:shadow-md transition-all hover:scale-105 cursor-pointer bg-white dark:bg-white/[0.03]">
                       <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center">
                           <FileText className="h-5 w-5 text-slate-700" />
                         </div>
-                        <span className="text-sm font-medium text-slate-900">Körjournal</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-neutral-100">Körjournal</span>
                       </CardContent>
                     </Card>
                   </Link>
@@ -371,7 +371,7 @@ export default function Admin() {
 
               {/* Current Presence */}
               <div>
-                <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4 flex items-center gap-2">
                   <Users className="h-5 w-5 text-slate-600" />
                   Närvarostatus idag
                 </h2>
@@ -388,32 +388,32 @@ export default function Admin() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 dark:bg-white/[0.03] rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center">
                           <Clock className="h-4 w-4 text-slate-600" />
                         </div>
-                        <span className="text-sm font-medium text-slate-700">Tidrapporter</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-neutral-400">Tidrapporter</span>
                       </div>
-                      <span className="text-sm font-bold text-slate-900">{timeEntries.length}</span>
+                      <span className="text-sm font-bold text-slate-900 dark:text-neutral-100">{timeEntries.length}</span>
                     </div>
-                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 dark:bg-white/[0.03] rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center">
                           <FileText className="h-4 w-4 text-slate-600" />
                         </div>
-                        <span className="text-sm font-medium text-slate-700">Körrapporter</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-neutral-400">Körrapporter</span>
                       </div>
-                      <span className="text-sm font-bold text-slate-900">{journalEntries.length}</span>
+                      <span className="text-sm font-bold text-slate-900 dark:text-neutral-100">{journalEntries.length}</span>
                     </div>
-                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-slate-50 dark:bg-white/[0.03] rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center">
                           <BookOpen className="h-4 w-4 text-slate-600" />
                         </div>
-                        <span className="text-sm font-medium text-slate-700">Manualer</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-neutral-400">Manualer</span>
                       </div>
-                      <span className="text-sm font-bold text-slate-900">{manuals.length}</span>
+                      <span className="text-sm font-bold text-slate-900 dark:text-neutral-100">{manuals.length}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -426,19 +426,19 @@ export default function Admin() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex items-center justify-between py-2.5 px-3 bg-emerald-50 rounded-lg">
-                      <span className="text-sm font-medium text-slate-700">GPS-integration</span>
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700 dark:text-neutral-400">GPS-integration</span>
                       <Badge className="bg-emerald-100 text-emerald-700 border-0">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Aktiv
                       </Badge>
                     </div>
-                    <div className="flex items-center justify-between py-2.5 px-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium text-slate-700">Database</span>
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700 dark:text-neutral-400">Database</span>
                       <span className="text-sm font-semibold text-slate-900">v.Latest</span>
                     </div>
-                    <div className="flex items-center justify-between py-2.5 px-3 bg-purple-50 rounded-lg">
-                      <span className="text-sm font-medium text-slate-700">Backup</span>
+                    <div className="flex items-center justify-between py-2.5 px-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                      <span className="text-sm font-medium text-slate-700 dark:text-neutral-400">Backup</span>
                       <span className="text-sm font-semibold text-slate-900">Automatisk</span>
                     </div>
                   </CardContent>
@@ -448,9 +448,9 @@ export default function Admin() {
 
             {/* Time Management Tab */}
             <TabsContent value="time" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Tidsystemhantering</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Tidsystemhantering</h2>
               <Tabs defaultValue="policies">
-                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1">
+                <TabsList className="w-full bg-white dark:bg-white/[0.03] shadow-sm dark:shadow-none rounded-lg p-1">
                   <TabsTrigger value="policies" className="rounded-md">Arbetspolicies</TabsTrigger>
                   <TabsTrigger value="reports" className="rounded-md">Rapporter</TabsTrigger>
                   <TabsTrigger value="employees" className="rounded-md">Personal</TabsTrigger>
@@ -477,9 +477,9 @@ export default function Admin() {
 
             {/* Journal Management Tab */}
             <TabsContent value="journal" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Körjournalhantering</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Körjournalhantering</h2>
               <Tabs defaultValue="ai">
-                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1">
+                <TabsList className="w-full bg-white dark:bg-white/[0.03] shadow-sm dark:shadow-none rounded-lg p-1">
                   <TabsTrigger value="ai" className="rounded-md">AI-rapporter</TabsTrigger>
                   <TabsTrigger value="project" className="rounded-md">Projekttid</TabsTrigger>
                   <TabsTrigger value="geofencing" className="rounded-md">Geofencing</TabsTrigger>
@@ -519,7 +519,7 @@ export default function Admin() {
 
             {/* Onboarding Tab */}
             <TabsContent value="onboarding" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Onboarding-administration</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Onboarding-administration</h2>
               <OnboardingAdmin />
             </TabsContent>
 
@@ -531,9 +531,9 @@ export default function Admin() {
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Systeminställningar</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-4">Systeminställningar</h2>
               <Tabs defaultValue="notifications">
-                <TabsList className="w-full bg-white shadow-sm rounded-lg p-1">
+                <TabsList className="w-full bg-white dark:bg-white/[0.03] shadow-sm dark:shadow-none rounded-lg p-1">
                   <TabsTrigger value="notifications" className="rounded-md">Notisinställningar</TabsTrigger>
                   <TabsTrigger value="bulk" className="rounded-md">Massnotiser</TabsTrigger>
                   <TabsTrigger value="push" className="rounded-md">Push-test</TabsTrigger>

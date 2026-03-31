@@ -66,7 +66,7 @@ export default function VehicleCard({ vehicle, onClick, index = 0, employees = [
       >
         <div className="flex">
           {vehicle.image_url ? (
-            <div className="w-32 h-32 flex-shrink-0 overflow-hidden bg-slate-100">
+            <div className="w-32 h-32 flex-shrink-0 overflow-hidden bg-slate-100 dark:bg-white/[0.04]">
               <img 
                 src={vehicle.image_url} 
                 alt={`${vehicle.make} ${vehicle.model}`}
@@ -74,18 +74,18 @@ export default function VehicleCard({ vehicle, onClick, index = 0, employees = [
               />
             </div>
           ) : (
-            <div className="w-32 h-32 flex-shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-              <Car className="h-12 w-12 text-slate-400" />
+            <div className="w-32 h-32 flex-shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-white/[0.04] dark:to-white/[0.06] flex items-center justify-center">
+              <Car className="h-12 w-12 text-slate-400 dark:text-neutral-500" />
             </div>
           )}
           
           <CardContent className="py-4 px-4 flex-1">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-slate-900 truncate group-hover:text-slate-700 transition-colors">
+                <h3 className="font-semibold text-slate-900 dark:text-neutral-100 truncate group-hover:text-slate-700 dark:group-hover:text-neutral-300 transition-colors">
                   {vehicle.registration_number}
                 </h3>
-                <p className="text-sm text-slate-500 truncate">
+                <p className="text-sm text-slate-500 dark:text-neutral-500 truncate">
                   {vehicle.make} {vehicle.model} {vehicle.year ? `(${vehicle.year})` : ''}
                 </p>
               </div>

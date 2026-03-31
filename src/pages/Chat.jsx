@@ -264,16 +264,16 @@ export default function Chat() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:bg-[#111] pb-24">
       {/* Desktop Layout */}
       <div className="hidden md:flex max-w-6xl mx-auto h-screen flex-col">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sticky top-0 bg-white/95 backdrop-blur border-b p-4"
+          className="sticky top-0 bg-white/95 dark:bg-[#111]/95 backdrop-blur border-b dark:border-white/[0.06] p-4"
         >
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-neutral-100">Meddelanden</h1>
             <Button 
               onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} 
               size="icon" 
@@ -308,14 +308,14 @@ export default function Chat() {
             />
           </div>
 
-          <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="flex-1 flex flex-col bg-white dark:bg-white/[0.02] rounded-2xl shadow-sm dark:shadow-none dark:border dark:border-white/[0.06] overflow-hidden">
             {selectedConversation ? (
               <>
-                <div className="border-b p-4">
-                  <h2 className="font-semibold text-slate-900">{selectedConversation.title}</h2>
+                <div className="border-b dark:border-white/[0.06] p-4">
+                  <h2 className="font-semibold text-slate-900 dark:text-neutral-100">{selectedConversation.title}</h2>
                 </div>
 
-                <div className="border-b p-3 flex items-center gap-2">
+                <div className="border-b dark:border-white/[0.06] p-3 flex items-center gap-2">
                   {messages.length > 0 && (
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -333,7 +333,7 @@ export default function Chat() {
                   {messagesLoading ? (
                     <div className="space-y-2">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className="h-8 bg-slate-100 rounded-lg animate-pulse" />
+                        <div key={i} className="h-8 bg-slate-100 dark:bg-white/[0.04] rounded-lg animate-pulse" />
                       ))}
                     </div>
                   ) : (
@@ -349,7 +349,7 @@ export default function Chat() {
                   )}
                 </div>
 
-                <form onSubmit={handleSendMessage} className="border-t p-4 flex gap-2">
+                <form onSubmit={handleSendMessage} className="border-t dark:border-white/[0.06] p-4 flex gap-2">
                   <Input
                     value={messageContent}
                     onChange={(e) => handleTypingChange(e.target.value)}
@@ -367,7 +367,7 @@ export default function Chat() {
                 </form>
               </>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-500">
+              <div className="flex items-center justify-center h-full text-slate-500 dark:text-neutral-500">
                 <p>Välj en konversation för att börja chatta</p>
               </div>
             )}
@@ -379,16 +379,16 @@ export default function Chat() {
       <div className="md:hidden max-w-2xl mx-auto h-screen flex flex-col">
         {selectedConversationId ? (
           <>
-            <div className="sticky top-0 bg-white/95 backdrop-blur border-b p-4 flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+            <div className="sticky top-0 bg-white/95 dark:bg-[#111]/95 backdrop-blur border-b dark:border-white/[0.06] p-4 flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setSelectedConversationId(null)}
                 className="rounded-full"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <h2 className="font-semibold text-slate-900 flex-1">{selectedConversation?.title}</h2>
+              <h2 className="font-semibold text-slate-900 dark:text-neutral-100 flex-1">{selectedConversation?.title}</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -430,9 +430,9 @@ export default function Chat() {
           </>
         ) : (
           <>
-            <div className="sticky top-0 bg-white/95 backdrop-blur border-b p-4 space-y-3">
+            <div className="sticky top-0 bg-white/95 dark:bg-[#111]/95 backdrop-blur border-b dark:border-white/[0.06] p-4 space-y-3">
               <div className="flex items-center justify-between pr-14">
-                <h1 className="text-2xl font-bold text-slate-900">Meddelanden</h1>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-neutral-100">Meddelanden</h1>
                 <Button 
                   onClick={() => { setShowNewConvModal(true); setChatType('direct'); }} 
                   size="icon" 
@@ -479,13 +479,13 @@ export default function Chat() {
           <div className="flex-1 overflow-hidden flex flex-col">
             {/* Chat Type Selector */}
             <div className="px-6 pb-4">
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-lg">
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-white/[0.04] rounded-lg">
                 <button
                   onClick={() => { setChatType('direct'); setConversationTitle(''); setSelectedParticipants([]); }}
                   className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
-                    chatType === 'direct' 
-                      ? 'bg-white text-slate-900 shadow-sm' 
-                      : 'text-slate-600'
+                    chatType === 'direct'
+                      ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-neutral-100 shadow-sm'
+                      : 'text-slate-600 dark:text-neutral-500'
                   }`}
                 >
                   Privat chat
@@ -493,9 +493,9 @@ export default function Chat() {
                 <button
                   onClick={() => { setChatType('group'); setSelectedParticipants([]); }}
                   className={`py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
-                    chatType === 'group' 
-                      ? 'bg-white text-slate-900 shadow-sm' 
-                      : 'text-slate-600'
+                    chatType === 'group'
+                      ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-neutral-100 shadow-sm'
+                      : 'text-slate-600 dark:text-neutral-500'
                   }`}
                 >
                   Gruppchatt
@@ -537,21 +537,21 @@ export default function Chat() {
                           }
                         }}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
-                          isSelected 
-                            ? 'bg-blue-50 ring-2 ring-blue-500 ring-inset' 
-                            : 'bg-white hover:bg-slate-50 border border-slate-100'
+                          isSelected
+                            ? 'bg-blue-50 dark:bg-blue-950 ring-2 ring-blue-500 ring-inset'
+                            : 'bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700'
                         }`}
                       >
                         <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm ${
-                          isSelected 
-                            ? 'bg-blue-500 text-white' 
-                            : 'bg-slate-100 text-slate-600'
+                          isSelected
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-slate-100 dark:bg-white/[0.08] text-slate-600 dark:text-slate-300'
                         }`}>
                           {u.full_name?.charAt(0) || u.email?.charAt(0)}
                         </div>
                         <div className="flex-1 text-left">
-                          <p className="font-medium text-slate-900 text-sm">{u.full_name}</p>
-                          <p className="text-xs text-slate-500">{u.email}</p>
+                          <p className="font-medium text-slate-900 dark:text-neutral-100 text-sm">{u.full_name}</p>
+                          <p className="text-xs text-slate-500 dark:text-neutral-500">{u.email}</p>
                         </div>
                         {isSelected && (
                           <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">

@@ -54,7 +54,7 @@ export default function ConversationList({ conversations, selectedId, onSelect, 
     return (
       <div className="space-y-2">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-16 bg-slate-200 rounded-lg animate-pulse" />
+          <div key={i} className="h-16 bg-slate-200 dark:bg-white/[0.04] rounded-lg animate-pulse" />
         ))}
       </div>
     );
@@ -85,8 +85,8 @@ export default function ConversationList({ conversations, selectedId, onSelect, 
               onClick={() => onSelect(conv.id)}
               className={`p-3 cursor-pointer transition-all ${
                 selectedId === conv.id
-                  ? 'bg-slate-100 border-slate-300'
-                  : 'hover:bg-slate-50'
+                  ? 'bg-slate-100 dark:bg-white/[0.04] border-slate-300 dark:border-white/[0.1]'
+                  : 'hover:bg-slate-50 dark:hover:bg-white/[0.03]'
               }`}
             >
               <div className="flex items-start gap-3">
@@ -104,7 +104,7 @@ export default function ConversationList({ conversations, selectedId, onSelect, 
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-medium text-slate-900 truncate">{conv.title}</h3>
+                    <h3 className="font-medium text-slate-900 dark:text-neutral-100 truncate">{conv.title}</h3>
                     {unreadCount > 0 && (
                       <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5 min-w-[20px] h-5 flex items-center justify-center">
                         {unreadCount}

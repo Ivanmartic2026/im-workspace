@@ -285,26 +285,26 @@ export default function Home() {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:bg-[#111] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-neutral-600" />
       </div>
     );
   }
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
-        <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:bg-[#111]">
+        <div className="max-w-2xl lg:max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-10 pb-24">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+          className="mb-6 lg:mb-10"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{t('welcome_title')}</h1>
-              <p className="text-sm text-slate-500 mt-1">
+              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-neutral-100 tracking-tight">{t('welcome_title')}</h1>
+              <p className="text-sm text-slate-500 dark:text-neutral-500 mt-1">
                 {user?.full_name || ''}
               </p>
             </div>
@@ -331,7 +331,7 @@ export default function Home() {
           )}
 
           {/* Clock In / Out Section */}
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">{t('select_project')}</h2>
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-neutral-400 mb-3">{t('select_project')}</h2>
 
           {/* Clock In/Out Card with Optimistic Updates */}
           <ClockInOutCard
@@ -363,7 +363,7 @@ export default function Home() {
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-white rounded-2xl h-48 animate-pulse" />
+                  <div key={i} className="bg-white dark:bg-white/[0.03] dark:border dark:border-white/[0.06] rounded-2xl h-48 animate-pulse" />
                 ))}
               </div>
             ) : regularPosts.length === 0 ? (
