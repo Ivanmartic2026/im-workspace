@@ -303,7 +303,7 @@ export default function Home() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{t('welcome_title')}</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{t('welcome_title')}</h1>
               <p className="text-sm text-slate-500 mt-1">
                 {user?.full_name || ''}
               </p>
@@ -331,7 +331,7 @@ export default function Home() {
           )}
 
           {/* Clock In / Out Section */}
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">{t('select_project')}</h2>
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300/80 mb-3">{t('select_project')}</h2>
 
           {/* Clock In/Out Card with Optimistic Updates */}
           <ClockInOutCard
@@ -363,7 +363,7 @@ export default function Home() {
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-white rounded-2xl h-48 animate-pulse" />
+                  <div key={i} className="bg-white dark:bg-slate-800/50 rounded-2xl h-48 animate-pulse" />
                 ))}
               </div>
             ) : regularPosts.length === 0 ? (

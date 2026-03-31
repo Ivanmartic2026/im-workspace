@@ -129,21 +129,21 @@ function LayoutContent({ children, currentPageName }) {
       `}</style>
 
       {/* Mobile Header - Fixed Top */}
-      <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-slate-100 dark:border-slate-800 z-50 safe-area-pt">
+      <div className="fixed top-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border-b border-slate-100 dark:border-slate-800/50 z-50 safe-area-pt">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           {isChildRoute ? (
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-slate-900 dark:text-white hover:text-slate-600 dark:hover:text-slate-300 transition-colors -ml-2 px-2 py-1"
+              className="flex items-center gap-2 text-slate-900 dark:text-slate-100 hover:text-slate-600 dark:hover:text-slate-300 transition-colors -ml-2 px-2 py-1"
             >
               <ArrowLeft className="h-5 w-5" />
               <span className="font-medium">{t('back') || 'Tillbaka'}</span>
             </button>
           ) : (
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6951895d1643f7057890a865/daf37ea55_LogoLIGGANDE_IMvision_svartkopiaepskopia2.png" 
-              alt="IM Vision" 
-              className="h-8 object-contain"
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6951895d1643f7057890a865/daf37ea55_LogoLIGGANDE_IMvision_svartkopiaepskopia2.png"
+              alt="IM Vision"
+              className="h-8 object-contain dark:invert"
             />
           )}
           
@@ -183,7 +183,7 @@ function LayoutContent({ children, currentPageName }) {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 safe-area-pb z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800/50 safe-area-pb z-50">
         <style>{`
           .nav-scroll::-webkit-scrollbar {
             height: 4px;
@@ -218,8 +218,8 @@ function LayoutContent({ children, currentPageName }) {
                   className="relative flex flex-col items-center py-1.5 px-3 min-w-[56px] flex-shrink-0"
                 >
                   <div className={`relative p-2 rounded-xl transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-slate-900 dark:bg-white' 
+                    isActive
+                      ? 'bg-slate-900 dark:bg-slate-100'
                       : 'hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}>
                     <Icon className={`h-5 w-5 transition-colors ${
@@ -228,13 +228,13 @@ function LayoutContent({ children, currentPageName }) {
                     {isActive && (
                       <motion.div
                         layoutId="nav-indicator"
-                        className="absolute inset-0 bg-slate-900 dark:bg-white rounded-xl -z-10"
+                        className="absolute inset-0 bg-slate-900 dark:bg-slate-100 rounded-xl -z-10"
                         transition={{ type: "spring", stiffness: 500, damping: 35 }}
                       />
                     )}
                   </div>
                   <span className={`text-[10px] mt-1 font-medium transition-colors whitespace-nowrap ${
-                    isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'
+                    isActive ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'
                   }`}>
                     {label}
                   </span>

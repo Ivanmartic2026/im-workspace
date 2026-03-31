@@ -140,8 +140,8 @@ export default function Vehicles() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Fordon</h1>
-              <p className="text-sm text-slate-500 mt-1">{vehicles.length} fordon i registret</p>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Fordon</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{vehicles.length} fordon i registret</p>
             </div>
             <div className="flex gap-2">
               {user?.role === 'admin' && (
@@ -186,7 +186,7 @@ export default function Vehicles() {
           {/* Quick Actions */}
           {activeTab === 'fordon' && (
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-slate-700 mb-3">Snabbåtgärder</h3>
+              <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Snabbåtgärder</h3>
               <QuickActionButtons onAction={handleQuickAction} />
             </div>
           )}
@@ -200,8 +200,8 @@ export default function Vehicles() {
                 onClick={() => setCategoryFilter(cat)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                   categoryFilter === cat
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-100'
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 {cat === 'alla' ? 'Alla' : cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -218,7 +218,7 @@ export default function Vehicles() {
               placeholder="Sök fordon..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 h-12 rounded-2xl border-0 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-slate-200"
+              className="pl-11 h-12 rounded-2xl border-0 bg-white dark:bg-slate-800 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-200 dark:focus-visible:ring-slate-700"
             />
           </div>
           )}
@@ -236,7 +236,7 @@ export default function Vehicles() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="bg-white rounded-2xl h-32 animate-pulse" />
+                  <div key={i} className="bg-white dark:bg-slate-800/50 rounded-2xl h-32 animate-pulse" />
                 ))}
               </div>
             ) : filteredVehicles.length === 0 ? (
@@ -245,8 +245,8 @@ export default function Vehicles() {
                 animate={{ opacity: 1 }}
                 className="text-center py-16"
               >
-                <Car className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">Inga fordon hittades</p>
+                <Car className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-500 dark:text-slate-400">Inga fordon hittades</p>
               </motion.div>
             ) : (
               filteredVehicles.map((vehicle, idx) => (
