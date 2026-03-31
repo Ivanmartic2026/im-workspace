@@ -53,14 +53,14 @@ const NewsFeedCardComponent = React.forwardRef(({ post, onReact, onComment, onAc
     >
       <Card className={`overflow-hidden border-0 shadow-sm hover:shadow-xl transition-all duration-300 ${
         needsAcknowledgment ? 'ring-2 ring-blue-400' :
-        post.is_important ? 'ring-2 ring-amber-400 bg-amber-50/30 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-800/50'
+        post.is_important ? 'ring-2 ring-amber-400 bg-amber-50/30 dark:bg-amber-500/5' : 'bg-white dark:bg-white/[0.03]'
       }`}>
         {needsAcknowledgment && (
-          <div className="bg-blue-50 dark:bg-blue-950/30 border-b-2 border-blue-200 dark:border-blue-800 p-4">
+          <div className="bg-blue-50 dark:bg-blue-500/10 border-b-2 border-blue-200 dark:border-blue-500/20 p-4">
             <div className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">Bekräftelse krävs</h4>
+                <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">Bekräftelse krävs</h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                   Denna nyhet kräver att du bekräftar att du har läst innehållet.
                 </p>
@@ -112,7 +112,7 @@ const NewsFeedCardComponent = React.forwardRef(({ post, onReact, onComment, onAc
                     </Badge>
                   )}
                 </div>
-                <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100 leading-tight">{post.title}</h3>
+                <h3 className="font-semibold text-lg text-slate-900 dark:text-neutral-100 leading-tight">{post.title}</h3>
               </div>
             </div>
             <div className="flex items-center gap-2 mt-2 text-xs">
@@ -134,10 +134,10 @@ const NewsFeedCardComponent = React.forwardRef(({ post, onReact, onComment, onAc
           </CardHeader>
 
           <CardContent className="pt-0">
-            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            <p className="text-slate-600 dark:text-neutral-400 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
             
             <motion.div 
-              className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 dark:border-slate-700"
+              className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 dark:border-white/[0.06]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}

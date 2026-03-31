@@ -117,20 +117,20 @@ export default function DrivingJournal() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 pb-24">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#111] pb-24">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Körjournal</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-neutral-100 mb-2">Körjournal</h1>
             <div className="flex items-center justify-between gap-4">
               <div className="flex gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Car className="h-4 w-4 text-slate-400" />
-                  <span className="text-slate-600 dark:text-slate-400">{totalTrips} resor</span>
+                  <span className="text-slate-600 dark:text-neutral-500">{totalTrips} resor</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-slate-400" />
-                  <span className="text-slate-600 dark:text-slate-400">{totalDistance.toFixed(0)} km</span>
+                  <span className="text-slate-600 dark:text-neutral-500">{totalDistance.toFixed(0)} km</span>
                 </div>
               </div>
               <Button 
@@ -190,8 +190,8 @@ export default function DrivingJournal() {
             <Card className="border-0 shadow-sm">
               <CardContent className="p-12 text-center">
                 <Car className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Inga resor</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm">Ingen data att visa för de valda filtren</p>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-neutral-100 mb-2">Inga resor</h3>
+                <p className="text-slate-500 dark:text-neutral-500 text-sm">Ingen data att visa för de valda filtren</p>
               </CardContent>
             </Card>
           ) : (
@@ -201,15 +201,15 @@ export default function DrivingJournal() {
                   <motion.div key={vehicle.id} layout>
                     <Card className="border-0 shadow-sm overflow-hidden">
                       {/* Vehicle Header */}
-                      <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800 p-4 border-b border-slate-200 dark:border-slate-700">
+                      <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-white/[0.03] dark:to-white/[0.02] p-4 border-b border-slate-200 dark:border-white/[0.06]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
+                            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center">
                               <Car className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                              <p className="font-semibold text-slate-900 dark:text-slate-100">{vehicle.registration_number}</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">{vehicle.make} {vehicle.model}</p>
+                              <p className="font-semibold text-slate-900 dark:text-neutral-100">{vehicle.registration_number}</p>
+                              <p className="text-xs text-slate-500 dark:text-neutral-500">{vehicle.make} {vehicle.model}</p>
                             </div>
                           </div>
                           <Badge className="bg-amber-100 text-amber-800 border-0">
@@ -227,19 +227,19 @@ export default function DrivingJournal() {
                               <motion.div key={trip.id} layout>
                               <div
                               onClick={() => toggleTripExpand(trip.id)}
-                              className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                              className="p-4 hover:bg-slate-50 dark:hover:bg-white/[0.03] cursor-pointer transition-colors"
                               >
                               <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                                  <span className="font-semibold text-slate-900 dark:text-neutral-100">
                                     {trip.start_time ? format(new Date(trip.start_time), 'dd MMM, HH:mm', { locale: sv }) : 'Okänd tid'}
                                         </span>
                                         {trip.is_anomaly && (
                                           <AlertCircle className="h-4 w-4 text-red-500" />
                                         )}
                                       </div>
-                                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-neutral-500">
                                         <Clock className="h-3 w-3" />
                                         <span>{Math.round(trip.duration_minutes || 0)} min</span>
                                         <span className="text-slate-400">•</span>
@@ -275,27 +275,27 @@ export default function DrivingJournal() {
                                       initial={{ height: 0, opacity: 0 }}
                                       animate={{ height: 'auto', opacity: 1 }}
                                       exit={{ height: 0, opacity: 0 }}
-                                      className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-4"
+                                      className="border-t border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-white/[0.03] px-4 py-4"
                                     >
                                       <div className="space-y-4">
                                         {/* Trip Details */}
                                         <div className="space-y-2 text-sm">
                                           <div>
-                                            <p className="text-slate-600 dark:text-slate-400">Från:</p>
-                                            <p className="font-medium text-slate-900 dark:text-slate-100">
+                                            <p className="text-slate-600 dark:text-neutral-500">Från:</p>
+                                            <p className="font-medium text-slate-900 dark:text-neutral-100">
                                               {trip.start_location?.address || 'Okänd'}
                                             </p>
                                           </div>
                                           <div>
-                                            <p className="text-slate-600 dark:text-slate-400">Till:</p>
-                                            <p className="font-medium text-slate-900 dark:text-slate-100">
+                                            <p className="text-slate-600 dark:text-neutral-500">Till:</p>
+                                            <p className="font-medium text-slate-900 dark:text-neutral-100">
                                               {trip.end_location?.address || 'Okänd'}
                                             </p>
                                           </div>
                                           {trip.driver_name && (
                                             <div>
-                                              <p className="text-slate-600 dark:text-slate-400">Förare:</p>
-                                              <p className="font-medium text-slate-900 dark:text-slate-100">{trip.driver_name}</p>
+                                              <p className="text-slate-600 dark:text-neutral-500">Förare:</p>
+                                              <p className="font-medium text-slate-900 dark:text-neutral-100">{trip.driver_name}</p>
                                             </div>
                                           )}
                                         </div>
@@ -303,7 +303,7 @@ export default function DrivingJournal() {
                                         {/* Project Allocation */}
                                         {trip.trip_type === 'väntar' && (
                                           <div>
-                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-neutral-400 block mb-2">
                                               Allokera till projekt:
                                             </label>
                                             <Select

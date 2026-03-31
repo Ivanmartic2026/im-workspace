@@ -95,7 +95,7 @@ export default function Profile() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:bg-[#111]">
       <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <motion.div 
@@ -105,9 +105,9 @@ export default function Profile() {
         >
           {/* Avatar */}
           <div className="relative inline-block">
-            <Avatar className="h-28 w-28 ring-4 ring-white dark:ring-slate-800 shadow-lg">
+            <Avatar className="h-28 w-28 ring-4 ring-white dark:ring-white/[0.06] shadow-lg">
               <AvatarImage src={formData.profile_image || employee?.profile_image} />
-              <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 text-slate-600 dark:text-slate-200 text-2xl font-medium">
+              <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 dark:from-white/[0.08] dark:to-white/[0.04] text-slate-600 dark:text-neutral-200 text-2xl font-medium">
                 {getInitials(user.full_name)}
               </AvatarFallback>
             </Avatar>
@@ -123,10 +123,10 @@ export default function Profile() {
             )}
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-4">{employee?.display_name || user.full_name}</h1>
-          <p className="text-slate-500 dark:text-slate-400">{formData.job_title || employee?.job_title || 'Ingen titel'}</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-neutral-100 mt-4">{employee?.display_name || user.full_name}</h1>
+          <p className="text-slate-500 dark:text-neutral-500">{formData.job_title || employee?.job_title || 'Ingen titel'}</p>
           {(formData.department || employee?.department) && (
-            <Badge className="mt-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-0">
+            <Badge className="mt-2 bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-neutral-300 border-0">
               {formData.department || employee?.department}
             </Badge>
           )}
@@ -269,64 +269,64 @@ export default function Profile() {
               <CardContent className="p-0">
                 <a
                   href={`mailto:${user.email}`}
-                  className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                  className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors"
                 >
-                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center">
                     <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Email</p>
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{user.email}</p>
+                    <p className="text-xs text-slate-500 dark:text-neutral-500">Email</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-neutral-100 truncate">{user.email}</p>
                   </div>
                 </a>
 
                 {(employee?.phone || formData.phone) && (
                   <a
                     href={`tel:${employee?.phone || formData.phone}`}
-                    className="flex items-center gap-4 p-4 border-t dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                    className="flex items-center gap-4 p-4 border-t dark:border-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors"
                   >
-                    <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
                       <Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Telefon</p>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{employee?.phone || formData.phone}</p>
+                      <p className="text-xs text-slate-500 dark:text-neutral-500">Telefon</p>
+                      <p className="text-sm font-medium text-slate-900 dark:text-neutral-100">{employee?.phone || formData.phone}</p>
                     </div>
                   </a>
                 )}
 
                 {(employee?.location || formData.location) && (
-                  <div className="flex items-center gap-4 p-4 border-t dark:border-slate-800">
-                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-950 flex items-center justify-center">
+                  <div className="flex items-center gap-4 p-4 border-t dark:border-white/[0.06]">
+                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center">
                       <MapPin className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Plats</p>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{employee?.location || formData.location}</p>
+                      <p className="text-xs text-slate-500 dark:text-neutral-500">Plats</p>
+                      <p className="text-sm font-medium text-slate-900 dark:text-neutral-100">{employee?.location || formData.location}</p>
                     </div>
                   </div>
                 )}
 
                 {(employee?.department || formData.department) && (
-                  <div className="flex items-center gap-4 p-4 border-t dark:border-slate-800">
-                    <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-950 flex items-center justify-center">
+                  <div className="flex items-center gap-4 p-4 border-t dark:border-white/[0.06]">
+                    <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center">
                       <Building2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Avdelning</p>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{employee?.department || formData.department}</p>
+                      <p className="text-xs text-slate-500 dark:text-neutral-500">Avdelning</p>
+                      <p className="text-sm font-medium text-slate-900 dark:text-neutral-100">{employee?.department || formData.department}</p>
                     </div>
                   </div>
                 )}
 
                 {employee?.start_date && (
-                  <div className="flex items-center gap-4 p-4 border-t dark:border-slate-800">
-                    <div className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-950 flex items-center justify-center">
+                  <div className="flex items-center gap-4 p-4 border-t dark:border-white/[0.06]">
+                    <div className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-500/10 flex items-center justify-center">
                       <Briefcase className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Anställd sedan</p>
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                      <p className="text-xs text-slate-500 dark:text-neutral-500">Anställd sedan</p>
+                      <p className="text-sm font-medium text-slate-900 dark:text-neutral-100">
                         {format(new Date(employee.start_date), "d MMMM yyyy", { locale: sv })}
                       </p>
                     </div>
@@ -339,8 +339,8 @@ export default function Profile() {
             {(employee?.bio || formData.bio) && (
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-5">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Om mig</p>
-                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{employee?.bio || formData.bio}</p>
+                  <p className="text-xs text-slate-500 dark:text-neutral-500 mb-2">Om mig</p>
+                  <p className="text-sm text-slate-700 dark:text-neutral-300 leading-relaxed">{employee?.bio || formData.bio}</p>
                 </CardContent>
               </Card>
             )}
@@ -349,10 +349,10 @@ export default function Profile() {
             {employee?.skills?.length > 0 && (
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-5">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Kompetenser</p>
+                  <p className="text-xs text-slate-500 dark:text-neutral-500 mb-3">Kompetenser</p>
                   <div className="flex flex-wrap gap-2">
                     {employee.skills.map(skill => (
-                      <Badge key={skill} variant="secondary" className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                      <Badge key={skill} variant="secondary" className="bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-neutral-300">
                         {skill}
                       </Badge>
                     ))}
@@ -367,15 +367,15 @@ export default function Profile() {
                 <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${employee.onboarding_status === 'completed' ? 'bg-green-100 dark:bg-green-950' : 'bg-blue-100 dark:bg-blue-950'}`}>
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${employee.onboarding_status === 'completed' ? 'bg-green-100 dark:bg-green-500/10' : 'bg-blue-100 dark:bg-blue-500/10'}`}>
                         {employee.onboarding_status === 'completed'
                           ? <CheckCircle2 className="h-5 w-5 text-green-600" />
                           : <Clock className="h-5 w-5 text-blue-600" />
                         }
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Min onboarding</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-sm font-medium text-slate-900 dark:text-neutral-100">Min onboarding</p>
+                        <p className="text-xs text-slate-500 dark:text-neutral-500">
                           {employee.onboarding_status === 'completed' ? 'Slutförd' : 'Pågående'}
                         </p>
                       </div>
@@ -397,7 +397,7 @@ export default function Profile() {
               <CardContent className="p-0">
                 <button 
                   onClick={handleLogout}
-                  className="flex items-center gap-4 p-4 w-full text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-rose-600"
+                  className="flex items-center gap-4 p-4 w-full text-left hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors text-rose-600"
                 >
                   <div className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-950 flex items-center justify-center">
                     <LogOut className="h-4 w-4" />
@@ -408,7 +408,7 @@ export default function Profile() {
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button 
-                      className="flex items-center gap-4 p-4 w-full text-left hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors text-rose-600 border-t dark:border-slate-800"
+                      className="flex items-center gap-4 p-4 w-full text-left hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-rose-600 border-t dark:border-white/[0.06]"
                     >
                       <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center">
                         <Trash2 className="h-4 w-4" />

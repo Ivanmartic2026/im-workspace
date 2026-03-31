@@ -237,7 +237,7 @@ export default function Projects() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:bg-[#111] p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <motion.div
@@ -246,8 +246,8 @@ export default function Projects() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Projekthantering</h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">Skapa och hantera projekt med uppgifter</p>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-neutral-100">Projekthantering</h1>
+              <p className="text-slate-600 dark:text-neutral-500 mt-1">Skapa och hantera projekt med uppgifter</p>
             </div>
             <Button
               onClick={() => {
@@ -305,12 +305,12 @@ export default function Projects() {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.04] p-1 rounded-lg">
               <Button
                 variant={viewMode === 'dashboard' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('dashboard')}
-                className={viewMode === 'dashboard' ? 'bg-white dark:bg-slate-700 shadow-sm' : ''}
+                className={viewMode === 'dashboard' ? 'bg-white dark:bg-white/[0.08] shadow-sm' : ''}
               >
                 <List className="h-4 w-4 mr-2" />
                 Dashboard
@@ -319,7 +319,7 @@ export default function Projects() {
                 variant={viewMode === 'cards' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('cards')}
-                className={viewMode === 'cards' ? 'bg-white dark:bg-slate-700 shadow-sm' : ''}
+                className={viewMode === 'cards' ? 'bg-white dark:bg-white/[0.08] shadow-sm' : ''}
               >
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 Kort
@@ -379,9 +379,9 @@ export default function Projects() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 shadow-sm hover:shadow-md transition-all bg-white dark:bg-slate-800/50 overflow-hidden flex flex-row">
+                <Card className="border border-slate-200 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-slate-600 shadow-sm hover:shadow-md transition-all bg-white dark:bg-white/[0.04]/50 overflow-hidden flex flex-row">
                   {/* Vänster sektion - Info */}
-                  <div className="flex-1 p-4 border-r border-slate-100 dark:border-slate-700">
+                  <div className="flex-1 p-4 border-r border-slate-100 dark:border-white/[0.06]">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
@@ -409,7 +409,7 @@ export default function Projects() {
                   </div>
                   
                   {/* Mitten sektion - Statistik */}
-                  <div className="w-64 p-4 bg-slate-50 dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700">
+                  <div className="w-64 p-4 bg-slate-50 dark:bg-white/[0.04] border-r border-slate-100 dark:border-white/[0.06]">
                     <div className="space-y-2">
                       {(() => {
                         const projectHours = timeEntries
@@ -519,7 +519,7 @@ export default function Projects() {
                   </div>
                   
                   {/* Höger sektion - Actions */}
-                  <div className="w-32 p-4 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800">
+                  <div className="w-32 p-4 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-50 to-white dark:from-white/[0.03] dark:to-white/[0.02]">
                     <Button
                       variant="outline"
                       size="sm"
