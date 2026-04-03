@@ -24,12 +24,15 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
     customer: '',
     activity: '',
     notes: '',
+    fortnoxProjectNumber: '',
     status: 'pending_review',
     start_time: '',
     end_time: '',
     distance_km: 0,
     project_allocations: []
   });
+  const [fortnoxProjects, setFortnoxProjects] = useState([]);
+  const [loadingFortnoxProjects, setLoadingFortnoxProjects] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
   const { data: projects = [] } = useQuery({
@@ -37,6 +40,27 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
     queryFn: () => base44.entities.Project.list(),
     initialData: []
   });
+
+  useEffect(() => {
+    const fetchFortnoxProjects = async () => {
+      setLoadingFortnoxProjects(true);
+      try {
+        const response = await fetch('https://app--69455d52c9eab36b7d26cc74.base44.app/functions/getFortnoxProjectsList', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await response.json();
+        setFortnoxProjects(data || []);
+      } catch (error) {
+        console.error('Failed to fetch Fortnox projects:', error);
+      } finally {
+        setLoadingFortnoxProjects(false);
+      }
+    };
+
+    fetchFortnoxProjects();
+  }, []);
 
   useEffect(() => {
     if (entry) {
@@ -48,6 +72,7 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
         customer: entry.customer || '',
         activity: entry.activity || '',
         notes: entry.notes || '',
+        fortnoxProjectNumber: entry.fortnoxProjectNumber || '',
         status: entry.status,
         start_time: entry.start_time ? new Date(entry.start_time).toISOString().slice(0, 16) : '',
         end_time: entry.end_time ? new Date(entry.end_time).toISOString().slice(0, 16) : '',
@@ -188,6 +213,26 @@ export default function EditJournalModal({ open, onClose, entry, onSave }) {
 
           {formData.trip_type === 'tjänst' && (
             <>
+              <div className="space-y-2">
+                <Label htmlFor="fortnoxProject">Fortnox Projekt (valfritt)</Label>
+                <Select
+                  value={formData.fortnoxProjectNumber}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, fortnoxProjectNumber: value }))}
+                >
+                  <SelectTrigger disabled={loadingFortnoxProjects}>
+                    <SelectValue placeholder={loadingFortnoxProjects ? "Laddar..." : "Välj Fortnox projekt"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Inget projekt</SelectItem>
+                    {fortnoxProjects.map(project => (
+                      <SelectItem key={project.ProjectNumber} value={project.ProjectNumber}>
+                        {project.ProjectNumber} - {project.Description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="project">Projekt (valfritt)</Label>
                 <Select

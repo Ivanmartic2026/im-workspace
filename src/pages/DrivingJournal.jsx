@@ -78,6 +78,17 @@ export default function DrivingJournal() {
       id: selectedEntry.id,
       data
     });
+
+    // Sync to IM Lager if Fortnox project is set
+    if (data.fortnoxProjectNumber) {
+      try {
+        await base44.functions.invoke('syncDrivingJournalToLager', {
+          entryId: selectedEntry.id
+        });
+      } catch (error) {
+        console.error('Failed to sync to IM Lager:', error);
+      }
+    }
   };
 
   // Group by vehicle
