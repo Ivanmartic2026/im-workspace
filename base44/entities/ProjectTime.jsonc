@@ -1,0 +1,40 @@
+{
+  "name": "ProjectTime",
+  "type": "object",
+  "properties": {
+    "projectNumber": {
+      "type": "string",
+      "description": "Projektnummer"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Projektnamn"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum f\u00f6r tidsposten"
+    },
+    "hours": {
+      "type": "number",
+      "description": "Antal timmar"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av arbete"
+    },
+    "reporter": {
+      "type": "string",
+      "description": "Person som rapporterar tid"
+    },
+    "hourlyRate": {
+      "type": "number",
+      "description": "Timpris"
+    }
+  },
+  "required": [
+    "projectNumber",
+    "date",
+    "hours"
+  ]
+}

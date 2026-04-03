@@ -12,6 +12,7 @@ import { Plus, Edit, Trash2, FolderOpen, AlertTriangle, DollarSign, Clock, Eye, 
 import { motion } from "framer-motion";
 import { format, parseISO, startOfDay, isSameDay } from "date-fns";
 import { sv } from "date-fns/locale";
+import { toast } from "sonner";
 import ProjectDetailView from '../components/projects/ProjectDetailView';
 import ProjectsDashboardView from '../components/projects/ProjectsDashboardView';
 
