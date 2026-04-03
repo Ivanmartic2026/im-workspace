@@ -1,0 +1,29 @@
+{
+  "name": "WorkspaceProject",
+  "type": "object",
+  "properties": {
+    "fortnoxProjectNumber": {
+      "type": "string",
+      "description": "Fortnox projektnummer - gemensam nyckel med IM Lager"
+    },
+    "name": {
+      "type": "string",
+      "description": "Projektnamn"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "default": "active"
+    },
+    "createdFromLager": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "fortnoxProjectNumber",
+    "name"
+  ]
+}
