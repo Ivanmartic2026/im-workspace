@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen, MessageCircle } from 'lucide-react';
+import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen, MessageCircle, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import NotificationBell from './components/notifications/NotificationBell';
@@ -17,12 +17,9 @@ function LayoutContent({ children, currentPageName }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  if (TV_PAGES.includes(currentPageName)) {
-    return <>{children}</>;
-  }
-  
-  // Stack preservation: Save scroll position per tab
+  const [user, setUser] = useState(null);
+  const [employee, setEmployee] = useState(null);
+
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(`scroll-${currentPageName}`);
     if (savedPosition) {
@@ -33,25 +30,6 @@ function LayoutContent({ children, currentPageName }) {
       sessionStorage.setItem(`scroll-${currentPageName}`, window.scrollY.toString());
     };
   }, [currentPageName]);
-  
-  const navItems = [
-    { name: 'Home', label: t('nav_home'), icon: Home },
-    { name: 'TimeTracking', label: t('nav_time'), icon: Clock },
-    { name: 'Vehicles', label: t('nav_vehicles'), icon: Car },
-    { name: 'DrivingJournal', label: t('nav_journal'), icon: FileText },
-    { name: 'Manuals', label: t('nav_manuals'), icon: BookOpen },
-    { name: 'Chat', label: t('nav_chat'), icon: MessageCircle },
-    { name: 'Profile', label: t('nav_profile'), icon: User },
-  ];
-
-  const adminNavItems = [
-    ...navItems,
-    { name: 'Projects', label: t('nav_projects'), icon: BarChart3 },
-    { name: 'Admin', label: t('nav_admin'), icon: BarChart3 }
-  ];
-
-  const [user, setUser] = useState(null);
-  const [employee, setEmployee] = useState(null);
 
   useEffect(() => {
     const fetchUserAndEmployee = async () => {
@@ -73,6 +51,27 @@ function LayoutContent({ children, currentPageName }) {
     
     fetchUserAndEmployee();
   }, []);
+
+  if (TV_PAGES.includes(currentPageName)) {
+    return <>{children}</>;
+  }
+
+  const navItems = [
+    { name: 'Home', label: t('nav_home'), icon: Home },
+    { name: 'TimeTracking', label: t('nav_time'), icon: Clock },
+    { name: 'Vehicles', label: t('nav_vehicles'), icon: Car },
+    { name: 'DrivingJournal', label: t('nav_journal'), icon: FileText },
+    { name: 'Manuals', label: t('nav_manuals'), icon: BookOpen },
+    { name: 'Chat', label: t('nav_chat'), icon: MessageCircle },
+    { name: 'FortnoxProjekttid', label: 'Projekttid', icon: Briefcase },
+    { name: 'Profile', label: t('nav_profile'), icon: User },
+  ];
+
+  const adminNavItems = [
+    ...navItems,
+    { name: 'Projects', label: t('nav_projects'), icon: BarChart3 },
+    { name: 'Admin', label: t('nav_admin'), icon: BarChart3 }
+  ];
 
   const isAdmin = user?.role === 'admin';
   

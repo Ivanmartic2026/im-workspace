@@ -8,6 +8,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import VehicleMapOverview from './pages/VehicleMapOverview';
+import FortnoxProjekttid from './pages/FortnoxProjekttid';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -62,6 +63,11 @@ const AuthenticatedApp = () => {
       <Route path="/VehicleMapOverview" element={
         <LayoutWrapper currentPageName="VehicleMapOverview">
           <VehicleMapOverview />
+        </LayoutWrapper>
+      } />
+      <Route path="/FortnoxProjekttid" element={
+        <LayoutWrapper currentPageName="FortnoxProjekttid">
+          <FortnoxProjekttid />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
