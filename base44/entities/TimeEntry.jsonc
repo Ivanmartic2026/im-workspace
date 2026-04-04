@@ -1,0 +1,233 @@
+{
+  "name": "TimeEntry",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string",
+      "description": "Anst\u00e4llds email"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum f\u00f6r registreringen"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "support_service",
+        "install",
+        "rental",
+        "interntid"
+      ],
+      "description": "Arbetskategori"
+    },
+    "clock_in_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r inst\u00e4mpling"
+    },
+    "clock_out_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r utst\u00e4mpling"
+    },
+    "breaks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration_minutes": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "lunch",
+              "rast",
+              "\u00f6vrigt"
+            ],
+            "default": "rast"
+          }
+        }
+      },
+      "description": "Registrerade pauser"
+    },
+    "total_break_minutes": {
+      "type": "number",
+      "default": 0,
+      "description": "Total rastid i minuter"
+    },
+    "original_clock_in_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ursprunglig inst\u00e4mplingstid (f\u00f6re korrigering)"
+    },
+    "original_clock_out_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ursprunglig utst\u00e4mplingstid (f\u00f6re korrigering)"
+    },
+    "clock_in_location": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "address": {
+          "type": "string"
+        }
+      },
+      "description": "Geografisk plats vid inst\u00e4mpling"
+    },
+    "clock_out_location": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "address": {
+          "type": "string"
+        }
+      },
+      "description": "Geografisk plats vid utst\u00e4mpling"
+    },
+    "total_hours": {
+      "type": "number",
+      "description": "Totalt antal arbetade timmar (exkl. rast)"
+    },
+    "break_minutes": {
+      "type": "number",
+      "description": "Rastv\u00e4rde i minuter (deprecated, anv\u00e4nd breaks)",
+      "default": 0
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Kopplat projekt (anv\u00e4nd project_allocations f\u00f6r flera projekt)"
+    },
+    "project_allocations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "Projekt-ID"
+          },
+          "hours": {
+            "type": "number",
+            "description": "Antal timmar f\u00f6r detta projekt"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "support_service",
+              "install",
+              "rental",
+              "interntid"
+            ],
+            "description": "Kategori f\u00f6r detta projekts arbetstid"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Anteckningar f\u00f6r detta projekt"
+          }
+        },
+        "required": [
+          "project_id",
+          "hours"
+        ]
+      },
+      "description": "F\u00f6rdelning av arbetstid p\u00e5 olika projekt"
+    },
+    "fortnoxProjectNumber": {
+      "type": "string",
+      "description": "Fortnox-projektnummer f\u00f6r synkronisering mot IM Lager"
+    },
+    "cost_center": {
+      "type": "string",
+      "description": "Kostnadsst\u00e4lle"
+    },
+    "edit_reason": {
+      "type": "string",
+      "description": "F\u00f6rklaring till manuell korrigering"
+    },
+    "edited_by": {
+      "type": "string",
+      "description": "Email f\u00f6r den som gjorde korrigeringen"
+    },
+    "edited_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r korrigeringen"
+    },
+    "anomaly_flag": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flaggad som avvikelse av systemet"
+    },
+    "anomaly_reason": {
+      "type": "string",
+      "description": "Beskrivning av avvikelsen"
+    },
+    "overtime_hours": {
+      "type": "number",
+      "description": "Ber\u00e4knad \u00f6vertid"
+    },
+    "overtime_type": {
+      "type": "string",
+      "enum": [
+        "ingen",
+        "enkel",
+        "kvalificerad"
+      ],
+      "default": "ingen",
+      "description": "Typ av \u00f6vertid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "completed",
+        "pending_review",
+        "approved",
+        "rejected",
+        "needs_correction"
+      ],
+      "default": "active",
+      "description": "Status p\u00e5 registreringen"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Email f\u00f6r den som godk\u00e4nt"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r godk\u00e4nnande"
+    }
+  },
+  "required": [
+    "employee_email",
+    "date",
+    "clock_in_time"
+  ]
+}
