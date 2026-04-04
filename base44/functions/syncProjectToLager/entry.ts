@@ -3,31 +3,40 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { fortnoxProjectNumber } = await req.json();
+    const { fortnoxProjectNumber, wsProjectId } = await req.json();
     if (!fortnoxProjectNumber) return Response.json({ error: 'Missing fortnoxProjectNumber' }, { status: 400 });
 
     const LAGER_URL = 'https://lager-ai-7d26cc74.base44.app/functions';
     let timesSynced = 0, drivingSynced = 0, errors = [];
 
-    // Step 1: Find the IM Workspace Project by fortnoxProjectNumber
-    let wsProjectId = null;
-    try {
-      const projects = await base44.asServiceRole.entities.Project.filter({ fortnoxProjectNumber });
-      if (projects.length > 0) wsProjectId = projects[0].id;
-    } catch (e) { errors.push('ProjectLookup: ' + e.message); }
+    // If wsProjectId provided, also save fortnoxProjectNumber on the Project
+    if (wsProjectId) {
+      try {
+        await base44.asServiceRole.entities.Project.update(wsProjectId, { fortnoxProjectNumber });
+      } catch (e) { errors.push('ProjectUpdate: ' + e.message); }
+    }
 
-    // Step 2: Sync TimeEntry records
+    // Find wsProjectId if not provided
+    let resolvedWsProjectId = wsProjectId;
+    if (!resolvedWsProjectId) {
+      try {
+        const projects = await base44.asServiceRole.entities.Project.filter({ fortnoxProjectNumber });
+        if (projects.length > 0) resolvedWsProjectId = projects[0].id;
+      } catch (e) {}
+    }
+
+    // Sync TimeEntry records
     try {
       let timeEntries = [];
-      if (wsProjectId) {
-        try { timeEntries = await base44.asServiceRole.entities.TimeEntry.filter({ project_id: wsProjectId }); } catch (e2) {}
+      if (resolvedWsProjectId) {
+        try { timeEntries = await base44.asServiceRole.entities.TimeEntry.filter({ project_id: resolvedWsProjectId }); } catch (e2) {}
       }
       if (timeEntries.length === 0) {
         const allEntries = await base44.asServiceRole.entities.TimeEntry.list();
         timeEntries = allEntries.filter(e =>
           e.fortnoxProjectNumber === fortnoxProjectNumber ||
-          (wsProjectId && (e.project_id === wsProjectId ||
-            (e.project_allocations || []).some(pa => pa.project_id === wsProjectId)))
+          (resolvedWsProjectId && (e.project_id === resolvedWsProjectId ||
+            (e.project_allocations || []).some(pa => pa.project_id === resolvedWsProjectId)))
         );
       }
       for (const entry of timeEntries) {
@@ -50,11 +59,11 @@ Deno.serve(async (req) => {
       }
     } catch (e) { errors.push('TimeEntry: ' + e.message); }
 
-    // Step 3: Sync DrivingJournalEntry records
+    // Sync DrivingJournalEntry records
     try {
       let drivingEntries = [];
-      if (wsProjectId) {
-        try { drivingEntries = await base44.asServiceRole.entities.DrivingJournalEntry.filter({ project_id: wsProjectId }); } catch (e2) {}
+      if (resolvedWsProjectId) {
+        try { drivingEntries = await base44.asServiceRole.entities.DrivingJournalEntry.filter({ project_id: resolvedWsProjectId }); } catch (e2) {}
       }
       if (drivingEntries.length === 0) {
         try { drivingEntries = await base44.asServiceRole.entities.DrivingJournalEntry.filter({ fortnoxProjectNumber }); } catch (e2) {}
@@ -79,7 +88,7 @@ Deno.serve(async (req) => {
       }
     } catch (e) { errors.push('DrivingJournal: ' + e.message); }
 
-    return Response.json({ success: true, timesSynced, drivingSynced, errors, wsProjectId });
+    return Response.json({ success: true, timesSynced, drivingSynced, errors, resolvedWsProjectId });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
