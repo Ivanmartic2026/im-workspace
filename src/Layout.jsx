@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen, MessageCircle, Briefcase } from 'lucide-react';
+import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen, MessageCircle, Briefcase, ClipboardCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import NotificationBell from './components/notifications/NotificationBell';
@@ -70,6 +70,7 @@ function LayoutContent({ children, currentPageName }) {
   const adminNavItems = [
     ...navItems,
     { name: 'Projects', label: t('nav_projects'), icon: BarChart3 },
+    { name: 'TimesheetApproval', label: 'Godkänn tid', icon: ClipboardCheck },
     { name: 'Admin', label: t('nav_admin'), icon: BarChart3 }
   ];
 
