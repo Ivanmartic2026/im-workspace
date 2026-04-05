@@ -8,12 +8,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const FORTNOX_ACCESS_TOKEN = Deno.env.get('FORTNOX_ACCESS_TOKEN');
-    if (!FORTNOX_ACCESS_TOKEN) {
-      return Response.json({
-        success: false,
-        error: 'FORTNOX_ACCESS_TOKEN is not configured. Please add the secret in the app settings.'
-      }, { status: 501 });
+    const token = Deno.env.get('FORTNOX_ACCESS_TOKEN');
+    if (!token) {
+      return Response.json({ error: 'FORTNOX_ACCESS_TOKEN not configured' }, { status: 500 });
     }
 
     const { timeEntryId, projectNumber, employeeName, hours, hourlyRate, description, date } = await req.json();
@@ -22,17 +19,15 @@ Deno.serve(async (req) => {
     }
 
     // Fetch project to get CustomerNumber
-    let customerNumber = '';
+    // Fetch project to get CustomerNumber
+    let customerNumber = '1';
     try {
       const projectResp = await fetch(`https://api.fortnox.se/3/projects/${projectNumber}`, {
-        headers: {
-          'Authorization': `Bearer ${FORTNOX_ACCESS_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
       });
       if (projectResp.ok) {
         const projectData = await projectResp.json();
-        customerNumber = projectData?.Project?.InvoiceCustomerNumber || '';
+        customerNumber = projectData?.Project?.CustomerNumber || '1';
       }
     } catch (e) {
       console.log('Could not fetch project customer:', e.message);
@@ -42,29 +37,28 @@ Deno.serve(async (req) => {
     const orderBody = {
       Order: {
         Project: projectNumber,
+        CustomerNumber: customerNumber,
         OrderDate: date,
+        Remarks: `Automatiskt skapad från IM Workspace - ${employeeName || ''}`,
         OrderRows: [{
           Description: `${description || 'Arbetstid'} - ${employeeName || ''}`,
-          OrderedQuantity: hours,
-          Price: hourlyRate || 0,
+          OrderedQuantity: String(hours),
+          Price: String(hourlyRate || 0),
           Unit: 'tim'
         }]
       }
     };
-    if (customerNumber) orderBody.Order.CustomerNumber = customerNumber;
 
     const orderResp = await fetch('https://api.fortnox.se/3/orders', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${FORTNOX_ACCESS_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify(orderBody)
     });
 
     if (!orderResp.ok) {
       const errData = await orderResp.json();
-      return Response.json({ success: false, error: errData?.ErrorInformation?.message || 'Fortnox order creation failed' }, { status: 400 });
+      const errMsg = errData?.ErrorInformation?.message || errData?.message || 'Fortnox order creation failed';
+      return Response.json({ success: false, error: errMsg }, { status: 400 });
     }
 
     const orderData = await orderResp.json();
@@ -76,7 +70,7 @@ Deno.serve(async (req) => {
       fortnox_order_number: orderNumber
     });
 
-    return Response.json({ success: true, orderNumber });
+    return Response.json({ success: true, orderNumber, message: `Order ${orderNumber} skapad i Fortnox` });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

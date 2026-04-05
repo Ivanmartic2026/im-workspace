@@ -92,9 +92,9 @@ export default function TimesheetApproval() {
           date: entry.date
         });
         if (res.data?.success) {
-          toast.success(`Godkänd! Fortnox order ${res.data.orderNumber} skapad.`);
+          toast.success(`✓ Godkänd — Fortnox order #${res.data.orderNumber} skapad`);
         } else {
-          toast.success('Godkänd! (Fortnox-order kunde inte skapas automatiskt)');
+          toast.error(`Godkänd, men Fortnox-fel: ${res.data?.error || 'Okänt fel'}`);
         }
       } else {
         toast.success('Tidpost godkänd!');
