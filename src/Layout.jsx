@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen, MessageCircle, Briefcase, ClipboardCheck } from 'lucide-react';
+import { Home, FileText, Calendar, Clock, Users, User, Car, Navigation, BarChart3, BookOpen, MessageCircle, Briefcase, ClipboardCheck, Satellite } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import NotificationBell from './components/notifications/NotificationBell';
@@ -64,6 +64,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: 'Manuals', label: t('nav_manuals'), icon: BookOpen },
     { name: 'Chat', label: t('nav_chat'), icon: MessageCircle },
     { name: 'FortnoxProjekttid', label: 'Projekttid', icon: Briefcase },
+    { name: 'KorJournalLive', label: 'GPS Live', icon: Satellite },
     { name: 'Profile', label: t('nav_profile'), icon: User },
   ];
 

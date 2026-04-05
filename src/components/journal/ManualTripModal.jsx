@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle, LocateFixed } from "lucide-react";
 
 export default function ManualTripModal({ open, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const [gpsLoading, setGpsLoading] = useState('');
   const [formData, setFormData] = useState({
+    from_address: '',
+    to_address: '',
     vehicle_id: '',
+    from_address: '',
+    to_address: '',
     date: new Date().toISOString().split('T')[0],
     start_time: '08:00',
     end_time: '09:00',
@@ -35,6 +40,26 @@ export default function ManualTripModal({ open, onClose, onSuccess }) {
     queryFn: () => base44.entities.Project.list(),
     initialData: []
   });
+
+  const fetchGPSAddress = useCallback(async (field) => {
+    if (!navigator.geolocation) return;
+    setGpsLoading(field);
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=sv`, {
+          headers: { 'User-Agent': 'IM-Workspace/1.0' }
+        });
+        const data = await resp.json();
+        const addr = data.address || {};
+        const street = (addr.road || '') + (addr.house_number ? ' ' + addr.house_number : '');
+        const city = addr.city || addr.town || addr.village || addr.municipality || '';
+        const fullAddr = [street, city].filter(Boolean).join(', ') || data.display_name?.split(',').slice(0, 2).join(',') || '';
+        setFormData(prev => ({ ...prev, [field]: fullAddr }));
+      } catch {}
+      setGpsLoading('');
+    }, () => setGpsLoading(''), { enableHighAccuracy: true, timeout: 8000 });
+  }, []);
 
   const handleSubmit = async () => {
     if (!formData.vehicle_id || !formData.distance_km) {
@@ -74,8 +99,10 @@ export default function ManualTripModal({ open, onClose, onSuccess }) {
         customer: formData.customer || selectedProject?.customer || null,
         notes: formData.notes,
         status: 'submitted',
-        start_location: { address: 'Manuellt tillagd' },
-        end_location: { address: 'Manuellt tillagd' },
+        start_location: { address: formData.from_address || 'Manuellt tillagd' },
+        end_location: { address: formData.to_address || 'Manuellt tillagd' },
+        fromAddress: formData.from_address || '',
+        toAddress: formData.to_address || '',
         is_manual: true,
         manual_reason: 'Manuellt registrerad av användare',
         change_history: [{
@@ -94,6 +121,8 @@ export default function ManualTripModal({ open, onClose, onSuccess }) {
       // Reset form
       setFormData({
         vehicle_id: '',
+        from_address: '',
+        to_address: '',
         date: new Date().toISOString().split('T')[0],
         start_time: '08:00',
         end_time: '09:00',
@@ -160,6 +189,38 @@ export default function ManualTripModal({ open, onClose, onSuccess }) {
                 value={formData.end_time}
                 onChange={(e) => setFormData({...formData, end_time: e.target.value})}
               />
+            </div>
+          </div>
+
+          {/* From/To address with GPS */}
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <Label>Från (adress)</Label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  value={formData.from_address}
+                  onChange={(e) => setFormData({ ...formData, from_address: e.target.value })}
+                  placeholder="Startadress"
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => fetchGPSAddress('from_address')} disabled={gpsLoading === 'from_address'} title="Använd GPS-position">
+                  {gpsLoading === 'from_address' ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <div>
+              <Label>Till (adress)</Label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  value={formData.to_address}
+                  onChange={(e) => setFormData({ ...formData, to_address: e.target.value })}
+                  placeholder="Slutadress"
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => fetchGPSAddress('to_address')} disabled={gpsLoading === 'to_address'} title="Använd GPS-position">
+                  {gpsLoading === 'to_address' ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
           </div>
 

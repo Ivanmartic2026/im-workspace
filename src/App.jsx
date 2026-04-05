@@ -10,6 +10,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import VehicleMapOverview from './pages/VehicleMapOverview';
 import FortnoxProjekttid from './pages/FortnoxProjekttid';
 import TimesheetApproval from './pages/TimesheetApproval';
+import KorJournalLive from './pages/KorJournalLive';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -74,6 +75,11 @@ const AuthenticatedApp = () => {
       <Route path="/TimesheetApproval" element={
         <LayoutWrapper currentPageName="TimesheetApproval">
           <TimesheetApproval />
+        </LayoutWrapper>
+      } />
+      <Route path="/KorJournalLive" element={
+        <LayoutWrapper currentPageName="KorJournalLive">
+          <KorJournalLive />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
