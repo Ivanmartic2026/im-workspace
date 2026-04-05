@@ -1,6 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { createHash } from 'node:crypto';
 
+async function coordsToAddress(lat, lng) {
+  if (!lat || !lng) return '';
+  try {
+    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, {
+      headers: { 'User-Agent': 'IM-Lager-App/1.0' }
+    });
+    const data = await resp.json();
+    const addr = data.address;
+    const street = (addr.road || '') + (addr.house_number ? ' ' + addr.house_number : '');
+    const city = addr.city || addr.town || addr.village || addr.municipality || '';
+    return [street, city].filter(Boolean).join(', ') || data.display_name?.split(',').slice(0, 2).join(',') || '';
+  } catch (e) { return ''; }
+}
+
 const GPS_URL = "https://api.gps51.com";
 const GPS_USERNAME = Deno.env.get("GALAGPS_USERNAME");
 const GPS_PASSWORD = Deno.env.get("GALAGPS_PASSWORD");
@@ -199,23 +213,35 @@ Deno.serve(async (req) => {
         journalEntry.driver_name = defaultDriver.full_name;
       }
 
-      // Lägg till startplats om tillgänglig
+      // Lägg till startplats om tillgänglig + geocoda address
       if (trip.slat && trip.slon) {
+        const fromAddr = await coordsToAddress(trip.slat, trip.slon);
         journalEntry.start_location = {
           latitude: trip.slat,
           longitude: trip.slon,
-          address: null
+          address: fromAddr || null
         };
+        journalEntry.fromLat = trip.slat;
+        journalEntry.fromLng = trip.slon;
+        journalEntry.fromAddress = fromAddr;
       }
 
-      // Lägg till slutplats om tillgänglig
+      // Lägg till slutplats om tillgänglig + geocoda address
       if (trip.elat && trip.elon) {
+        const toAddr = await coordsToAddress(trip.elat, trip.elon);
         journalEntry.end_location = {
           latitude: trip.elat,
           longitude: trip.elon,
-          address: null
+          address: toAddr || null
         };
+        journalEntry.toLat = trip.elat;
+        journalEntry.toLng = trip.elon;
+        journalEntry.toAddress = toAddr;
       }
+
+      // Spara även ISO-tider som flat fält
+      journalEntry.startTime = journalEntry.start_time;
+      journalEntry.endTime = journalEntry.end_time;
 
       // Flagga ytterligare avvikelser
       if (journalEntry.distance_km > 500) {

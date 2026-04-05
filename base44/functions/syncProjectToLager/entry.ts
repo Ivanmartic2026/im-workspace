@@ -75,13 +75,22 @@ Deno.serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             projectNumber: fortnoxProjectNumber,
-            date: entry.date || entry.trip_date,
+            date: entry.date || entry.trip_date || (entry.start_time ? entry.start_time.substring(0, 10) : null),
             distanceKm,
             description: entry.purpose || entry.description || '',
             driverName: entry.driver_name || entry.driverName || '',
-            vehicleReg: entry.vehicle_registration || entry.vehicleReg || '',
+            vehicleReg: entry.registration_number || entry.vehicle_registration || entry.vehicleReg || '',
             costSEK: entry.mileage_allowance || entry.costSEK || distanceKm * 25,
-            source: 'imworkspace'
+            source: 'imworkspace',
+            fromLocation: entry.fromAddress || entry.start_location?.address || '',
+            toLocation: entry.toAddress || entry.end_location?.address || '',
+            fromLat: entry.fromLat || entry.start_location?.latitude,
+            fromLng: entry.fromLng || entry.start_location?.longitude,
+            toLat: entry.toLat || entry.end_location?.latitude,
+            toLng: entry.toLng || entry.end_location?.longitude,
+            startTime: entry.startTime || entry.start_time,
+            endTime: entry.endTime || entry.end_time,
+            purpose: entry.purpose || entry.syfte || ''
           })
         });
         drivingSynced++;
