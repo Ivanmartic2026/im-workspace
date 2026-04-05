@@ -88,8 +88,8 @@ Deno.serve(async (req) => {
             fromLng: entry.fromLng || entry.start_location?.longitude,
             toLat: entry.toLat || entry.end_location?.latitude,
             toLng: entry.toLng || entry.end_location?.longitude,
-            startTime: entry.startTime || entry.start_time,
-            endTime: entry.endTime || entry.end_time,
+            startTime: entry.startTime || entry.start_time || entry.clock_in_time || '',
+            endTime: entry.endTime || entry.end_time || entry.clock_out_time || '',
             purpose: entry.purpose || entry.syfte || ''
           })
         });
