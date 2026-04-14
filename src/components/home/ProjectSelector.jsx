@@ -18,12 +18,7 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
     queryKey: ['projects'],
     queryFn: async () => {
       const all = await base44.entities.Project.list('-updated_date');
-      const filtered = all.filter(p => p.status === 'pågående');
-      // Pin "Lager"-projects to top
-      return [
-        ...filtered.filter(p => p.name?.startsWith('Lager')),
-        ...filtered.filter(p => !p.name?.startsWith('Lager'))
-      ];
+      return all.filter(p => p.status === 'pågående');
     },
     initialData: []
   });
@@ -185,6 +180,37 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
               exit={{ opacity: 0 }}
               className="space-y-2"
             >
+              {/* Pinned Lager projects */}
+              {(() => {
+                const lagerProjects = projects.filter(p => p.name?.startsWith('Lager'));
+                if (lagerProjects.length === 0) return null;
+                return (
+                  <div className="mb-3">
+                    <p className="text-xs text-slate-500 mb-2">Snabbval</p>
+                    <div className="flex gap-2">
+                      {lagerProjects.map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            onProjectSelect(p.id);
+                            localStorage.setItem('lastSelectedProjectId', p.id);
+                          }}
+                          className={`flex-1 py-3 px-4 rounded-xl border-2 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                            selectedProjectId === p.id
+                              ? 'bg-indigo-600 border-indigo-600 text-white'
+                              : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-400'
+                          }`}
+                        >
+                          <Briefcase className="w-4 h-4" />
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="border-t border-slate-100 mt-3 mb-1" />
+                  </div>
+                );
+              })()}
+
               {/* Recent projects quick picks */}
               {recentProjectIds.length > 0 && (() => {
                 const recentProjects = recentProjectIds.map(id => projects.find(p => p.id === id)).filter(Boolean);
