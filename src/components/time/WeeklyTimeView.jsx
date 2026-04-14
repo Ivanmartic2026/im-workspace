@@ -8,7 +8,8 @@ import { motion } from "framer-motion";
 import ProjectAllocationEditor from "./ProjectAllocationEditor";
 import RequestTimeAdjustmentModal from "./RequestTimeAdjustmentModal";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useProjects } from "@/hooks/useProjects";
 import { toast } from "sonner";
 
 const statusConfig = {
@@ -26,10 +27,7 @@ export default function WeeklyTimeView({ timeEntries, employee }) {
   const [adjustmentEntry, setAdjustmentEntry] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
-  });
+  const { data: projects = [] } = useProjects();
 
   const updateEntryMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.TimeEntry.update(id, data),

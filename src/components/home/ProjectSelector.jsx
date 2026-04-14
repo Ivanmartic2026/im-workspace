@@ -4,24 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Briefcase, ChevronRight, Loader2, History } from "lucide-react";
+import { Plus, Briefcase, ChevronRight, Loader2, History, Search } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { useProjects } from "@/hooks/useProjects";
 
 export default function ProjectSelector({ onProjectSelect, selectedProjectId }) {
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
   const [newProjectData, setNewProjectData] = useState({ name: '', category: 'support_service' });
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: projects = [], refetch: refetchProjects } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const all = await base44.entities.Project.list('-updated_date');
-      return all.filter(p => p.status === 'pågående');
-    },
-    initialData: []
-  });
+  const queryClient = useQueryClient();
+  const { data: projects = [] } = useProjects();
+  const refetchProjects = () => queryClient.invalidateQueries({ queryKey: ['projects-merged'] });
 
   const { data: recentProjectIds = [] } = useQuery({
     queryKey: ['recent-projects-for-user'],
@@ -181,7 +178,7 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
               className="space-y-2"
             >
               {/* Pinned Lager projects */}
-              {(() => {
+              {!searchQuery && (() => {
                 const lagerProjects = projects.filter(p => p.name?.startsWith('Lager'));
                 if (lagerProjects.length === 0) return null;
                 return (
@@ -211,8 +208,19 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
                 );
               })()}
 
+              {/* Search box */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Sök projekt..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-9 h-10"
+                />
+              </div>
+
               {/* Recent projects quick picks */}
-              {recentProjectIds.length > 0 && (() => {
+              {recentProjectIds.length > 0 && !searchQuery && (() => {
                 const recentProjects = recentProjectIds.map(id => projects.find(p => p.id === id)).filter(Boolean);
                 if (recentProjects.length === 0) return null;
                 return (
@@ -255,7 +263,11 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
               ) : (
                 <>
                   <div className="grid grid-cols-1 gap-2 max-h-[280px] overflow-y-auto pr-1">
-                    {projects.map((project) => (
+                    {projects.filter(p =>
+                      !searchQuery ||
+                      p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      p.project_code?.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map((project) => (
                       <motion.button
                         key={project.id}
                         onClick={() => {

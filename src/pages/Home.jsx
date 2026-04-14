@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useProjects } from "@/hooks/useProjects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -74,14 +75,7 @@ export default function Home() {
     enabled: !!user?.email
   });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const all = await base44.entities.Project.list('-updated_date');
-      return all.filter(p => p.status === 'pågående');
-    },
-    initialData: []
-  });
+  const { data: projects = [] } = useProjects();
 
   const activeTimeEntry = timeEntries.find(entry => entry.status === 'active');
 

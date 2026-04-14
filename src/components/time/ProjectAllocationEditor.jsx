@@ -276,7 +276,7 @@ export default function ProjectAllocationEditor({ timeEntry, onSave, onCancel, p
                           <SelectContent className="z-50">
                             {projects.map(project => (
                               <SelectItem key={project.id} value={project.id}>
-                                {project.name} ({project.project_code})
+                                {project.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
