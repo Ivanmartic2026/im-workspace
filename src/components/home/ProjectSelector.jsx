@@ -18,7 +18,12 @@ export default function ProjectSelector({ onProjectSelect, selectedProjectId }) 
     queryKey: ['projects'],
     queryFn: async () => {
       const all = await base44.entities.Project.list('-updated_date');
-      return all.filter(p => p.status === 'pågående');
+      const filtered = all.filter(p => p.status === 'pågående');
+      // Pin "Lager"-projects to top
+      return [
+        ...filtered.filter(p => p.name?.startsWith('Lager')),
+        ...filtered.filter(p => !p.name?.startsWith('Lager'))
+      ];
     },
     initialData: []
   });
