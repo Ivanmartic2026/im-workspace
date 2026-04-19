@@ -1,333 +1,284 @@
 import React, { useState, useEffect } from 'react';
+import { Bell, BellOff, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCircle2, AlertCircle, Loader2, Smartphone } from "lucide-react";
-import { motion } from "framer-motion";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function PushNotificationSetup({ user }) {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [vapidPublicKey, setVapidPublicKey] = useState(null);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalledPWA, setIsInstalledPWA] = useState(false);
 
   useEffect(() => {
-    // Check browser support
-    const supported = 
-      'serviceWorker' in navigator && 
-      'PushManager' in window && 
-      'Notification' in window;
-    
-    setIsSupported(supported);
-
-    if (supported && user) {
-      loadVapidKey();
-      checkSubscription();
-    }
+    checkPushSupport();
+    checkPWAInstallation();
+    checkSubscriptionStatus();
   }, [user]);
 
-  const loadVapidKey = async () => {
-    try {
-      const response = await base44.functions.invoke('getVapidPublicKey');
-      if (response.data?.publicKey) {
-        setVapidPublicKey(response.data.publicKey);
-      }
-    } catch (err) {
-      console.error('Error loading VAPID key:', err);
-      setError('Kunde inte ladda push-notifikationskonfiguration');
-    }
+  const checkPushSupport = async () => {
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window;
+    setIsSupported(supported);
+
+    const isIOSDevice =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+      !window.MSStream;
+    setIsIOS(isIOSDevice);
   };
 
-  const checkSubscription = async () => {
+  const checkPWAInstallation = () => {
+    const isInstalled =
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    setIsInstalledPWA(isInstalled);
+  };
+
+  const checkSubscriptionStatus = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
+      if (!('serviceWorker' in navigator)) return;
+
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return;
+
       const subscription = await registration.pushManager.getSubscription();
-      
-      if (subscription) {
-        setIsSubscribed(true);
-        setSubscription(subscription);
-        await verifySubscriptionInDB(subscription);
-      } else {
-        setIsSubscribed(false);
-      }
+      setIsSubscribed(!!subscription);
     } catch (err) {
       console.error('Error checking subscription:', err);
-      setError('Kunde inte kontrollera prenumerationsstatus');
     }
-  };
-
-  const verifySubscriptionInDB = async (subscription) => {
-    try {
-      const subscriptions = await base44.entities.PushSubscription.filter(
-        { 
-          user_email: user?.email,
-          endpoint: subscription.endpoint
-        }
-      );
-      
-      if (subscriptions.length === 0) {
-        // Store subscription if not already in DB
-        await storePushSubscription(subscription);
-      }
-    } catch (err) {
-      console.error('Error verifying subscription:', err);
-    }
-  };
-
-  const storePushSubscription = async (subscription) => {
-    try {
-      const keys = subscription.getKey('auth');
-      const p256dh = subscription.getKey('p256dh');
-      
-      await base44.entities.PushSubscription.create({
-        user_email: user?.email,
-        endpoint: subscription.endpoint,
-        auth_key: keys ? btoa(String.fromCharCode.apply(null, new Uint8Array(keys))) : '',
-        p256dh_key: p256dh ? btoa(String.fromCharCode.apply(null, new Uint8Array(p256dh))) : '',
-        browser: getBrowserName(),
-        device_name: getDeviceName()
-      });
-    } catch (err) {
-      console.error('Error storing subscription:', err);
-    }
-  };
-
-  const getBrowserName = () => {
-    const ua = navigator.userAgent;
-    if (ua.includes('Chrome')) return 'Chrome';
-    if (ua.includes('Firefox')) return 'Firefox';
-    if (ua.includes('Safari')) return 'Safari';
-    if (ua.includes('Edge')) return 'Edge';
-    return 'Other';
-  };
-
-  const getDeviceName = () => {
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-      return 'Mobile';
-    }
-    return 'Desktop';
   };
 
   const handleSubscribe = async () => {
-    if (!vapidPublicKey) {
-      setError('VAPID-nyckel inte tillgänglig ännu. Vänta ett ögonblick och försök igen.');
-      return;
-    }
-
-    // Check if iOS and not in standalone mode
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.navigator.standalone === true;
-    
-    if (isIOS && !isStandalone) {
-      setError('På iOS: Lägg till appen på hemskärmen först (Dela → Lägg till på hemskärmen)');
-      return;
-    }
-
-    setIsLoading(true);
+    setLoading(true);
     setError(null);
 
     try {
-      console.log('1. Begär notifikationsbehörighet...');
-      
-      // Request notification permission with timeout
-      const permissionPromise = Notification.requestPermission();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout - tog för lång tid')), 10000)
-      );
-      
-      const permission = await Promise.race([permissionPromise, timeoutPromise]);
-      console.log('2. Behörighet:', permission);
-      
+      // Check permission
+      let permission = Notification.permission;
+
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+
       if (permission !== 'granted') {
-        throw new Error('Push-notifikationsbehörighet inte beviljad');
+        setError('Push-notiser är inte tillåtna. Aktivera dem i webbläsarens inställningar.');
+        setLoading(false);
+        return;
       }
 
-      console.log('3. Väntar på service worker...');
+      // Register service worker
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/'
+      });
 
-      // Get existing registration or wait for ready
-      let registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) {
-        console.log('Waiting for service worker to be ready...');
-        registration = await navigator.serviceWorker.ready;
+      // Get VAPID public key
+      const { data: vapidData } = await base44.functions.invoke('getVapidPublicKey', {});
+      if (!vapidData || !vapidData.vapidPublicKey) {
+        throw new Error('Could not fetch VAPID public key');
       }
-      console.log('4. Service worker redo:', registration);
 
-      console.log('5. Skapar push-prenumeration...');
-      const subPromise = registration.pushManager.subscribe({
+      // Subscribe to push
+      const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        applicationServerKey: urlBase64ToUint8Array(vapidData.vapidPublicKey)
       });
-      const subTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Push subscription timeout')), 10000)
-      );
-      const subscription = await Promise.race([subPromise, subTimeout]);
-      console.log('6. Prenumeration skapad');
 
-      // Store in database
-      console.log('7. Sparar i databas...');
-      await storePushSubscription(subscription);
-      console.log('8. Sparat!');
-      
-      setSubscription(subscription);
-      setIsSubscribed(true);
-      
-      new Notification('Push-notifikationer aktiverade! 🎉', {
-        body: 'Du kommer nu att få notifikationer även när appen är stängd.',
-        icon: '/icon-192.png'
+      // Extract keys
+      const { endpoint, keys } = subscription.toJSON();
+
+      // Determine device/browser info
+      const userAgent = navigator.userAgent;
+      let browser = 'Unknown';
+      let device_name = 'Desktop';
+
+      if (/Chrome/.test(userAgent)) browser = 'Chrome';
+      else if (/Firefox/.test(userAgent)) browser = 'Firefox';
+      else if (/Safari/.test(userAgent)) browser = 'Safari';
+      else if (/Edge/.test(userAgent)) browser = 'Edge';
+
+      if (/Mobile|Android|iPhone|iPad|iPod/.test(userAgent)) {
+        device_name = 'Mobile';
+      }
+
+      // Save to database
+      await base44.entities.PushSubscription.create({
+        user_email: user.email,
+        endpoint,
+        auth_key: keys.auth,
+        p256dh_key: keys.p256dh,
+        browser,
+        device_name,
+        is_active: true
       });
+
+      setIsSubscribed(true);
     } catch (err) {
-      console.error('SUBSCRIPTION ERROR:', err);
-      setError(err.message || 'Kunde inte aktivera push-notifikationer');
+      console.error('Error subscribing to push:', err);
+      setError(err.message || 'Kunde inte aktivera push-notiser');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const handleUnsubscribe = async () => {
-    setIsLoading(true);
+    setLoading(true);
+    setError(null);
 
     try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return;
+
+      const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
         await subscription.unsubscribe();
       }
 
-      // Remove from database
-      if (subscription) {
-        const subscriptions = await base44.entities.PushSubscription.filter({
-          user_email: user?.email,
-          endpoint: subscription.endpoint
-        });
+      // Mark as inactive in database
+      const subs = await base44.entities.PushSubscription.filter({
+        user_email: user.email,
+        is_active: true
+      });
 
-        for (const sub of subscriptions) {
-          await base44.entities.PushSubscription.update(sub.id, { is_active: false });
-        }
+      for (const sub of subs) {
+        await base44.entities.PushSubscription.update(sub.id, {
+          is_active: false
+        });
       }
 
       setIsSubscribed(false);
-      setSubscription(null);
     } catch (err) {
-      console.error('Unsubscribe error:', err);
-      setError('Kunde inte avsluta prenumeration');
+      console.error('Error unsubscribing:', err);
+      setError(err.message || 'Kunde inte inaktivera push-notiser');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   if (!isSupported) {
     return (
-      <Card className="border-0 shadow-sm bg-amber-50 border-l-4 border-amber-500">
-        <CardContent className="p-4">
-          <p className="text-sm text-amber-900">
-            Din webbläsare stöder inte push-notifikationer. Använd Chrome, Firefox, Edge eller senare versioner av Safari.
-          </p>
+      <Card className="bg-yellow-50 border-yellow-200">
+        <CardContent className="pt-6">
+          <div className="flex gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-yellow-800">
+                Push-notiser stöds inte i denna webbläsare
+              </p>
+              <p className="text-xs text-yellow-700 mt-1">
+                Använd Chrome, Firefox, Edge eller Safari på iOS 16.4+
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isIOS && !isInstalledPWA) {
+    return (
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex gap-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-blue-800">
+                Installera appen först
+              </p>
+              <p className="text-xs text-blue-700 mt-1">
+                Öppna denna sida i Safari, klicka på Dela → Lägg till på hemskärmen, sedan aktivera push-notiser.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
-    >
-      <Card className={`border-0 shadow-sm ${isSubscribed ? 'bg-emerald-50' : 'bg-blue-50'}`}>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${isSubscribed ? 'bg-emerald-100' : 'bg-blue-100'}`}>
-              <Bell className={`h-6 w-6 ${isSubscribed ? 'text-emerald-600' : 'text-blue-600'}`} />
-            </div>
-            <div className="flex-1">
-              <CardTitle className="flex items-center gap-2">
-                Push-notifikationer
-                {isSubscribed && (
-                  <Badge className="bg-emerald-100 text-emerald-700">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Aktiverad
-                  </Badge>
-                )}
-              </CardTitle>
-              <p className={`text-sm mt-1 ${isSubscribed ? 'text-emerald-700' : 'text-blue-700'}`}>
-                {isSubscribed 
-                  ? 'Du får notifikationer även när appen är stängd'
-                  : 'Aktivera för att få notifikationer direkt till din enhet'}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-100 rounded-lg flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {isSubscribed ? (
+            <>
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Push-notiser aktiverade
+            </>
+          ) : (
+            <>
+              <BellOff className="h-5 w-5 text-slate-400" />
+              Push-notiser inaktiverade
+            </>
           )}
-
-          <div className="flex items-start gap-3 p-3 bg-white/50 rounded-lg">
-            <Smartphone className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-slate-700">
-              {isSubscribed 
-                ? 'Prenumeration aktiv - Du kommer att få push-notifikationer på din enhet'
-                : 'Aktivera för att få omedelbar notification när något viktigt händer'}
-            </div>
+        </CardTitle>
+        <CardDescription>
+          {isSubscribed
+            ? 'Du får push-notiser för viktiga händelser'
+            : 'Aktivera push-notiser för direkta varningar'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {error && (
+          <div className="flex gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            {error}
           </div>
+        )}
 
-          <div className="flex gap-3">
-            {!isSubscribed ? (
-              <Button
-                onClick={handleSubscribe}
-                disabled={isLoading || !vapidPublicKey}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Aktiverar...
-                  </>
-                ) : !vapidPublicKey ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Laddar...
-                  </>
-                ) : (
-                  <>
-                    <Bell className="h-4 w-4 mr-2" />
-                    Aktivera push-notifikationer
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleUnsubscribe}
-                disabled={isLoading}
-                variant="outline"
-                className="flex-1"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Inaktiverar...
-                  </>
-                ) : (
-                  'Inaktivera'
-                )}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <div className="flex gap-2">
+          {isSubscribed ? (
+            <Button
+              onClick={handleUnsubscribe}
+              disabled={loading}
+              variant="outline"
+              className="flex-1"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Stänger av...
+                </>
+              ) : (
+                <>
+                  <BellOff className="h-4 w-4 mr-2" />
+                  Stäng av notiser
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubscribe}
+              disabled={loading}
+              className="flex-1"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Aktiverar...
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4 mr-2" />
+                  Aktivera notiser
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-500">
+          {isSubscribed
+            ? 'Du kan stänga av notiserna när som helst.'
+            : 'Vi skickar endast viktiga notiser baserat på dina inställningar.'}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
-// Helper function to convert VAPID key
+// Helper to convert VAPID key
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
     .replace(/\-/g, '+')
     .replace(/_/g, '/');
@@ -338,6 +289,5 @@ function urlBase64ToUint8Array(base64String) {
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
-
   return outputArray;
 }

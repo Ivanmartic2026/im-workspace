@@ -1,4 +1,13 @@
+import { useEffect } from 'react';
+
 export default function ServiceWorkerManager() {
-  // Service Worker disabled - not supported in current deployment
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((err) => {
+        console.warn('Service Worker registration failed:', err);
+      });
+    }
+  }, []);
+
   return null;
 }
