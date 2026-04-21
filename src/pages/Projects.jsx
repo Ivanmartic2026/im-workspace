@@ -60,6 +60,13 @@ export default function Projects() {
     initialData: []
   });
 
+  // Hitta senaste projekt som tid registrerades på
+  const getLatestProjectId = () => {
+    if (allTimeEntries.length === 0) return null;
+    const latestTimeEntry = allTimeEntries.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    return latestTimeEntry?.project_id;
+  };
+
   const { data: allJournalEntries = [] } = useQuery({
     queryKey: ['journal-entries'],
     queryFn: () => base44.entities.DrivingJournalEntry.list(),
@@ -253,6 +260,17 @@ export default function Projects() {
             <Button
               onClick={() => {
                 resetForm();
+                const latestProjectId = getLatestProjectId();
+                if (latestProjectId) {
+                  const latestProject = allProjects.find(p => p.id === latestProjectId);
+                  if (latestProject) {
+                    setFormData(prev => ({
+                      ...prev,
+                      name: latestProject.name || '',
+                      project_code: latestProject.project_code || ''
+                    }));
+                  }
+                }
                 setShowModal(true);
               }}
               className="bg-slate-900 hover:bg-slate-800"
@@ -353,6 +371,17 @@ export default function Projects() {
               <Button
                 onClick={() => {
                   resetForm();
+                  const latestProjectId = getLatestProjectId();
+                  if (latestProjectId) {
+                    const latestProject = allProjects.find(p => p.id === latestProjectId);
+                    if (latestProject) {
+                      setFormData(prev => ({
+                        ...prev,
+                        name: latestProject.name || '',
+                        project_code: latestProject.project_code || ''
+                      }));
+                    }
+                  }
                   setShowModal(true);
                 }}
               >
