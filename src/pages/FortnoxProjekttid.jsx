@@ -265,38 +265,60 @@ export default function FortnoxProjekttid() {
                   <p className="text-slate-500">Inga tidsposter ännu</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-200">
-                        <th className="text-left py-3 px-3 font-semibold text-slate-900">Projekt</th>
-                        <th className="text-left py-3 px-3 font-semibold text-slate-900">Datum</th>
-                        <th className="text-right py-3 px-3 font-semibold text-slate-900">Timmar</th>
-                        <th className="text-left py-3 px-3 font-semibold text-slate-900">Beskrivning</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {timeEntries.map(entry => (
-                        <tr key={entry.id} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="py-3 px-3">
-                            <span className="font-medium text-slate-900">{entry.projectNumber}</span>
-                            {entry.projectName && (
-                              <p className="text-xs text-slate-500">{entry.projectName}</p>
-                            )}
-                          </td>
-                          <td className="py-3 px-3 text-slate-600">
-                            {format(new Date(entry.date), 'd MMM yyyy', { locale: sv })}
-                          </td>
-                          <td className="py-3 px-3 text-right font-semibold text-slate-900">
-                            {entry.hours}h
-                          </td>
-                          <td className="py-3 px-3 text-slate-600">
-                            {entry.description}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="space-y-6">
+                  {Object.entries(
+                    timeEntries.reduce((acc, entry) => {
+                      const dateKey = format(new Date(entry.date), 'yyyy-MM-dd');
+                      if (!acc[dateKey]) {
+                        acc[dateKey] = { totalHours: 0, entries: [] };
+                      }
+                      acc[dateKey].totalHours += entry.hours;
+                      acc[dateKey].entries.push(entry);
+                      return acc;
+                    }, {})
+                  )
+                    .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
+                    .map(([date, { totalHours, entries }]) => (
+                      <div key={date}>
+                        <div className="flex justify-between items-center mb-3">
+                          <h3 className="text-lg font-semibold text-slate-900">
+                            {format(new Date(date), 'EEEE, d MMMM', { locale: sv })}
+                          </h3>
+                          <span className="text-lg font-semibold text-slate-900 bg-slate-100 px-3 py-1 rounded-lg">
+                            {totalHours}h
+                          </span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-slate-200">
+                                <th className="text-left py-3 px-3 font-semibold text-slate-700">Projekt</th>
+                                <th className="text-left py-3 px-3 font-semibold text-slate-700">Beskrivning</th>
+                                <th className="text-right py-3 px-3 font-semibold text-slate-700">Timmar</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {entries.map(entry => (
+                                <tr key={entry.id} className="border-b border-slate-100 hover:bg-slate-50">
+                                  <td className="py-3 px-3">
+                                    <span className="font-medium text-slate-900">{entry.projectNumber}</span>
+                                    {entry.projectName && (
+                                      <p className="text-xs text-slate-500">{entry.projectName}</p>
+                                    )}
+                                  </td>
+                                  <td className="py-3 px-3 text-slate-600">
+                                    {entry.description}
+                                  </td>
+                                  <td className="py-3 px-3 text-right font-semibold text-slate-900">
+                                    {entry.hours}h
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               )}
             </CardContent>
