@@ -338,11 +338,6 @@ export default function Home() {
 
         </motion.div>
 
-        {/* Vehicle Trips Overview - Admin Only */}
-        {user?.role === 'admin' && (
-          <VehicleTripsOverview />
-        )}
-
         {/* Important News Alert */}
         <ImportantNewsAlert 
           posts={importantPosts}
