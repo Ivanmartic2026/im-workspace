@@ -1,0 +1,95 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Projektnamn"
+    },
+    "project_code": {
+      "type": "string",
+      "description": "Projektkod"
+    },
+    "description": {
+      "type": "string",
+      "description": "Projektbeskrivning"
+    },
+    "customer": {
+      "type": "string",
+      "description": "Kund"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "internt",
+        "externt",
+        "fakturerbart",
+        "ej_fakturerbart"
+      ],
+      "default": "externt",
+      "description": "Projekttyp"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planerat",
+        "p\u00e5g\u00e5ende",
+        "avslutat",
+        "pausat"
+      ],
+      "default": "planerat",
+      "description": "Projektstatus"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Startdatum"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Slutdatum"
+    },
+    "budget_hours": {
+      "type": "number",
+      "description": "Budgeterade timmar"
+    },
+    "hourly_rate": {
+      "type": "number",
+      "description": "Timpris (kr)"
+    },
+    "cost_center": {
+      "type": "string",
+      "description": "Kostnadsst\u00e4lle"
+    },
+    "project_manager_email": {
+      "type": "string",
+      "description": "Projektledare"
+    },
+    "team_members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Teammedlemmar (email-adresser)"
+    },
+    "is_billable": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r projektet fakturerbart"
+    },
+    "is_invoiced": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00c4r projektet fakturerat"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Fakturanummer"
+    }
+  },
+  "required": [
+    "name",
+    "project_code"
+  ]
+}

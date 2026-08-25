@@ -1,0 +1,91 @@
+{
+  "name": "ApprovalRequest",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "leave",
+        "time_adjustment",
+        "overtime"
+      ],
+      "description": "Typ av ans\u00f6kan"
+    },
+    "requester_email": {
+      "type": "string",
+      "description": "Den som ans\u00f6ker"
+    },
+    "requester_name": {
+      "type": "string",
+      "description": "Namn p\u00e5 s\u00f6kande"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID f\u00f6r relaterad entitet (LeaveRequest eller TimeEntry)"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "enum": [
+        "LeaveRequest",
+        "TimeEntry"
+      ],
+      "description": "Typ av relaterad entitet"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av ans\u00f6kan"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motivering"
+    },
+    "original_data": {
+      "type": "object",
+      "description": "Originaldata (f\u00f6r tidjusteringar)"
+    },
+    "requested_data": {
+      "type": "object",
+      "description": "Beg\u00e4rda \u00e4ndringar"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Status"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Email f\u00f6r granskare"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r granskning"
+    },
+    "review_comment": {
+      "type": "string",
+      "description": "Kommentar fr\u00e5n granskare"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Prioritet"
+    }
+  },
+  "required": [
+    "type",
+    "requester_email",
+    "status"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "ScheduleEvent",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titel p\u00e5 h\u00e4ndelsen"
+    },
+    "description": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "skift",
+        "m\u00f6te",
+        "utbildning",
+        "event"
+      ],
+      "default": "m\u00f6te"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "location": {
+      "type": "string"
+    },
+    "assigned_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Email-adresser f\u00f6r deltagare"
+    },
+    "all_day": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "start_time"
+  ]
+}

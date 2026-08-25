@@ -1,0 +1,129 @@
+{
+  "name": "VehicleHandover",
+  "type": "object",
+  "properties": {
+    "vehicle_id": {
+      "type": "string",
+      "description": "ID f\u00f6r fordonet"
+    },
+    "registration_number": {
+      "type": "string",
+      "description": "Registreringsnummer"
+    },
+    "handover_type": {
+      "type": "string",
+      "enum": [
+        "utl\u00e4mning",
+        "\u00e5terl\u00e4mning"
+      ],
+      "description": "Typ av \u00f6verl\u00e4mning"
+    },
+    "driver_email": {
+      "type": "string",
+      "description": "F\u00f6rare"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt"
+    },
+    "mileage": {
+      "type": "number",
+      "description": "M\u00e4tarst\u00e4llning"
+    },
+    "fuel_level": {
+      "type": "string",
+      "enum": [
+        "tom",
+        "kvart",
+        "halv",
+        "trekvartar",
+        "full"
+      ],
+      "description": "Br\u00e4nsleniv\u00e5/laddniv\u00e5"
+    },
+    "exterior_condition": {
+      "type": "string",
+      "enum": [
+        "utm\u00e4rkt",
+        "bra",
+        "acceptabel",
+        "skadad"
+      ],
+      "default": "bra"
+    },
+    "interior_condition": {
+      "type": "string",
+      "enum": [
+        "utm\u00e4rkt",
+        "bra",
+        "acceptabel",
+        "skadad"
+      ],
+      "default": "bra"
+    },
+    "checklist": {
+      "type": "object",
+      "properties": {
+        "exterior_clean": {
+          "type": "boolean"
+        },
+        "interior_clean": {
+          "type": "boolean"
+        },
+        "no_visible_damage": {
+          "type": "boolean"
+        },
+        "warning_triangle": {
+          "type": "boolean"
+        },
+        "first_aid_kit": {
+          "type": "boolean"
+        },
+        "all_keys": {
+          "type": "boolean"
+        }
+      }
+    },
+    "damages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "is_new": {
+            "type": "boolean"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Rapporterade skador"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Foton p\u00e5 fordonets skick"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Digital signatur (om till\u00e4mpligt)"
+    }
+  },
+  "required": [
+    "vehicle_id",
+    "handover_type",
+    "driver_email",
+    "mileage",
+    "fuel_level"
+  ]
+}

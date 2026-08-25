@@ -1,0 +1,79 @@
+{
+  "name": "OnboardingTask",
+  "type": "object",
+  "properties": {
+    "employee_id": {
+      "type": "string",
+      "description": "ID f\u00f6r medarbetaren"
+    },
+    "employee_email": {
+      "type": "string",
+      "description": "Email f\u00f6r medarbetaren"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "ID f\u00f6r mallen uppgiften kommer fr\u00e5n"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titel p\u00e5 uppgiften"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av uppgiften"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "F\u00f6rfallodatum"
+    },
+    "assigned_to_email": {
+      "type": "string",
+      "description": "Vem som \u00e4r ansvarig"
+    },
+    "assigned_to_role": {
+      "type": "string",
+      "enum": [
+        "employee",
+        "manager",
+        "hr"
+      ],
+      "default": "employee"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "approved"
+      ],
+      "default": "pending"
+    },
+    "is_critical": {
+      "type": "boolean",
+      "default": false
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r uppgiften slutf\u00f6rdes"
+    },
+    "completed_by": {
+      "type": "string",
+      "description": "Email f\u00f6r den som slutf\u00f6rde uppgiften"
+    },
+    "related_resource_url": {
+      "type": "string",
+      "description": "L\u00e4nk till manual eller dokument"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Interna noteringar"
+    }
+  },
+  "required": [
+    "employee_id",
+    "title"
+  ]
+}

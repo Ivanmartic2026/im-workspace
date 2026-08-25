@@ -1,0 +1,69 @@
+{
+  "name": "BluetoothDevice",
+  "type": "object",
+  "properties": {
+    "vehicle_id": {
+      "type": "string",
+      "description": "Fordon som enheten \u00e4r kopplad till"
+    },
+    "registration_number": {
+      "type": "string",
+      "description": "Registreringsnummer (f\u00f6r snabb referens)"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "mobile",
+        "beacon"
+      ],
+      "default": "mobile",
+      "description": "Typ av Bluetooth-enhet"
+    },
+    "mac_address": {
+      "type": "string",
+      "description": "MAC-adress f\u00f6r Bluetooth-enheten"
+    },
+    "driver_email": {
+      "type": "string",
+      "description": "F\u00f6rarens email"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "F\u00f6rarens namn"
+    },
+    "driver_code": {
+      "type": "string",
+      "description": "F\u00f6rarens ID-kod/personnummer"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r enheten aktiv"
+    },
+    "clock_in_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Automatisk in-/utcheckning aktiverad"
+    },
+    "power_cutoff_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Fj\u00e4rrstyrning av str\u00f6m/br\u00e4nsle aktiverad"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r enheten senast synkroniserades med GPS"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "vehicle_id",
+    "mac_address",
+    "driver_email",
+    "driver_name"
+  ]
+}

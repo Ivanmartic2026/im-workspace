@@ -1,0 +1,155 @@
+{
+  "name": "MaintenanceIssue",
+  "type": "object",
+  "properties": {
+    "vehicle_id": {
+      "type": "string",
+      "description": "ID f\u00f6r fordonet"
+    },
+    "registration_number": {
+      "type": "string",
+      "description": "Registreringsnummer"
+    },
+    "issue_type": {
+      "type": "string",
+      "enum": [
+        "skada",
+        "tekniskt_fel",
+        "trafikincident",
+        "inbrott_st\u00f6ld",
+        "service",
+        "annat"
+      ],
+      "default": "tekniskt_fel"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "kan_k\u00f6ras",
+        "b\u00f6r_ej_k\u00f6ras",
+        "m\u00e5ste_stanna"
+      ],
+      "default": "kan_k\u00f6ras",
+      "description": "Allvarlighetsgrad"
+    },
+    "title": {
+      "type": "string",
+      "description": "Kort beskrivning"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detaljerad beskrivning"
+    },
+    "incident_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum och tid f\u00f6r h\u00e4ndelsen"
+    },
+    "location": {
+      "type": "string",
+      "description": "Plats d\u00e4r felet intr\u00e4ffade"
+    },
+    "mileage": {
+      "type": "number",
+      "description": "M\u00e4tarst\u00e4llning vid fel"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Foton/videos"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ny",
+        "p\u00e5g\u00e5r",
+        "v\u00e4ntar_verkstad",
+        "v\u00e4ntar_delar",
+        "v\u00e4ntar_attest",
+        "klar",
+        "avbruten"
+      ],
+      "default": "ny"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "l\u00e5g",
+        "normal",
+        "h\u00f6g",
+        "akut"
+      ],
+      "default": "normal"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Email till ansvarig (fleet manager)"
+    },
+    "workshop": {
+      "type": "string",
+      "description": "Verkstad"
+    },
+    "workshop_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum f\u00f6r verkstad"
+    },
+    "estimated_cost": {
+      "type": "number",
+      "description": "Uppskattat pris"
+    },
+    "actual_cost": {
+      "type": "number",
+      "description": "Faktisk kostnad"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Vem som attesterat"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "work_performed": {
+      "type": "string",
+      "description": "Vad som gjordes"
+    },
+    "next_action": {
+      "type": "string",
+      "description": "N\u00e4sta \u00e5tg\u00e4rd"
+    },
+    "next_action_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "\u00c4ndringshistorik"
+    }
+  },
+  "required": [
+    "vehicle_id",
+    "issue_type",
+    "title",
+    "description"
+  ]
+}

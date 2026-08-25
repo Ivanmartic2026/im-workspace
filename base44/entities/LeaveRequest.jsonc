@@ -1,0 +1,67 @@
+{
+  "name": "LeaveRequest",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "semester",
+        "vab",
+        "sjuk",
+        "tj\u00e4nstledigt",
+        "f\u00f6r\u00e4ldraledigt",
+        "annat"
+      ],
+      "default": "semester"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "days": {
+      "type": "number",
+      "description": "Antal dagar"
+    },
+    "hours_per_day": {
+      "type": "number",
+      "description": "Antal timmar per dag",
+      "default": 8
+    },
+    "reason": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Chefens email som godk\u00e4nt/avslagit"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_comment": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "employee_email",
+    "type",
+    "start_date",
+    "end_date"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "name": "JournalPolicy",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Namn p\u00e5 policyn"
+    },
+    "work_hours_start": {
+      "type": "string",
+      "description": "Starttid f\u00f6r arbetstid (HH:mm)"
+    },
+    "work_hours_end": {
+      "type": "string",
+      "description": "Sluttid f\u00f6r arbetstid (HH:mm)"
+    },
+    "work_days": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Arbetsdagar (0=s\u00f6ndag, 1=m\u00e5ndag, ..., 6=l\u00f6rdag)"
+    },
+    "office_locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "radius_meters": {
+            "type": "number",
+            "default": 500
+          }
+        }
+      },
+      "description": "Kontorsplatser f\u00f6r automatisk kategorisering"
+    },
+    "auto_approve_threshold_km": {
+      "type": "number",
+      "default": 10,
+      "description": "Resor kortare \u00e4n detta godk\u00e4nns automatiskt"
+    },
+    "require_purpose_over_km": {
+      "type": "number",
+      "default": 50,
+      "description": "Kr\u00e4ver syfte f\u00f6r resor l\u00e4ngre \u00e4n detta"
+    },
+    "auto_categorize_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Aktivera automatisk kategorisering"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "name": "Vehicle",
+  "type": "object",
+  "properties": {
+    "registration_number": {
+      "type": "string",
+      "description": "Registreringsnummer"
+    },
+    "gps_device_id": {
+      "type": "string",
+      "description": "GPS device ID fr\u00e5n GalaGPS-systemet"
+    },
+    "make": {
+      "type": "string",
+      "description": "M\u00e4rke (t.ex. Volvo, Tesla)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Modell"
+    },
+    "year": {
+      "type": "number",
+      "description": "\u00c5rsmodell"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "personbil",
+        "l\u00e4tt lastbil",
+        "lastbil",
+        "sk\u00e5pbil",
+        "specialfordon"
+      ],
+      "default": "personbil",
+      "description": "Fordonskategori"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "enum": [
+        "personbil",
+        "l\u00e4tt lastbil",
+        "lastbil",
+        "sk\u00e5pbil",
+        "annat"
+      ],
+      "default": "personbil"
+    },
+    "fuel_type": {
+      "type": "string",
+      "enum": [
+        "bensin",
+        "diesel",
+        "el",
+        "hybrid",
+        "plugin-hybrid",
+        "annat"
+      ],
+      "default": "bensin"
+    },
+    "fuel_cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "Tankkortsleverant\u00f6r"
+          },
+          "card_number": {
+            "type": "string",
+            "description": "Kortnummer"
+          },
+          "pin_code": {
+            "type": "string",
+            "description": "Kod/PIN f\u00f6r kortet"
+          }
+        }
+      },
+      "description": "Lista med tankkort"
+    },
+    "is_pool_vehicle": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00c4r det en poolbil?"
+    },
+    "assigned_driver": {
+      "type": "string",
+      "description": "Email till ansvarig f\u00f6rare"
+    },
+    "assigned_employees": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Email-adresser p\u00e5 medarbetare som kan se och anv\u00e4nda fordonet"
+    },
+    "current_mileage": {
+      "type": "number",
+      "description": "Senast rapporterad k\u00f6rstr\u00e4cka (km)"
+    },
+    "next_service_date": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4sta servicebes\u00f6k"
+    },
+    "next_service_mileage": {
+      "type": "number",
+      "description": "N\u00e4sta service vid km"
+    },
+    "next_inspection_date": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4sta besiktning"
+    },
+    "tire_change_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Planerat d\u00e4ckbyte"
+    },
+    "insurance_document_url": {
+      "type": "string",
+      "description": "F\u00f6rs\u00e4kringsdokument"
+    },
+    "lease_document_url": {
+      "type": "string",
+      "description": "Leasingavtal"
+    },
+    "manual_url": {
+      "type": "string",
+      "description": "Instruktioner/manual"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aktiv",
+        "service",
+        "skadad",
+        "avst\u00e4lld"
+      ],
+      "default": "aktiv"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Bild p\u00e5 fordonet"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "registration_number",
+    "make",
+    "model"
+  ]
+}

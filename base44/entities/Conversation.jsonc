@@ -1,0 +1,66 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Namn p\u00e5 konversationen"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "group"
+      ],
+      "default": "direct",
+      "description": "Direct chat eller gruppchatt"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Deltagares email-adresser"
+    },
+    "last_message": {
+      "type": "string",
+      "description": "Senaste meddelandet"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r senaste meddelandet"
+    },
+    "last_message_by": {
+      "type": "string",
+      "description": "Vem som skickade senaste meddelandet"
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00c4r konversationen arkiverad"
+    },
+    "typing_users": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Anv\u00e4ndare som skriver just nu"
+    }
+  },
+  "required": [
+    "participants"
+  ]
+}

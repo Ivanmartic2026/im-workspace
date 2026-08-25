@@ -1,0 +1,399 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Koppling till User-entitet"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Visningsnamn (kan \u00e4ndras av anv\u00e4ndaren)"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Support & Service",
+        "Installation",
+        "Sales",
+        "Rental",
+        "Warehouse & Production",
+        "Management"
+      ],
+      "default": "Support & Service"
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "is_manager": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u00c4r chef/teamledare"
+    },
+    "manages_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Avdelningar som personen \u00e4r chef f\u00f6r"
+    },
+    "manager_email": {
+      "type": "string",
+      "description": "Chefens email"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "location": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "profile_image": {
+      "type": "string"
+    },
+    "contract_url": {
+      "type": "string",
+      "description": "Anst\u00e4llningskontrakt"
+    },
+    "emergency_contacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "relationship": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "N\u00f6dkontakter"
+    },
+    "important_dates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "birthday",
+              "anniversary",
+              "other"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Viktiga datum"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "contract",
+              "certificate",
+              "id",
+              "other"
+            ]
+          },
+          "uploaded_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Medarbetarfiler"
+    },
+    "onboarding_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started",
+      "description": "Onboarding-status"
+    },
+    "assigned_onboarding_template_id": {
+      "type": "string",
+      "description": "ID f\u00f6r tilldelad onboarding-mall"
+    },
+    "onboarding_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4r onboarding p\u00e5b\u00f6rjades"
+    },
+    "onboarding_completed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4r onboarding slutf\u00f6rdes"
+    },
+    "onboarding_feedback": {
+      "type": "object",
+      "properties": {
+        "overall_rating": {
+          "type": "number",
+          "description": "\u00d6vergripande betyg 1-5"
+        },
+        "helpful_aspects": {
+          "type": "string",
+          "description": "Vad som var mest hj\u00e4lpsamt"
+        },
+        "improvement_suggestions": {
+          "type": "string",
+          "description": "F\u00f6rb\u00e4ttringsf\u00f6rslag"
+        },
+        "comment": {
+          "type": "string",
+          "description": "\u00d6vrig kommentar"
+        },
+        "submitted_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "description": "Feedback p\u00e5 onboarding-processen"
+    },
+    "credentials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "system_name": {
+            "type": "string",
+            "description": "Namn p\u00e5 systemet"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "L\u00f6senord och koder (endast f\u00f6r admin)"
+    },
+    "vacation_balance": {
+      "type": "number",
+      "default": 25,
+      "description": "Antal semesterdagar kvar"
+    },
+    "vacation_earned_this_year": {
+      "type": "number",
+      "default": 0,
+      "description": "Intj\u00e4nade semesterdagar i \u00e5r"
+    },
+    "vacation_used_this_year": {
+      "type": "number",
+      "default": 0,
+      "description": "Anv\u00e4nda semesterdagar i \u00e5r"
+    },
+    "flex_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Flexsaldo i timmar (+/-)"
+    },
+    "comp_time_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Komptidssaldo i timmar"
+    },
+    "normal_work_hours_per_day": {
+      "type": "number",
+      "default": 8,
+      "description": "Normal arbetstid per dag"
+    },
+    "max_daily_work_hours": {
+      "type": "number",
+      "default": 12,
+      "description": "Max rekommenderad arbetstid per dag"
+    },
+    "work_policy_id": {
+      "type": "string",
+      "description": "Kopplad arbetspolicy"
+    },
+    "sick_days_this_year": {
+      "type": "number",
+      "default": 0,
+      "description": "Sjukdagar i \u00e5r"
+    },
+    "vab_days_this_year": {
+      "type": "number",
+      "default": 0,
+      "description": "VAB-dagar i \u00e5r"
+    },
+    "overtime_hours_this_month": {
+      "type": "number",
+      "default": 0,
+      "description": "\u00d6vertidstimmar denna m\u00e5nad"
+    },
+    "employment_type": {
+      "type": "string",
+      "enum": [
+        "heltid",
+        "deltid",
+        "timanst\u00e4lld",
+        "konsult"
+      ],
+      "default": "heltid",
+      "description": "Anst\u00e4llningsform"
+    },
+    "hourly_rate": {
+      "type": "number",
+      "description": "Timpris (f\u00f6r fakturering)"
+    },
+    "assigned_features": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "TimeTracking",
+          "Vehicles",
+          "GPS",
+          "DrivingJournal",
+          "Manuals",
+          "Chat",
+          "Reports"
+        ]
+      },
+      "default": [],
+      "description": "Vilka funktioner medarbetaren har tillg\u00e5ng till"
+    },
+    "assigned_vehicles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "ID:n f\u00f6r fordon som medarbetaren kan se"
+    },
+    "default_project_id": {
+      "type": "string",
+      "description": "Standard projekt f\u00f6r snabb inst\u00e4mpling"
+    },
+    "notification_preferences": {
+      "type": "object",
+      "properties": {
+        "time_report_approved": {
+          "type": "boolean",
+          "default": true
+        },
+        "time_report_rejected": {
+          "type": "boolean",
+          "default": true
+        },
+        "leave_request_approved": {
+          "type": "boolean",
+          "default": true
+        },
+        "leave_request_rejected": {
+          "type": "boolean",
+          "default": true
+        },
+        "new_project_task": {
+          "type": "boolean",
+          "default": true
+        },
+        "time_anomaly_detected": {
+          "type": "boolean",
+          "default": true
+        },
+        "forgot_clock_out": {
+          "type": "boolean",
+          "default": true
+        },
+        "overtime_warning": {
+          "type": "boolean",
+          "default": false
+        },
+        "vehicle_maintenance": {
+          "type": "boolean",
+          "default": false
+        },
+        "driving_journal_needs_review": {
+          "type": "boolean",
+          "default": true
+        },
+        "news_and_announcements": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "description": "Notifikationsinst\u00e4llningar"
+    },
+    "theme_preference": {
+      "type": "string",
+      "enum": [
+        "light",
+        "dark",
+        "auto"
+      ],
+      "default": "light",
+      "description": "Temainst\u00e4llning"
+    },
+    "language_preference": {
+      "type": "string",
+      "enum": [
+        "sv",
+        "en"
+      ],
+      "default": "sv",
+      "description": "Spr\u00e5kinst\u00e4llning"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

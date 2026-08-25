@@ -1,0 +1,49 @@
+{
+  "name": "ProjectExpense",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID f\u00f6r det projekt kostnaden \u00e4r kopplad till"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av ink\u00f6pet/kostnaden"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Kostnaden i SEK"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum f\u00f6r ink\u00f6pet"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "material",
+        "resa",
+        "underleverant\u00f6r",
+        "annat"
+      ],
+      "default": "annat",
+      "description": "Kategori f\u00f6r kostnaden"
+    },
+    "receipt_url": {
+      "type": "string",
+      "description": "URL till fotat kvitto eller bifogad fil"
+    },
+    "invoiced_to_customer": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indikerar om kostnaden har fakturerats vidare till kund"
+    }
+  },
+  "required": [
+    "project_id",
+    "description",
+    "amount",
+    "date"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "conversation_id": {
+      "type": "string",
+      "description": "ID p\u00e5 konversationen"
+    },
+    "sender_email": {
+      "type": "string",
+      "description": "Avs\u00e4ndarens email"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Avs\u00e4ndarens namn"
+    },
+    "content": {
+      "type": "string",
+      "description": "Meddelandets inneh\u00e5ll"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Har meddelandet l\u00e4sts"
+    },
+    "read_by": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "read_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "De som l\u00e4st meddelandet"
+    },
+    "delivered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r meddelandet levererades"
+    }
+  },
+  "required": [
+    "conversation_id",
+    "sender_email",
+    "content"
+  ]
+}

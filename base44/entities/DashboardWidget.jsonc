@@ -1,0 +1,42 @@
+{
+  "name": "DashboardWidget",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Anv\u00e4ndare som \u00e4ger denna widget-konfiguration"
+    },
+    "widget_type": {
+      "type": "string",
+      "enum": [
+        "time_summary",
+        "vehicle_status",
+        "pending_approvals",
+        "upcoming_service",
+        "recent_trips",
+        "leave_balance",
+        "team_presence",
+        "quick_actions"
+      ],
+      "description": "Typ av widget"
+    },
+    "position": {
+      "type": "number",
+      "description": "Position i dashboarden (0-baserad)"
+    },
+    "is_visible": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r widgeten synlig"
+    },
+    "settings": {
+      "type": "object",
+      "description": "Widget-specifika inst\u00e4llningar"
+    }
+  },
+  "required": [
+    "user_email",
+    "widget_type",
+    "position"
+  ]
+}

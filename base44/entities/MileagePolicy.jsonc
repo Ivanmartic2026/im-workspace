@@ -1,0 +1,54 @@
+{
+  "name": "MileagePolicy",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Namn p\u00e5 policyn"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "enum": [
+        "personbil",
+        "l\u00e4tt lastbil",
+        "lastbil",
+        "motorcykel",
+        "moped"
+      ],
+      "default": "personbil",
+      "description": "Fordonstyp"
+    },
+    "rate_per_km": {
+      "type": "number",
+      "description": "Ers\u00e4ttning per km (SEK)"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date",
+      "description": "Giltig fr\u00e5n datum"
+    },
+    "valid_to": {
+      "type": "string",
+      "format": "date",
+      "description": "Giltig till datum"
+    },
+    "max_deductible_km_per_year": {
+      "type": "number",
+      "description": "Max avdragsgilla km per \u00e5r"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r policyn aktiv"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar om policyn"
+    }
+  },
+  "required": [
+    "name",
+    "vehicle_type",
+    "rate_per_km"
+  ]
+}

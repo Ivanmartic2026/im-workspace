@@ -1,0 +1,63 @@
+{
+  "name": "NotificationSettings",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Anv\u00e4ndarens email"
+    },
+    "onboarding_tasks": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notiser f\u00f6r onboarding-uppgifter"
+    },
+    "time_entries": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notiser f\u00f6r tidrapportering"
+    },
+    "leave_requests": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notiser f\u00f6r semesterans\u00f6kningar"
+    },
+    "vehicle_maintenance": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notiser f\u00f6r fordonsunderh\u00e5ll"
+    },
+    "chat_messages": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notiser f\u00f6r chattmeddelanden"
+    },
+    "project_updates": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notiser f\u00f6r projektuppdateringar"
+    },
+    "news_posts": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notiser f\u00f6r nyheter"
+    },
+    "system_alerts": {
+      "type": "boolean",
+      "default": true,
+      "description": "Systemaviseringar"
+    },
+    "push_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Push-notiser aktiverade"
+    },
+    "email_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Email-notiser aktiverade"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

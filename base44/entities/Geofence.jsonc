@@ -1,0 +1,70 @@
+{
+  "name": "Geofence",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Namn p\u00e5 platsen"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "kontor",
+        "kundplats",
+        "lager",
+        "verkstad",
+        "\u00f6vrigt"
+      ],
+      "default": "kontor",
+      "description": "Typ av plats"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Latitud f\u00f6r platsens centrum"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitud f\u00f6r platsens centrum"
+    },
+    "radius_meters": {
+      "type": "number",
+      "default": 200,
+      "description": "Radie i meter"
+    },
+    "auto_classify_as": {
+      "type": "string",
+      "enum": [
+        "tj\u00e4nst",
+        "privat",
+        null
+      ],
+      "description": "Automatisk klassificering av resor till/fr\u00e5n denna plats"
+    },
+    "default_project_code": {
+      "type": "string",
+      "description": "Standard projektkod f\u00f6r resor till denna plats"
+    },
+    "default_customer": {
+      "type": "string",
+      "description": "Standard kund f\u00f6r resor till denna plats"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adress"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r platsen aktiv"
+    }
+  },
+  "required": [
+    "name",
+    "latitude",
+    "longitude"
+  ]
+}

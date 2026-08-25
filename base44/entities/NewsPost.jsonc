@@ -1,0 +1,113 @@
+{
+  "name": "NewsPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Rubrik p\u00e5 nyheten"
+    },
+    "content": {
+      "type": "string",
+      "description": "Inneh\u00e5llet i nyheten"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "ledning",
+        "hr",
+        "event",
+        "allm\u00e4nt"
+      ],
+      "default": "allm\u00e4nt"
+    },
+    "is_important": {
+      "type": "boolean",
+      "default": false,
+      "description": "Markera som viktig/akut"
+    },
+    "requires_acknowledgment": {
+      "type": "boolean",
+      "default": false,
+      "description": "Kr\u00e4ver att anv\u00e4ndare godk\u00e4nner att de l\u00e4st nyheten"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Bild till nyheten"
+    },
+    "target_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Vilka avdelningar som ska se nyheten (tom = alla)"
+    },
+    "acknowledged_by": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "acknowledged_at": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista \u00f6ver anv\u00e4ndare som godk\u00e4nt att de l\u00e4st nyheten"
+    },
+    "reactions": {
+      "type": "object",
+      "properties": {
+        "likes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hearts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "celebrates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "author_email": {
+            "type": "string"
+          },
+          "author_name": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "name": "WorkPolicy",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Namn p\u00e5 policyn"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r policyn aktiv"
+    },
+    "applies_to_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Vilka avdelningar policyn g\u00e4ller f\u00f6r (tom = alla)"
+    },
+    "normal_work_hours_per_day": {
+      "type": "number",
+      "default": 8,
+      "description": "Normal arbetstid per dag (timmar)"
+    },
+    "normal_work_hours_per_week": {
+      "type": "number",
+      "default": 40,
+      "description": "Normal arbetstid per vecka (timmar)"
+    },
+    "work_days": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "default": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "description": "Arbetsdagar (0=s\u00f6ndag, 1=m\u00e5ndag, ..., 6=l\u00f6rdag)"
+    },
+    "work_start_time": {
+      "type": "string",
+      "description": "Normal starttid (HH:mm)"
+    },
+    "work_end_time": {
+      "type": "string",
+      "description": "Normal sluttid (HH:mm)"
+    },
+    "required_break_minutes": {
+      "type": "number",
+      "default": 30,
+      "description": "Obligatorisk rast (minuter)"
+    },
+    "break_after_hours": {
+      "type": "number",
+      "default": 5,
+      "description": "Rast kr\u00e4vs efter X timmar"
+    },
+    "max_work_hours_per_day": {
+      "type": "number",
+      "default": 12,
+      "description": "Max arbetstid per dag"
+    },
+    "daily_rest_hours": {
+      "type": "number",
+      "default": 11,
+      "description": "Minsta dygns vila (timmar)"
+    },
+    "weekly_rest_hours": {
+      "type": "number",
+      "default": 36,
+      "description": "Minsta veckovila (timmar)"
+    },
+    "overtime_threshold_daily": {
+      "type": "number",
+      "default": 8,
+      "description": "\u00d6vertid startar efter X timmar per dag"
+    },
+    "overtime_threshold_weekly": {
+      "type": "number",
+      "default": 40,
+      "description": "\u00d6vertid startar efter X timmar per vecka"
+    },
+    "qualified_overtime_after_hours": {
+      "type": "number",
+      "default": 10,
+      "description": "Kvalificerad \u00f6vertid efter X timmar per dag"
+    },
+    "overtime_compensation_rate": {
+      "type": "number",
+      "default": 1.5,
+      "description": "Ers\u00e4ttning f\u00f6r enkel \u00f6vertid (multiplikator)"
+    },
+    "qualified_overtime_rate": {
+      "type": "number",
+      "default": 2.0,
+      "description": "Ers\u00e4ttning f\u00f6r kvalificerad \u00f6vertid (multiplikator)"
+    },
+    "weekend_work_rate": {
+      "type": "number",
+      "default": 2.0,
+      "description": "Ers\u00e4ttning f\u00f6r helgarbete (multiplikator)"
+    },
+    "vacation_days_per_year": {
+      "type": "number",
+      "default": 25,
+      "description": "Antal semesterdagar per \u00e5r"
+    },
+    "vacation_earning_start_date": {
+      "type": "string",
+      "description": "Startdatum f\u00f6r intj\u00e4nande\u00e5r (MM-DD)"
+    },
+    "allow_vacation_advance": {
+      "type": "boolean",
+      "default": false,
+      "description": "Till\u00e5t semesterf\u00f6rskott"
+    },
+    "max_saved_vacation_days": {
+      "type": "number",
+      "default": 5,
+      "description": "Max antal sparade semesterdagar"
+    },
+    "sick_leave_rules": {
+      "type": "object",
+      "properties": {
+        "requires_certificate_after_days": {
+          "type": "number",
+          "default": 7
+        },
+        "paid_sick_days_per_year": {
+          "type": "number",
+          "default": 14
+        }
+      }
+    },
+    "flex_time_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Till\u00e5t flextid"
+    },
+    "max_flex_balance": {
+      "type": "number",
+      "default": 40,
+      "description": "Max flextidssaldo (timmar)"
+    },
+    "gps_verification_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Kr\u00e4v GPS-verifiering"
+    },
+    "auto_clock_out_after_hours": {
+      "type": "number",
+      "description": "Auto-utst\u00e4mpling efter X timmar"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

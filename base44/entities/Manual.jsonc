@@ -1,0 +1,169 @@
+{
+  "name": "Manual",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titel p\u00e5 manualen"
+    },
+    "description": {
+      "type": "string",
+      "description": "Kort beskrivning av inneh\u00e5llet"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "produkt_teknik",
+        "arbetsrutiner",
+        "it_system",
+        "hr",
+        "varumarke_allmant"
+      ],
+      "default": "varumarke_allmant",
+      "description": "Kategori f\u00f6r manualen"
+    },
+    "subcategory": {
+      "type": "string",
+      "description": "Underkategori f\u00f6r mer specifik kategorisering"
+    },
+    "sequence_order": {
+      "type": "number",
+      "description": "Ordningsf\u00f6ljd f\u00f6r att visa manualer i sekvens (t.ex. steg 1, 2, 3)"
+    },
+    "parent_manual_id": {
+      "type": "string",
+      "description": "ID f\u00f6r \u00f6verordnad manual (f\u00f6r att skapa hierarkier)"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL till manualfilen"
+    },
+    "file_type": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "docx",
+        "xlsx",
+        "pptx",
+        "jpg",
+        "jpeg",
+        "png",
+        "mp4",
+        "webm",
+        "annat"
+      ],
+      "default": "pdf",
+      "description": "Filtyp"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0",
+      "description": "Version av manualen"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "S\u00f6kbara nyckelord"
+    },
+    "requires_acknowledgment": {
+      "type": "boolean",
+      "default": false,
+      "description": "Kr\u00e4ver att anv\u00e4ndare bekr\u00e4ftar att de l\u00e4st"
+    },
+    "acknowledged_by": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "acknowledged_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Lista \u00f6ver anv\u00e4ndare som bekr\u00e4ftat"
+    },
+    "assigned_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "E-postadresser till anv\u00e4ndare som tilldelats denna manual"
+    },
+    "target_departments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Avdelningar som har \u00e5tkomst (tom = alla)"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true,
+      "description": "Tillg\u00e4nglig f\u00f6r alla eller endast tilldelade"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "E-post f\u00f6r uppladdare"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "l\u00e5g",
+        "normal",
+        "h\u00f6g",
+        "kritisk"
+      ],
+      "default": "normal",
+      "description": "Prioritet f\u00f6r l\u00e4sning"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum d\u00e5 manualen g\u00e5r ut (valfritt)"
+    },
+    "feedback": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_email": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Anv\u00e4ndarbetyg och kommentarer"
+    },
+    "average_rating": {
+      "type": "number",
+      "description": "Genomsnittligt betyg (ber\u00e4knas automatiskt)"
+    }
+  },
+  "required": [
+    "title",
+    "file_url"
+  ]
+}

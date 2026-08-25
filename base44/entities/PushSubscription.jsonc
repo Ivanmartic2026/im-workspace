@@ -1,0 +1,41 @@
+{
+  "name": "PushSubscription",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Anv\u00e4ndarens email"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "Push service endpoint URL"
+    },
+    "auth_key": {
+      "type": "string",
+      "description": "VAPID auth key"
+    },
+    "p256dh_key": {
+      "type": "string",
+      "description": "VAPID p256dh key"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r prenumerationen aktiv"
+    },
+    "browser": {
+      "type": "string",
+      "description": "Webbl\u00e4sare (Chrome, Firefox, Safari osv)"
+    },
+    "device_name": {
+      "type": "string",
+      "description": "Enhetens namn (t.ex. 'Mobile', 'Desktop')"
+    }
+  },
+  "required": [
+    "user_email",
+    "endpoint",
+    "auth_key",
+    "p256dh_key"
+  ]
+}

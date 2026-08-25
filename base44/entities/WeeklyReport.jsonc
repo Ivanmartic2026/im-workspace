@@ -1,0 +1,126 @@
+{
+  "name": "WeeklyReport",
+  "type": "object",
+  "properties": {
+    "employee_email": {
+      "type": "string",
+      "description": "Anst\u00e4llds email"
+    },
+    "week_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Veckans startdatum (m\u00e5ndag)"
+    },
+    "week_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Veckans slutdatum (s\u00f6ndag)"
+    },
+    "week_number": {
+      "type": "number",
+      "description": "Veckonummer"
+    },
+    "year": {
+      "type": "number",
+      "description": "\u00c5r"
+    },
+    "target_hours": {
+      "type": "number",
+      "default": 40,
+      "description": "M\u00e5lv\u00e4rde i timmar f\u00f6r veckan"
+    },
+    "reported_hours": {
+      "type": "number",
+      "default": 0,
+      "description": "Totalt rapporterade timmar"
+    },
+    "remaining_hours": {
+      "type": "number",
+      "description": "\u00c5terst\u00e5ende timmar till m\u00e5l"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ej_klar",
+        "klar",
+        "\u00f6vertid"
+      ],
+      "default": "ej_klar",
+      "description": "Veckorapportstatus"
+    },
+    "submission_status": {
+      "type": "string",
+      "enum": [
+        "ej_inskickad",
+        "inskickad",
+        "godk\u00e4nd",
+        "nekad"
+      ],
+      "default": "ej_inskickad",
+      "description": "Atteststatus"
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "L\u00e5st f\u00f6r \u00e4ndringar"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r inskick"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Vem som attesterat"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r attest"
+    },
+    "review_comment": {
+      "type": "string",
+      "description": "Kommentar fr\u00e5n attestant"
+    },
+    "daily_breakdown": {
+      "type": "object",
+      "properties": {
+        "monday": {
+          "type": "number",
+          "default": 0
+        },
+        "tuesday": {
+          "type": "number",
+          "default": 0
+        },
+        "wednesday": {
+          "type": "number",
+          "default": 0
+        },
+        "thursday": {
+          "type": "number",
+          "default": 0
+        },
+        "friday": {
+          "type": "number",
+          "default": 0
+        },
+        "saturday": {
+          "type": "number",
+          "default": 0
+        },
+        "sunday": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "description": "Timmar per dag"
+    }
+  },
+  "required": [
+    "employee_email",
+    "week_start_date",
+    "week_number",
+    "year"
+  ]
+}

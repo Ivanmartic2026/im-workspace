@@ -1,0 +1,65 @@
+{
+  "name": "FuelLog",
+  "type": "object",
+  "properties": {
+    "vehicle_id": {
+      "type": "string",
+      "description": "ID f\u00f6r fordonet"
+    },
+    "registration_number": {
+      "type": "string",
+      "description": "Registreringsnummer (f\u00f6r snabb referens)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum och tid f\u00f6r tankning"
+    },
+    "liters": {
+      "type": "number",
+      "description": "Antal liter tankad"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Belopp (kr)"
+    },
+    "price_per_liter": {
+      "type": "number",
+      "description": "Pris per liter (ber\u00e4knas automatiskt)"
+    },
+    "mileage": {
+      "type": "number",
+      "description": "M\u00e4tarst\u00e4llning vid tankning (km)"
+    },
+    "fuel_type": {
+      "type": "string",
+      "description": "Typ av br\u00e4nsle"
+    },
+    "station": {
+      "type": "string",
+      "description": "Bensinstation"
+    },
+    "receipt_url": {
+      "type": "string",
+      "description": "Foto p\u00e5 kvitto"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notering"
+    },
+    "consumption": {
+      "type": "number",
+      "description": "Ber\u00e4knad f\u00f6rbrukning l/100km (om m\u00f6jligt)"
+    },
+    "driver_email": {
+      "type": "string",
+      "description": "Vem som tankade"
+    }
+  },
+  "required": [
+    "vehicle_id",
+    "date",
+    "amount",
+    "mileage"
+  ]
+}

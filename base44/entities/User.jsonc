@@ -1,0 +1,37 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "phone": {
+      "type": "string",
+      "description": "Telefonnummer"
+    },
+    "profile_image": {
+      "type": "string",
+      "description": "URL till profilbild"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om anv\u00e4ndarkontot \u00e4r aktivt"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "sv",
+        "en"
+      ],
+      "default": "sv",
+      "description": "Spr\u00e5kpreferens"
+    },
+    "notifications_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om notifikationer \u00e4r aktiverade"
+    }
+  },
+  "required": [
+    "phone",
+    "profile_image"
+  ]
+}

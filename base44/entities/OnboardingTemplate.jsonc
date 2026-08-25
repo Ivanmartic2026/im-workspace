@@ -1,0 +1,64 @@
+{
+  "name": "OnboardingTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Namn p\u00e5 mallen"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av mallen"
+    },
+    "department": {
+      "type": "string",
+      "description": "Avdelning som mallen \u00e4r f\u00f6r"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "days_after_start": {
+            "type": "number",
+            "description": "Antal dagar efter startdatum"
+          },
+          "assigned_to_role": {
+            "type": "string",
+            "enum": [
+              "employee",
+              "manager",
+              "hr"
+            ],
+            "default": "employee"
+          },
+          "is_critical": {
+            "type": "boolean",
+            "default": false
+          },
+          "related_resource_url": {
+            "type": "string"
+          },
+          "admin_notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista med uppgifter i mallen"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "\u00c4r mallen aktiv"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

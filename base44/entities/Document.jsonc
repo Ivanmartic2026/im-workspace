@@ -1,0 +1,64 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Dokumentets titel"
+    },
+    "description": {
+      "type": "string",
+      "description": "Kort beskrivning"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "personalhandbok",
+        "policy",
+        "rutin",
+        "mall",
+        "\u00f6vrigt"
+      ],
+      "default": "\u00f6vrigt"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "L\u00e4nk till dokumentfilen"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "requires_acknowledgment": {
+      "type": "boolean",
+      "default": false,
+      "description": "Kr\u00e4ver l\u00e4st & f\u00f6rst\u00e5tt"
+    },
+    "acknowledged_by": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "acknowledged_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

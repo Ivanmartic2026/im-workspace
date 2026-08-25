@@ -1,0 +1,85 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Mottagarens email"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "forgot_clock_out",
+        "approval_needed",
+        "approved",
+        "rejected",
+        "time_correction_needed",
+        "overtime_warning",
+        "vacation_reminder",
+        "policy_violation",
+        "system"
+      ],
+      "description": "Typ av notifikation"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titel"
+    },
+    "message": {
+      "type": "string",
+      "description": "Meddelande"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Prioritet"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Har l\u00e4sts"
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "L\u00e4stidpunkt"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "Relaterad entitet"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "description": "Typ av relaterad entitet"
+    },
+    "action_url": {
+      "type": "string",
+      "description": "L\u00e4nk till \u00e5tg\u00e4rd"
+    },
+    "sent_via": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "app",
+          "email",
+          "sms",
+          "push"
+        ]
+      },
+      "description": "Kanaler som anv\u00e4nts"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type",
+    "title",
+    "message"
+  ]
+}

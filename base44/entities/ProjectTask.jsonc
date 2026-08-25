@@ -1,0 +1,71 @@
+{
+  "name": "ProjectTask",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Kopplat projekt"
+    },
+    "title": {
+      "type": "string",
+      "description": "Uppgiftstitel"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detaljerad beskrivning"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Email till tilldelad person"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "todo",
+        "in_progress",
+        "review",
+        "completed"
+      ],
+      "default": "todo",
+      "description": "Uppgiftsstatus"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Prioritet"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Startdatum"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Deadline"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "description": "Uppskattad tid (timmar)"
+    },
+    "actual_hours": {
+      "type": "number",
+      "description": "Faktisk tid (timmar)"
+    },
+    "completion_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "F\u00e4rdigst\u00e4llandeprocent (0-100)"
+    }
+  },
+  "required": [
+    "project_id",
+    "title"
+  ]
+}
